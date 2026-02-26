@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useState } from 'react'
 import AdminProducts from './AdminProducts'
-import AdminUSers from './AdminUSers'
+import AdminUsers from './AdminUsers'
 import AdminOrders from './AdminOrders'
 import AdminAnalytics from './AdminAnalytics'
 
@@ -20,7 +20,7 @@ export default function AdminDashboard() {
     </div>
     <div>
         {tab === 'products' && <AdminProducts/>}
-        {tab === 'users' && <AdminUSers/>}
+        {tab === 'users' && <AdminUsers/>}
         {tab === 'orders' && <AdminOrders/>}
         {tab === 'analytics' && <AdminAnalytics/>}
 
