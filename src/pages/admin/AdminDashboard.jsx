@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useState } from 'react'
 import AdminProducts from './AdminProducts'
-import AdminUSers from './adminUSers'
+import AdminUSers from './AdminUSers'
 import AdminOrders from './AdminOrders'
 import AdminAnalytics from './AdminAnalytics'
 
