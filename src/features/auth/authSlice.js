@@ -1,9 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { api } from '@/app/api'
 
-const getStoredAuth = () => {
+const getStoredUser = () => {
   try {
-    const stored = localStorage.getItem('auth')
+    const stored = localStorage.getItem('user')
     if (!stored || stored === 'undefined') return null
     return JSON.parse(stored)
   } catch {
@@ -11,10 +11,8 @@ const getStoredAuth = () => {
   }
 }
 
-const initialState = getStoredAuth() || {
-  user: null,
-  accessToken: null,
-  refreshToken: null,
+const initialState = {
+  user: getStoredUser(), // MUST be the user object, not { user: {...} }
   loading: false,
   error: null,
 }
@@ -24,17 +22,12 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setUser: (state, action) => {
-      // payload = { user, accessToken, refreshToken }
-      state.user = action.payload.user
-      state.accessToken = action.payload.accessToken
-      state.refreshToken = action.payload.refreshToken
-      localStorage.setItem('auth', JSON.stringify(state))
+      state.user = action.payload
+      localStorage.setItem('user', JSON.stringify(action.payload))
     },
     logout: (state) => {
       state.user = null
-      state.accessToken = null
-      state.refreshToken = null
-      localStorage.removeItem('auth')
+      localStorage.removeItem('user')
     },
   },
 })
