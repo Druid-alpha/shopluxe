@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react"
 import { useLoginMutation } from "@/features/auth/authApi"
 import { useToast } from "@/hooks/use-toast"
 import { useAppDispatch } from "@/app/hooks"
-import { setUser } from "@/features/auth/authSlice"
+import { setUser, setToken } from "@/features/auth/authSlice"
 
 export default function Login() {
   const navigate = useNavigate()
@@ -26,6 +26,9 @@ export default function Login() {
 
       // ✅ FIX: PASS USER DIRECTLY (NO EXTRA OBJECT)
       dispatch(setUser(res.user))
+      if (res.accessToken) {
+        dispatch(setToken(res.accessToken))
+      }
 
       toast({ title: "Login successful" })
       navigate("/")

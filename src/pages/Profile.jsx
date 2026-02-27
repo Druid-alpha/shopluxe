@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 
 export default function Profile() {
-  const { user } = useAppSelector((state) => state.auth)
+  const { user, token } = useAppSelector((state) => state.auth)
   const dispatch = useAppDispatch()
   const { toast } = useToast()
 
@@ -14,38 +14,41 @@ export default function Profile() {
   const [avatarFile, setAvatarFile] = useState(null)
   const [loading, setLoading] = useState(false)
 
- const handleUpdate = async () => {
-  if (!name) return toast({ title: 'Name is required', variant: 'destructive' })
-  setLoading(true)
+  const handleUpdate = async () => {
+    if (!name) return toast({ title: 'Name is required', variant: 'destructive' })
+    setLoading(true)
 
-  try {
-    const formData = new FormData()
-    formData.append('name', name)
-    if (avatarFile) formData.append('avatar', avatarFile)
+    try {
+      const formData = new FormData()
+      formData.append('name', name)
+      if (avatarFile) formData.append('avatar', avatarFile)
 
-    const endpoint = avatarFile ? `/users/me/avatar` : `/users/me`
+      const endpoint = avatarFile ? `/users/me/avatar` : `/users/me`
 
-    const res = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
-      method: 'PUT',
-      credentials: 'include',
-      body: avatarFile ? formData : JSON.stringify({ name }),
-      headers: avatarFile ? {} : { 'Content-Type': 'application/json' },
-    })
+      const res = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
+        method: 'PUT',
+        credentials: 'include',
+        body: avatarFile ? formData : JSON.stringify({ name }),
+        headers: {
+          ...(avatarFile ? {} : { 'Content-Type': 'application/json' }),
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      })
 
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.message || 'Update failed')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Update failed')
 
-    // ✅ IMPORTANT FIX
-    dispatch(setUser(data.user))
+      // ✅ IMPORTANT FIX
+      dispatch(setUser(data.user))
 
-    toast({ title: 'Profile updated successfully' })
-    setAvatarFile(null)
-  } catch (err) {
-    toast({ title: 'Error', description: err.message, variant: 'destructive' })
-  } finally {
-    setLoading(false)
+      toast({ title: 'Profile updated successfully' })
+      setAvatarFile(null)
+    } catch (err) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' })
+    } finally {
+      setLoading(false)
+    }
   }
-}
 
 
   return (

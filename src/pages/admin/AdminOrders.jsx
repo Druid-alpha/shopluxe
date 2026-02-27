@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react'
+import { useAppSelector } from '@/app/hooks'
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([])
+  const token = useAppSelector(state => state.auth.token)
 
   useEffect(() => {
     async function fetchOrders() {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
           credentials: 'include',
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          }
         })
 
         if (!res.ok) throw new Error('Unauthorized')

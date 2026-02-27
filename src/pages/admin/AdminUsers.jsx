@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
+import { useAppSelector } from '@/app/hooks'
 
 export default function AdminUSers() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
+  const token = useAppSelector((state) => state.auth.token)
 
   // Fetch users
   const fetchUsers = async () => {
@@ -12,6 +14,9 @@ export default function AdminUSers() {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users`, {
         credentials: 'include', // important!
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed to fetch users')
@@ -32,7 +37,10 @@ export default function AdminUSers() {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${userId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
         credentials: 'include',
         body: JSON.stringify({ role: newRole }),
       })

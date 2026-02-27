@@ -7,6 +7,7 @@ import { useState } from 'react'
 
 export default function Checkout() {
   const cart = useAppSelector(state => state.cart.items)
+  const token = useAppSelector(state => state.auth.token)
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -20,7 +21,10 @@ export default function Checkout() {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
         credentials: 'include',
         body: JSON.stringify({})
       })
