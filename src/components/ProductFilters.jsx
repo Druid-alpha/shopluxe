@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { Slider } from './ui/slider'
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 export default function ProductFilters({
   category,
@@ -24,15 +24,15 @@ export default function ProductFilters({
   const [loading, setLoading] = useState(false)
 
   // ---------------- Derived values ----------------
- const selectedCategoryObj = useMemo(
-  () =>
-    categories.find(
-      c =>
-        c._id === category ||
-        c.name.toLowerCase() === category?.toLowerCase()
-    ),
-  [categories, category]
-)
+  const selectedCategoryObj = useMemo(
+    () =>
+      categories.find(
+        c =>
+          c._id === category ||
+          c.name.toLowerCase() === category?.toLowerCase()
+      ),
+    [categories, category]
+  )
   const isClothing = selectedCategoryObj?.name?.toLowerCase() === 'clothing'
 
   // ---------------- Load filter options ----------------

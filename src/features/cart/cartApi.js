@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "@/lib/axios";
 
 const API = `${import.meta.env.VITE_API_URL}/cart`
 
@@ -9,7 +9,7 @@ export const normalizeCart = (cart) =>
       typeof i.variant === 'string'
         ? i.variant
         : i.variant?.sku || null;
-        const productImage =
+    const productImage =
       i.variant?.image?.url || i.product?.images?.[0]?.url || null
 
     return {

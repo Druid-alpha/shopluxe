@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Select from 'react-select'
-import axios from 'axios'
+import axios from '@/lib/axios'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 
@@ -104,28 +104,28 @@ export default function AdminProducts() {
       })
     }
   }
-const handleToggleFeatured = async (product) => {
-  try {
-    await toggleFeatured({
-      id: product._id,
-      featured: !product.featured,
-    }).unwrap()
+  const handleToggleFeatured = async (product) => {
+    try {
+      await toggleFeatured({
+        id: product._id,
+        featured: !product.featured,
+      }).unwrap()
 
-    toast({
-      title: product.featured
-        ? 'Removed from featured'
-        : 'Marked as featured',
-    })
+      toast({
+        title: product.featured
+          ? 'Removed from featured'
+          : 'Marked as featured',
+      })
 
-    refetch()
-  } catch (err) {
-    toast({
-      title: 'Error',
-      description: err?.data?.message || 'Failed to update featured',
-      variant: 'destructive',
-    })
+      refetch()
+    } catch (err) {
+      toast({
+        title: 'Error',
+        description: err?.data?.message || 'Failed to update featured',
+        variant: 'destructive',
+      })
+    }
   }
-}
   const handleRestore = async id => {
     try {
       await restoreProduct(id).unwrap()
@@ -254,7 +254,7 @@ const handleToggleFeatured = async (product) => {
                   <ul className="ml-4 list-disc">
                     {p.variants.map((v, idx) => (
                       <li key={idx}>
-                        {v.options?.size ? `Size ${v.options.size}` : ''} 
+                        {v.options?.size ? `Size ${v.options.size}` : ''}
                         {v.options?.color?.name ? `, Color ${v.options.color.name}` : ''}: ₦{v.price}
                       </li>
                     ))}
@@ -269,12 +269,12 @@ const handleToggleFeatured = async (product) => {
 
             <div className="flex gap-2">
               <Button
-  size="sm"
-  variant={p.featured ? "secondary" : "outline"}
-  onClick={() => handleToggleFeatured(p)}
->
-  {p.featured ? "Unfeature" : "Feature"}
-</Button>
+                size="sm"
+                variant={p.featured ? "secondary" : "outline"}
+                onClick={() => handleToggleFeatured(p)}
+              >
+                {p.featured ? "Unfeature" : "Feature"}
+              </Button>
               {!p.isDeleted ? (
                 <>
                   <Button size="sm" onClick={() => setEditingProduct(p)}>Edit</Button>
