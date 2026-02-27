@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api/cart";
+const API = `${import.meta.env.VITE_API_URL}/cart`
 
 // 🔥 Normalize cart for frontend
 export const normalizeCart = (cart) =>
