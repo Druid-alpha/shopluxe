@@ -4,6 +4,7 @@ import { Route, Routes } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import { Toaster } from './components/ui/toaster'
+import ScrollToTop from './components/ScrollToTop'
 
 import Home from './pages/Home'
 import Products from './pages/Products'
@@ -30,6 +31,7 @@ import Register from './pages/Register'
 export default function App() {
   return (
     <>
+      <ScrollToTop />
       <Navbar />
 
       <main className="min-h-[80vh] p-4">

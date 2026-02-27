@@ -110,23 +110,29 @@ export default function Products() {
           <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
             {isLoading
               ? Array.from({ length: 12 }).map((_, i) => (
-                  <div key={i} className="animate-pulse border rounded-lg p-4 space-y-3">
-                    <div className="h-40 bg-gray-200 rounded" />
-                    <div className="h-4 bg-gray-200 rounded w-3/4" />
-                    <div className="h-4 bg-gray-200 rounded w-1/2" />
-                  </div>
-                ))
+                <div key={i} className="animate-pulse border rounded-lg p-4 space-y-3">
+                  <div className="h-40 bg-gray-200 rounded" />
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  <div className="h-4 bg-gray-200 rounded w-1/2" />
+                </div>
+              ))
               : data?.products?.map(product => (
-                  <ProductCard key={product._id} product={product} />
-                ))
+                <ProductCard key={product._id} product={product} />
+              ))
             }
           </div>
 
           {/* Pagination */}
           <div className="flex justify-center items-center gap-4 mt-10">
-            <Button disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>Prev</Button>
+            <Button disabled={page <= 1} onClick={() => {
+              setPage(p => Math.max(1, p - 1))
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}>Prev</Button>
             <span className="px-4 py-2 border rounded">Page {page} of {totalPages}</span>
-            <Button disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Next</Button>
+            <Button disabled={page >= totalPages} onClick={() => {
+              setPage(p => Math.min(totalPages, p + 1))
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}>Next</Button>
           </div>
         </div>
       </div>
