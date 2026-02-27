@@ -65,9 +65,10 @@ export default function ProductDetails() {
     id => id.toString() === product._id.toString() || id?.productId === product._id
   )
 
+  const currentStock = selectedVariant.stock ?? product.stock ?? 0;
+
   const handleAddToCart = async () => {
-    const stock = selectedVariant.stock ?? product.stock
-    if (stock < quantity) {
+    if (currentStock < quantity) {
       toast({ title: 'Not enough stock', variant: 'destructive' })
       return
     }
@@ -146,10 +147,16 @@ export default function ProductDetails() {
           {product.clothingType && <p><b>Type:</b> {product.clothingType}</p>}
           {product.color?.name && <p><b>Color:</b> {product.color.name}</p>}
           {product.tags?.length > 0 && <p><b>Tags:</b> {product.tags.join(', ')}</p>}
-          <p><b>Stock:</b> {product.stock > 0 ? `${product.stock} available` : 'Out of stock'}</p>
+          <p><b>Stock:</b> {currentStock > 0 ? <span className="text-green-600">{currentStock} available</span> : <span className="text-red-500 font-bold">Out of stock</span>}</p>
         </div>
 
-        <Button onClick={handleAddToCart}>Add to Cart</Button>
+        <Button
+          onClick={handleAddToCart}
+          disabled={currentStock < 1}
+          className={currentStock < 1 ? 'opacity-50 cursor-not-allowed' : ''}
+        >
+          {currentStock > 0 ? 'Add to Cart' : 'Out of Stock'}
+        </Button>
         <Button
           variant={isInWishlist ? 'destructive' : 'outline'}
           onClick={handleWishlistToggle}
