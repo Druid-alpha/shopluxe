@@ -10,7 +10,7 @@ import Products from './pages/Products'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import Login from './pages/Login'
-import Register from '../Register'
+
 import Profile from './pages/Profile'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
@@ -25,6 +25,7 @@ import AdminUSers from './pages/admin/AdminUsers'
 import AdminOrders from './pages/admin/AdminOrders'
 import ProductDetails from './features/products/ProductDetails'
 import OrderReceipt from './pages/orderReceipt'
+import Register from './pages/Register'
 
 export default function App() {
   return (
