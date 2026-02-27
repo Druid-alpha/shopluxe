@@ -7,9 +7,9 @@ export default function ProtectedRoute({ children, roles }) {
   if (isLoading) return null
 
   // Not logged in
-  if (isError || !data?.user) {
-    return <Navigate to="/login" replace />
-  }
+  if (!isLoading && (isError || !data?.user)) {
+  return <Navigate to="/login" replace />
+}
 
   // Role restriction
   if (roles && !roles.includes(data.user.role)) {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { logoutAndReset } from '@/features/auth/authSlice'
 import { useLogoutMutation } from '@/features/auth/authApi'
@@ -23,6 +23,7 @@ export default function Navbar() {
   const cartCount = useAppSelector((state) => state.cart.items.length)
   const dispatch = useAppDispatch()
   const location = useLocation()
+  const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   // Wishlist count
@@ -67,7 +68,7 @@ export default function Navbar() {
   onSubmit={(e) => {
     e.preventDefault()
     const q = e.target.search.value
-    if (q) window.location.href = `/products?search=${q}`
+    if (q) navigate(`/products?search=${q}`)
   }}
   className="relative"
 >
