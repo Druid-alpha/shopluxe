@@ -21,6 +21,7 @@
     "carousel": "^0.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.34.3",
     "install": "^0.13.0",
     "js-cookie": "^3.0.5",
     "jspdf": "^4.0.0",
