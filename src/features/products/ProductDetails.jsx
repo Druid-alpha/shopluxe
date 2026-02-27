@@ -13,6 +13,7 @@ import {
   useGetWishlistQuery
 } from '../wishlist/wishlistApi'
 import StarRating from './StarRating'
+import { Heart } from 'lucide-react'
 
 /* ================= IMAGE HELPER ================= */
 const getImageUrl = (img) => {
@@ -159,32 +160,77 @@ export default function ProductDetails() {
           </span>
         </div>
 
-        <p className="text-gray-700">{product.description}</p>
+        <p className="text-gray-700 leading-relaxed text-sm md:text-base">{product.description}</p>
 
-        {/* Missing Product Details from ProductForm */}
-        <div className="space-y-1 text-sm bg-gray-50 p-4 rounded-md">
-          {product.category?.name && <p><b>Category:</b> {product.category.name}</p>}
-          {product.brand?.name && <p><b>Brand:</b> {product.brand.name}</p>}
-          {product.clothingType && <p><b>Type:</b> {product.clothingType}</p>}
-          {product.color?.name && <p><b>Color:</b> {product.color.name}</p>}
-          {product.tags?.length > 0 && <p><b>Tags:</b> {product.tags.join(', ')}</p>}
-          <p><b>Stock:</b> {currentStock > 0 ? <span className="text-green-600">{currentStock} available</span> : <span className="text-red-500 font-bold">Out of stock</span>}</p>
+        {/* PRICE DISPLAY */}
+        <div className="text-3xl font-bold my-4">
+          ₦{(selectedVariant.price ?? product.price).toLocaleString()}
         </div>
 
-        <Button
-          onClick={handleAddToCart}
-          disabled={currentStock < 1}
-          className={currentStock < 1 ? 'opacity-50 cursor-not-allowed' : ''}
-        >
-          {currentStock > 0 ? 'Add to Cart' : 'Out of Stock'}
-        </Button>
-        <Button
-          variant={isInWishlist ? 'destructive' : 'outline'}
-          onClick={handleWishlistToggle}
-        >
-          Wishlist
-        </Button>
+        {/* VARIANT SELECTOR */}
+        {variants.length > 0 && (
+          <div className="space-y-3 mt-6">
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-500 mb-2">Select Variant</h3>
+            <div className="flex flex-wrap gap-3">
+              {variants.map((v, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setSelectedVariantIndex(idx);
+                    if (v.image?.url) setMainImage(v.image.url);
+                  }}
+                  className={`px-4 py-2 border rounded-md text-sm font-medium transition-all ${selectedVariantIndex === idx
+                    ? 'border-black bg-black text-white shadow-md'
+                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                    }`}
+                >
+                  {v.color && <span className="mr-2 capitalize">{v.color}</span>}
+                  {v.size && <span className="uppercase">{v.size}</span>}
+                  {(!v.color && !v.size) && (v.sku || `Variant ${idx + 1}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
+        {/* Missing Product Details from ProductForm */}
+        <div className="space-y-2 text-sm bg-gray-50 p-5 rounded-lg border mt-6">
+          <div className="grid grid-cols-2 gap-4">
+            {product.category?.name && <div><span className="text-gray-500">Category:</span> <span className="font-medium">{product.category.name}</span></div>}
+            {product.brand?.name && <div><span className="text-gray-500">Brand:</span> <span className="font-medium">{product.brand.name}</span></div>}
+            {product.clothingType && <div><span className="text-gray-500">Type:</span> <span className="font-medium">{product.clothingType}</span></div>}
+            {product.color?.name && <div><span className="text-gray-500">Color:</span> <span className="font-medium">{product.color.name}</span></div>}
+          </div>
+          {product.tags?.length > 0 && <div className="mt-2 text-gray-500">Tags: <span className="text-gray-800">{product.tags.join(', ')}</span></div>}
+
+          <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+            <span className="font-semibold text-lg">Availability:</span>
+            {currentStock > 0 ? (
+              <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full">{currentStock} in stock</span>
+            ) : (
+              <span className="text-red-500 font-bold bg-red-50 px-3 py-1 rounded-full">Out of stock</span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex gap-4 mt-8">
+          <Button
+            onClick={handleAddToCart}
+            disabled={currentStock < 1}
+            size="lg"
+            className={`flex-1 text-lg h-12 ${currentStock < 1 ? 'opacity-50 cursor-not-allowed bg-gray-400' : 'bg-black hover:bg-gray-800'}`}
+          >
+            {currentStock > 0 ? 'Add to Cart' : 'Out of Stock'}
+          </Button>
+          <Button
+            variant={isInWishlist ? 'destructive' : 'outline'}
+            onClick={handleWishlistToggle}
+            size="lg"
+            className="h-12 w-12 p-0 flex-shrink-0"
+          >
+            <Heart className={isInWishlist ? "fill-current" : ""} />
+          </Button>
+        </div>
         <ReviewForm
           productId={product._id}
           onSuccess={refetchReviews}

@@ -83,49 +83,60 @@ export default function VerifyOtp() {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 border rounded space-y-4">
-      <h1 className="text-2xl font-bold text-center">Verify OTP</h1>
-      <p className="text-sm text-muted-foreground text-center">
-        Enter the code sent to <b>{email}</b>
-      </p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-6 bg-white p-8 border border-gray-200 rounded-xl shadow-sm">
+        <div>
+          <h1 className="text-3xl font-bold text-center text-gray-900 tracking-tight">Verify email</h1>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            To continue, please enter the security code that was sent to <span className="font-semibold text-gray-900">{email}</span>.
+          </p>
+        </div>
 
-      <form onSubmit={handleVerify} className="space-y-3">
-        <Input
-          placeholder="OTP"
-          value={otp}
-          onChange={(e) => setOtp(e.target.value)}
-          required
-        />
-        <Button
-          type="submit"
-          disabled={isVerifying}
-          className="w-full flex items-center justify-center"
-        >
-          {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Verify
-        </Button>
-      </form>
+        <form onSubmit={handleVerify} className="space-y-5 mt-8">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Security Code</label>
+            <Input
+              placeholder="Enter OTP"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              required
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm text-center text-lg tracking-widest"
+              maxLength={6}
+            />
+          </div>
+          <Button
+            type="submit"
+            disabled={isVerifying}
+            className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 transition-colors"
+          >
+            {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Verify code
+          </Button>
+        </form>
 
-      <button
-        type="button"
-        onClick={handleResend}
-        disabled={!canResend || isResending || resendAttempts >= maxAttempts}
-        className="text-sm text-primary underline disabled:opacity-50"
-      >
-        {resendAttempts >= maxAttempts
-          ? "Resend limit reached"
-          : canResend
-          ? isResending
-            ? "Sending..."
-            : "Resend OTP"
-          : `Resend in ${countdown}s`}
-      </button>
+        <div className="pt-4 flex flex-col items-center justify-center border-t border-gray-200">
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={!canResend || isResending || resendAttempts >= maxAttempts}
+            className="text-sm font-medium text-black hover:underline disabled:text-gray-400 disabled:no-underline"
+          >
+            {resendAttempts >= maxAttempts
+              ? "Resend limit reached"
+              : canResend
+                ? isResending
+                  ? "Sending new code..."
+                  : "Resend security code"
+                : `Wait ${countdown}s to resend`}
+          </button>
 
-      {resendAttempts > 0 && (
-        <p className="text-xs text-muted-foreground">
-          Attempts: {resendAttempts}/{maxAttempts}
-        </p>
-      )}
+          {resendAttempts > 0 && (
+            <p className="text-xs text-gray-500 mt-2">
+              Attempts: {resendAttempts}/{maxAttempts}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
