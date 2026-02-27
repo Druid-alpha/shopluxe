@@ -56,7 +56,28 @@ export default function ProductDetails() {
 
 
   /* ================= SAFE EARLY RETURNS ================= */
-  if (isLoading) return <p>Loading...</p>
+  if (isLoading) return (
+    <div className="p-6 flex flex-col md:flex-row gap-6 animate-pulse max-w-7xl mx-auto">
+      <div className="md:w-1/2 space-y-4">
+        <div className="w-full h-96 bg-gray-200 rounded"></div>
+        <div className="flex gap-2">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="w-20 h-20 bg-gray-200 rounded"></div>
+          ))}
+        </div>
+      </div>
+      <div className="md:w-1/2 space-y-4">
+        <div className="h-10 bg-gray-200 rounded w-3/4"></div>
+        <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+        <div className="h-24 bg-gray-200 rounded w-full mt-4"></div>
+        <div className="h-32 bg-gray-100 rounded-md p-4 mt-6 border"></div>
+        <div className="flex gap-4 mt-6">
+          <div className="h-10 bg-gray-200 rounded w-32"></div>
+          <div className="h-10 bg-gray-200 rounded w-32"></div>
+        </div>
+      </div>
+    </div>
+  )
   if (!product) return <p>Product not found</p>
 
   /* ================= LOGIC ================= */

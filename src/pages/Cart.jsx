@@ -43,7 +43,7 @@ export default function Cart() {
   const changeQty = async (item, delta) => {
     if (updatingItems[item.key]) return // Prevent multi-clicks
 
-    const newQty = item.qty + delta;
+    const newQty = Number(item.qty) + Number(delta);
     if (newQty < 1) return;
 
     setUpdatingItems(prev => ({ ...prev, [item.key]: true }))

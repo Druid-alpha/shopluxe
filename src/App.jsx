@@ -1,5 +1,7 @@
 import React from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
+import { AnimatePresence } from 'framer-motion'
+import PageTransition from './components/PageTransition'
 
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -29,95 +31,99 @@ import OrderReceipt from './pages/orderReceipt'
 import Register from './pages/Register'
 
 export default function App() {
+  const location = useLocation()
+
   return (
     <>
       <ScrollToTop />
       <Navbar />
 
       <main className="min-h-[80vh] p-4">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/products/:id" element={<ProductDetails />} />
-          <Route path="/cart" element={<Cart />} />
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+            <Route path="/products" element={<PageTransition><Products /></PageTransition>} />
+            <Route path="/products/:id" element={<PageTransition><ProductDetails /></PageTransition>} />
+            <Route path="/cart" element={<PageTransition><Cart /></PageTransition>} />
 
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
+            <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+            <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+            <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
+            <Route path="/verify-email" element={<PageTransition><VerifyEmail /></PageTransition>} />
+            <Route path="/reset-password/:token" element={<PageTransition><ResetPassword /></PageTransition>} />
 
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute roles={['user', 'admin']}>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute roles={['user', 'admin']}>
+                  <PageTransition><Profile /></PageTransition>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/checkout"
-            element={
-              <ProtectedRoute roles={['user']}>
-                <Checkout />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute roles={['user']}>
+                  <PageTransition><Checkout /></PageTransition>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/wishlist"
-            element={
-              <ProtectedRoute roles={['user']}>
-                <Wishlist />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/orders/:id"
-            element={
-              <ProtectedRoute roles={['user']}>
-                <OrderReceipt />
-              </ProtectedRoute>
-            }
-          />
-          {/* ADMIN ROUTES */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute roles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/wishlist"
+              element={
+                <ProtectedRoute roles={['user']}>
+                  <PageTransition><Wishlist /></PageTransition>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders/:id"
+              element={
+                <ProtectedRoute roles={['user']}>
+                  <PageTransition><OrderReceipt /></PageTransition>
+                </ProtectedRoute>
+              }
+            />
+            {/* ADMIN ROUTES */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <PageTransition><AdminDashboard /></PageTransition>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/admin/products"
-            element={
-              <ProtectedRoute roles={['admin']}>
-                <AdminProducts />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/admin/products"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <PageTransition><AdminProducts /></PageTransition>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/admin/users"
-            element={
-              <ProtectedRoute roles={['admin']}>
-                <AdminUSers />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <PageTransition><AdminUSers /></PageTransition>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/admin/orders"
-            element={
-              <ProtectedRoute roles={['admin']}>
-                <AdminOrders />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+            <Route
+              path="/admin/orders"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <PageTransition><AdminOrders /></PageTransition>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </AnimatePresence>
       </main>
 
       <Footer />

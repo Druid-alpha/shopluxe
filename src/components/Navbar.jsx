@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import { Heart, LogOut, Menu, Shield, ShoppingCart, User, X } from 'lucide-react'
+import { Heart, LogOut, Menu, Shield, ShoppingCart, User, X, ShoppingBasket } from 'lucide-react'
 import { useGetWishlistQuery } from '@/features/wishlist/wishlistApi'
 
 export default function Navbar() {
@@ -37,6 +37,7 @@ export default function Navbar() {
       await logoutApi().unwrap()
     } finally {
       dispatch(logoutAndReset())
+      navigate('/login')
     }
   }
 
@@ -60,24 +61,27 @@ export default function Navbar() {
         />
       )}
 
-      <nav className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="text-xl font-bold">
-          ShopLuxe
+      <nav className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+        <Link to="/" className="flex items-center gap-2 text-xl font-bold tracking-tight">
+          <div className="bg-black text-white p-1.5 rounded-lg flex items-center justify-center">
+            <ShoppingBasket size={22} className="text-white" />
+          </div>
+          ShopLuxe<span className="text-[10px] align-super">&trade;</span>
         </Link>
-<form
-  onSubmit={(e) => {
-    e.preventDefault()
-    const q = e.target.search.value
-    if (q) navigate(`/products?search=${q}`)
-  }}
-  className="relative"
->
-  <input
-    name="search"
-    placeholder="Search products..."
-    className="border rounded-full px-4 py-1.5 text-sm w-full focus:outline-none"
-  />
-</form>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            const q = e.target.search.value
+            if (q) navigate(`/products?search=${q}`)
+          }}
+          className="relative hidden md:block flex-1 max-w-md mx-4"
+        >
+          <input
+            name="search"
+            placeholder="Search products..."
+            className="border rounded-full px-4 py-1.5 text-sm w-full focus:outline-none"
+          />
+        </form>
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-6">
           <NavLink to="/products">Products</NavLink>
@@ -160,15 +164,38 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {/* Mobile Menu */}
       <div
         className={clsx(
-          'fixed inset-y-0 right-0 z-50 w-64 bg-white border-l shadow-lg transform transition-transform duration-300 md:hidden',
+          'fixed inset-y-0 right-0 z-50 w-72 bg-white border-l shadow-xl transform transition-transform duration-300 md:hidden flex flex-col',
           mobileOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >
-        <div className="px-4 py-6 space-y-4">
-          <Link to="/products" className="flex items-center gap-3 py-2">
+        <div className="p-4 border-b flex justify-between items-center">
+          <span className="font-bold text-lg">Menu</span>
+          <button onClick={() => setMobileOpen(false)} className="p-1"><X size={20} /></button>
+        </div>
+
+        <div className="p-4 border-b">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              const q = e.target.search.value
+              if (q) {
+                navigate(`/products?search=${q}`)
+                setMobileOpen(false)
+              }
+            }}
+          >
+            <input
+              name="search"
+              placeholder="Search products..."
+              className="border rounded-lg px-4 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-black"
+            />
+          </form>
+        </div>
+
+        <div className="px-4 py-4 space-y-2 flex-1 overflow-y-auto">
+          <Link to="/products" className="flex items-center gap-3 py-3 px-2 rounded-md hover:bg-gray-100">
             <Menu className="h-5 w-5" />
             Products
           </Link>
