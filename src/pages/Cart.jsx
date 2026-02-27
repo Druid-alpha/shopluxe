@@ -1,5 +1,5 @@
 // src/pages/Cart.jsx
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ export default function Cart() {
   const cart = useAppSelector(state => state.cart.items);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const [updatingItems, setUpdatingItems] = useState({})
 
   /* ================= LOAD CART ================= */
   useEffect(() => {
@@ -40,10 +41,14 @@ export default function Cart() {
 
   /* ================= CHANGE QUANTITY ================= */
   const changeQty = async (item, delta) => {
+    if (updatingItems[item.key]) return // Prevent multi-clicks
+
     const newQty = item.qty + delta;
     if (newQty < 1) return;
 
-    // Optimistic UI Update
+    setUpdatingItems(prev => ({ ...prev, [item.key]: true }))
+
+    // Optimistic UI Update  
     const optimisticCart = cart.map(cartItem =>
       cartItem.key === item.key ? { ...cartItem, qty: newQty } : cartItem
     )
@@ -58,6 +63,8 @@ export default function Cart() {
       // Revert to original cart on error
       dispatch(setCart(cart));
       alert(err.response?.data?.message || 'Failed to update cart');
+    } finally {
+      setUpdatingItems(prev => ({ ...prev, [item.key]: false }))
     }
   };
 
@@ -102,11 +109,11 @@ export default function Cart() {
               {/* Quantity & Remove */}
               <div className="flex items-center mt-3 gap-4">
                 <div className="flex items-center border rounded overflow-hidden">
-                  <Button size="sm" variant="outline" onClick={() => changeQty(item, -1)}>
+                  <Button size="sm" variant="outline" onClick={() => changeQty(item, -1)} disabled={updatingItems[item.key]}>
                     -
                   </Button>
-                  <span className="px-4 py-1 text-center">{item.qty}</span>
-                  <Button size="sm" variant="outline" onClick={() => changeQty(item, 1)}>
+                  <span className="px-4 py-1 text-center min-w-[3rem]">{item.qty}</span>
+                  <Button size="sm" variant="outline" onClick={() => changeQty(item, 1)} disabled={updatingItems[item.key]}>
                     +
                   </Button>
                 </div>
