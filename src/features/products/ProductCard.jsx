@@ -27,6 +27,11 @@ export default function ProductCard({ product, featured }) {
 
   const isWishlisted = wishlist.some((p) => p._id === product._id)
 
+  const totalStock = product.stock > 0
+    ? product.stock
+    : (product.variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0)
+  const isOutOfStock = totalStock < 1
+
   const handleAddToCart = async () => {
     try {
       const updatedCart = await cartApi.addToCart(product._id, 1)
@@ -68,13 +73,13 @@ export default function ProductCard({ product, featured }) {
       <Link to={`/products/${product._id}`}>
         <CardHeader>
           <img
-  src={product.images?.[0]?.url}
-  alt={product.title}
-  className="w-full h-72 object-contain rounded"
-  onError={(e) => {
-    e.currentTarget.src = '/placeholder.png'
-  }}
-/>
+            src={product.images?.[0]?.url}
+            alt={product.title}
+            className="w-full h-72 object-contain rounded"
+            onError={(e) => {
+              e.currentTarget.src = '/placeholder.png'
+            }}
+          />
 
         </CardHeader>
       </Link>
@@ -86,16 +91,21 @@ export default function ProductCard({ product, featured }) {
           </h3>
         </Link>
         <p className="font-medium">₦{product.price}</p>
-      <StarRating rating={product.avgRating} />
-  <span className="ml-2 text-gray-600 text-sm">
-    {product.avgRating.toFixed(1)} 
-  </span>
+        <StarRating rating={product.avgRating} />
+        <span className="ml-2 text-gray-600 text-sm">
+          {product.avgRating.toFixed(1)}
+        </span>
 
       </CardContent>
 
       <CardFooter>
-        <Button onClick={handleAddToCart} size="sm" className="w-full me-2">
-          Add to Cart
+        <Button
+          onClick={handleAddToCart}
+          size="sm"
+          className="w-full me-2"
+          disabled={isOutOfStock}
+        >
+          {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
         </Button>
         <Link to={`/products/${product._id}`} className="w-full">
           <Button variant="outline" size="sm" className="w-full">
