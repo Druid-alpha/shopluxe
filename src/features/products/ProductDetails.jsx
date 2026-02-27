@@ -48,11 +48,11 @@ export default function ProductDetails() {
   const selectedVariant = variants[selectedVariantIndex] || {}
 
   /* ================= EFFECTS (ALWAYS BEFORE RETURN) ================= */
- useEffect(() => {
-  if (product) {
-    setMainImage(product.images?.[0]?.url || '')
-  }
-}, [product])
+  useEffect(() => {
+    if (product) {
+      setMainImage(product.images?.[0]?.url || '')
+    }
+  }, [product])
 
 
   /* ================= SAFE EARLY RETURNS ================= */
@@ -60,8 +60,9 @@ export default function ProductDetails() {
   if (!product) return <p>Product not found</p>
 
   /* ================= LOGIC ================= */
+  // backend returns array of product ids directly, wait for wishlistData to resolve
   const isInWishlist = wishlistItems.some(
-    item => item.productId === product._id
+    id => id.toString() === product._id.toString() || id?.productId === product._id
   )
 
   const handleAddToCart = async () => {
@@ -88,14 +89,14 @@ export default function ProductDetails() {
     await toggleWishlist(product._id)
   }
 
-  
-const imageList = [
-  ...(product.images?.length ? [product.images[0]] : []), // main image
-  ...variants
-    .map(v => v.image)
-    .filter(img => img && img.url),
-  ...(product.images?.slice(1) || []) // remaining product images
-]
+
+  const imageList = [
+    ...(product.images?.length ? [product.images[0]] : []), // main image
+    ...variants
+      .map(v => v.image)
+      .filter(img => img && img.url),
+    ...(product.images?.slice(1) || []) // remaining product images
+  ]
 
   /* ================= RENDER ================= */
   return (
@@ -136,7 +137,17 @@ const imageList = [
           </span>
         </div>
 
-        <p>{product.description}</p>
+        <p className="text-gray-700">{product.description}</p>
+
+        {/* Missing Product Details from ProductForm */}
+        <div className="space-y-1 text-sm bg-gray-50 p-4 rounded-md">
+          {product.category?.name && <p><b>Category:</b> {product.category.name}</p>}
+          {product.brand?.name && <p><b>Brand:</b> {product.brand.name}</p>}
+          {product.clothingType && <p><b>Type:</b> {product.clothingType}</p>}
+          {product.color?.name && <p><b>Color:</b> {product.color.name}</p>}
+          {product.tags?.length > 0 && <p><b>Tags:</b> {product.tags.join(', ')}</p>}
+          <p><b>Stock:</b> {product.stock > 0 ? `${product.stock} available` : 'Out of stock'}</p>
+        </div>
 
         <Button onClick={handleAddToCart}>Add to Cart</Button>
         <Button

@@ -43,11 +43,20 @@ export default function Cart() {
     const newQty = item.qty + delta;
     if (newQty < 1) return;
 
+    // Optimistic UI Update
+    const optimisticCart = cart.map(cartItem =>
+      cartItem.key === item.key ? { ...cartItem, qty: newQty } : cartItem
+    )
+    dispatch(setCart(optimisticCart))
+
     try {
+      // Sync with backend in background
       const data = await cartApi.updateCartItem(item.productId, newQty, item.variant);
       dispatch(setCart(data));
     } catch (err) {
       console.error('Failed to update item:', err);
+      // Revert to original cart on error
+      dispatch(setCart(cart));
       alert(err.response?.data?.message || 'Failed to update cart');
     }
   };

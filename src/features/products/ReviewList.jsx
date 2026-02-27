@@ -56,10 +56,23 @@ export default function ReviewList({ reviews = [], productId, onRefetch }) {
         const isOwner = user && (r.user?._id || r.user) === user.id
         return (
           <div key={r._id} className="border p-3 rounded">
-            <div className="flex justify-between items-center mb-1">
-              <div className="flex items-center gap-2">
-                <span className="font-bold">{r.user?.name || 'User'}</span>
-                <span className="text-yellow-400">{'★'.repeat(r.rating)}</span>
+            <div className="flex justify-between items-start mb-1">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold">{r.user?.name || 'User'}</span>
+                  <span className="text-yellow-400">{'★'.repeat(r.rating)}</span>
+                </div>
+                {r.createdAt && (
+                  <span className="text-xs text-gray-500">
+                    {new Date(r.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                )}
               </div>
 
               {isOwner && (
@@ -71,9 +84,9 @@ export default function ReviewList({ reviews = [], productId, onRefetch }) {
             </div>
 
             {editingId === r._id ? (
-              <div className="space-y-2">
+              <div className="space-y-2 mt-2">
                 <div className="flex gap-1">
-                  {[1,2,3,4,5].map(s => (
+                  {[1, 2, 3, 4, 5].map(s => (
                     <span
                       key={s}
                       className={`text-2xl cursor-pointer ${editRating >= s ? 'text-yellow-400' : 'text-gray-300'}`}
@@ -88,7 +101,7 @@ export default function ReviewList({ reviews = [], productId, onRefetch }) {
                 </div>
               </div>
             ) : (
-              <p>{r.body}</p>
+              <p className="mt-2">{r.body}</p>
             )}
           </div>
         )
