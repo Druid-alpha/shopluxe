@@ -53,6 +53,26 @@ export default function AdminUSers() {
     }
   }
 
+  // Delete User
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Failed to delete user')
+      toast({ title: 'User deleted' })
+      fetchUsers()
+    } catch (err) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' })
+    }
+  }
+
   if (loading) return (
     <div className="flex items-center justify-center p-12">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
@@ -103,6 +123,14 @@ export default function AdminUSers() {
                       onClick={() => handleRoleChange(user._id, 'user')}
                     >
                       Demote
+                    </button>
+                  )}
+                  {user.role !== 'admin' && (
+                    <button
+                      className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 px-3 py-1.5 rounded-lg transition-colors border border-red-100 ml-2"
+                      onClick={() => handleDeleteUser(user._id)}
+                    >
+                      Delete
                     </button>
                   )}
                 </td>

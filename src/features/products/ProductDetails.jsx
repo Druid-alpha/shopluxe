@@ -109,7 +109,8 @@ export default function ProductDetails() {
       toast({ title: 'Login required', variant: 'destructive' })
       return
     }
-    await toggleWishlist(product._id)
+    const result = await toggleWishlist(product._id).unwrap()
+    toast({ title: result.message || 'Wishlist updated' })
   }
 
 
