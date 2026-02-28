@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -37,6 +37,21 @@ export default function Register() {
   const [registerApi, { isLoading }] = useRegisterMutation()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // Auto-hide password after 3 seconds
+  useEffect(() => {
+    if (showPassword) {
+      const timer = setTimeout(() => setShowPassword(false), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [showPassword])
+
+  useEffect(() => {
+    if (showConfirmPassword) {
+      const timer = setTimeout(() => setShowConfirmPassword(false), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [showConfirmPassword])
 
   const onSubmit = async (data) => {
     const formData = new FormData()
