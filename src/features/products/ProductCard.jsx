@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { useAppDispatch } from '@/app/hooks'
+import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -18,6 +18,7 @@ import {
 import StarRating from './StarRating'
 
 export default function ProductCard({ product, featured }) {
+  const dispatch = useAppDispatch()
   const { toast } = useToast()
   const navigate = useNavigate()
 
@@ -32,16 +33,31 @@ export default function ProductCard({ product, featured }) {
     : (product.variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0)
   const isOutOfStock = totalStock < 1
 
-  const handleAddToCart = async () => {
+  const user = useAppSelector((state) => state.auth.user)
+  const handleAddToCart = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!user) {
+      toast({
+        title: 'Login required',
+        description: 'Please login to add items to your cart',
+        variant: 'destructive',
+      })
+      navigate('/login')
+      return
+    }
+
     try {
-      const updatedCart = await cartApi.addToCart(product._id, 1)
+      const updatedCart = await cartApi.addToCart(product._id, 1, null)
       dispatch(setCart(updatedCart))
       toast({ title: 'Added to cart', description: product.title })
       navigate('/cart')
-    } catch {
+    } catch (err) {
+      console.error('Add to cart failed:', err)
       toast({
         title: 'Error',
-        description: 'Failed to add to cart',
+        description: err.response?.data?.message || 'Failed to add to cart',
         variant: 'destructive',
       })
     }

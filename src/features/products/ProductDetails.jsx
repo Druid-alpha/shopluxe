@@ -91,6 +91,16 @@ export default function ProductDetails() {
   const currentStock = selectedVariant.stock ?? product.stock ?? 0;
 
   const handleAddToCart = async () => {
+    if (!user) {
+      toast({
+        title: 'Login required',
+        description: 'Please login to add items to your cart',
+        variant: 'destructive'
+      })
+      navigate('/login')
+      return
+    }
+
     if (currentStock < quantity) {
       toast({ title: 'Not enough stock', variant: 'destructive' })
       return
