@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react'
 import { useAppSelector } from '@/app/hooks'
 import { Users, Package, ShoppingBag, TrendingUp, AlertCircle, Loader2 } from 'lucide-react'
 
@@ -22,7 +23,7 @@ export default function AdminAnalytics() {
         }
 
         const [usersRes, productsRes, ordersRes] = await Promise.all([
-          fetch(`${import.meta.env.VITE_API_URL}/users`, { credentials: 'include', headers }),
+          fetch(`${import.meta.env.VITE_API_URL}/admin/users`, { credentials: 'include', headers }),
           fetch(`${import.meta.env.VITE_API_URL}/products`, { credentials: 'include', headers }),
           fetch(`${import.meta.env.VITE_API_URL}/orders`, { credentials: 'include', headers }),
         ])

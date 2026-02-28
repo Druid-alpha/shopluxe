@@ -46,7 +46,7 @@ export default function Cart() {
     if (updatingItems[item.key]) return // Prevent multi-clicks
 
     const currentQty = Number(item.qty);
-    const availableStock = item.product?.stock ?? 99; // Fallback to 99 if stock not available
+    const availableStock = item.product?.stock ?? 0; // Fixed: default to 0 to prevent infinity
     const newQty = currentQty + Number(delta);
 
     if (newQty < 1) return;
@@ -145,7 +145,7 @@ export default function Cart() {
                       <button
                         className="px-3 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-black transition flex items-center justify-center disabled:opacity-50"
                         onClick={() => changeQty(item, 1)}
-                        disabled={updatingItems[item.key] || item.qty >= (item.product?.stock ?? 99)}
+                        disabled={updatingItems[item.key] || item.qty >= (item.product?.stock ?? 0)}
                       >
                         +
                       </button>

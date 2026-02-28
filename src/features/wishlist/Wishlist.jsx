@@ -16,6 +16,26 @@ export default function Wishlist() {
   const { data, isLoading, isError } = useGetWishlistQuery()
   const [toggleWishlist] = useToggleWishlistMutation()
 
+  const handleRemoveWishlist = async (product) => {
+    try {
+      await toggleWishlist(product._id).unwrap()
+      toast({ title: 'Removed from wishlist' })
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to remove item', variant: 'destructive' })
+    }
+  }
+
+  const handleAddToCart = async (product) => {
+    try {
+      // Add as base product (no variant selected in wishlist usually)
+      const updatedCart = await cartApi.addToCart(product._id, 1, null)
+      dispatch(setCart(updatedCart))
+      toast({ title: 'Added to Cart' })
+    } catch (err) {
+      toast({ title: 'Error', description: err.data?.message || 'Failed to add to cart', variant: 'destructive' })
+    }
+  }
+
   if (isLoading) return <p className="text-center p-10">Loading...</p>
   if (isError) return <p className="text-center p-10">Error fetching wishlist</p>
 

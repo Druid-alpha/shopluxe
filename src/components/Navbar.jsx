@@ -34,7 +34,10 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
+      setMobileOpen(false)
       await logoutApi().unwrap()
+    } catch (err) {
+      console.error('Logout error:', err)
     } finally {
       dispatch(logoutAndReset())
       navigate('/login')
@@ -219,6 +222,24 @@ export default function Navbar() {
               </span>
             )}
           </Link>
+
+          {/* Admin Links for Mobile */}
+          {user?.role === 'admin' && (
+            <div className="pt-4 space-y-2 border-t mt-4">
+              <p className="px-2 text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Management</p>
+              {adminLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className="flex items-center gap-3 py-3 px-2 rounded-md hover:bg-gray-100 text-sm font-semibold"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Shield className="h-4 w-4 text-purple-600" />
+                  {link.name}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
 
         {user && (

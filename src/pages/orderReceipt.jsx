@@ -10,6 +10,7 @@ import { authApi } from '@/features/auth/authApi'
 export default function OrderReceipt() {
   const { id } = useParams()
   const [order, setOrder] = useState(null)
+  const [error, setError] = useState(null)
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const receiptRef = useRef(null)
@@ -18,8 +19,18 @@ export default function OrderReceipt() {
     fetch(`${import.meta.env.VITE_API_URL}/orders/${id}`, {
       credentials: 'include'
     })
-      .then(res => res.json())
-      .then(data => setOrder(data.order))
+      .then(res => {
+        if (!res.ok) throw new Error('Order not found or unauthorized')
+        return res.json()
+      })
+      .then(data => {
+        if (data.order) setOrder(data.order)
+        else throw new Error('Invalid order data')
+      })
+      .catch(err => {
+        console.error('Fetch error:', err)
+        setError(err.message)
+      })
   }, [id])
 
   const downloadPDF = () => {
@@ -47,10 +58,19 @@ export default function OrderReceipt() {
     }
   }
 
+  if (error) return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-4">
+      <div className="bg-red-50 p-4 rounded-full text-red-500"><LogOut size={32} /></div>
+      <h2 className="text-xl font-bold">Failed to load order</h2>
+      <p className="text-gray-500 max-w-xs">{error}</p>
+      <Button onClick={() => navigate('/')}>Back to Shop</Button>
+    </div>
+  )
+
   if (!order) return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 space-y-4">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
-      <p className="text-gray-500 font-medium animate-pulse">Generating your premium receipt...</p>
+      <p className="text-gray-500 font-medium animate-pulse text-sm">Generating your premium receipt...</p>
     </div>
   )
 
