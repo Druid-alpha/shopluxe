@@ -30,6 +30,8 @@ export default function Login() {
     mode: "onBlur"
   })
 
+  const [login, { isLoading }] = useLoginMutation()
+
   const onSubmit = async (data) => {
     try {
       const res = await login(data).unwrap()
