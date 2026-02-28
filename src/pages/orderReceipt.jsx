@@ -12,6 +12,7 @@ export default function OrderReceipt() {
   const { id } = useParams()
   const [order, setOrder] = useState(null)
   const [error, setError] = useState(null)
+  const token = useAppSelector((state) => state.auth.token)
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const receiptRef = useRef(null)
@@ -21,7 +22,10 @@ export default function OrderReceipt() {
     dispatch(productApi.util.invalidateTags(['Product']))
 
     fetch(`${import.meta.env.VITE_API_URL}/orders/${id}`, {
-      credentials: 'include'
+      credentials: 'include',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      }
     })
       .then(res => {
         if (!res.ok) throw new Error('Order not found or unauthorized')
@@ -35,7 +39,7 @@ export default function OrderReceipt() {
         console.error('Fetch error:', err)
         setError(err.message)
       })
-  }, [id, dispatch])
+  }, [id, dispatch, token])
 
   const downloadPDF = () => {
     const element = receiptRef.current
@@ -152,7 +156,8 @@ export default function OrderReceipt() {
                   <p className="text-sm font-medium"><span className="text-gray-400 mr-2">Issue Date:</span> {new Date(order.createdAt).toLocaleDateString('en-US', { dateStyle: 'long' })}</p>
                   <p className="text-sm font-medium">
                     <span className="text-gray-400 mr-2">Status:</span>
-                    <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-[10px] font-black uppercase italic tracking-wider">
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase italic tracking-wider ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                      }`}>
                       {order.paymentStatus}
                     </span>
                   </p>

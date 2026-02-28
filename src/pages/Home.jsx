@@ -86,9 +86,9 @@ export default function Home() {
     <div className="w-full">
       {/* HERO SECTION */}
       <section className="relative w-full overflow-hidden bg-black pb-10 mb-16">
-        <Slider {...sliderSettings} className="h-[70vh] md:h-[80vh] w-full">
+        <Slider {...sliderSettings} className="h-[50vh] md:h-[80vh] w-full">
           {slides.map(slide => (
-            <div key={slide.id} className="relative h-[70vh] md:h-[80vh] w-full outline-none">
+            <div key={slide.id} className="relative h-[50vh] md:h-[80vh] w-full outline-none">
               <img
                 src={slide.image}
                 className="absolute inset-0 h-full w-full object-cover"
