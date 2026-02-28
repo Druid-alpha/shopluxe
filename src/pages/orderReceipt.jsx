@@ -25,15 +25,19 @@ export default function OrderReceipt() {
   }, [dispatch])
 
   const downloadPDF = () => {
-    const element = receiptRef.current
-    const opt = {
-      margin: 1,
-      filename: `Invoice_${order._id}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    if (order.invoiceUrl) {
+      window.open(order.invoiceUrl, '_blank')
+    } else {
+      const element = receiptRef.current
+      const opt = {
+        margin: 10,
+        filename: `receipt-${id}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }
+      html2pdf().from(element).set(opt).save()
     }
-    html2pdf().set(opt).from(element).save()
   }
 
   const handleLogout = async () => {
@@ -81,15 +85,12 @@ export default function OrderReceipt() {
             </div>
           </div>
           <div className="flex gap-3 w-full md:w-auto">
-            {order.invoiceUrl && (
-              <Button asChild variant="outline" className="flex-1 md:flex-none border-gray-200 text-gray-700 rounded-xl h-12 px-6 font-bold flex items-center gap-2">
-                <a href={order.invoiceUrl} target="_blank" rel="noopener noreferrer">
-                  <Download size={18} /> Official Invoice
-                </a>
-              </Button>
-            )}
-            <Button onClick={downloadPDF} className="flex-1 md:flex-none bg-black hover:bg-gray-800 text-white rounded-xl h-12 px-6 font-bold flex items-center gap-2">
-              <Download size={18} /> Download
+            <Button
+              onClick={downloadPDF}
+              className="flex-1 bg-black text-white hover:bg-gray-800 h-10 md:h-12 rounded-lg text-xs md:text-sm font-bold shadow-lg transition-all active:scale-95"
+            >
+              <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+              {order.invoiceUrl ? 'Download Official Invoice' : 'Generate & Download PDF'}
             </Button>
           </div>
         </div>
