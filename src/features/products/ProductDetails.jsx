@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useGetProductQuery, useGetReviewsQuery } from './productApi'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { setCart } from '../cart/cartSlice'
@@ -24,6 +24,7 @@ const getImageUrl = (img) => {
 
 export default function ProductDetails() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { toast } = useToast()
   const user = useAppSelector(state => state.auth.user)
@@ -102,6 +103,7 @@ export default function ProductDetails() {
     )
     dispatch(setCart(updatedCart))
     toast({ title: 'Added to Cart' })
+    navigate('/cart')
   }
 
   const handleWishlistToggle = async () => {

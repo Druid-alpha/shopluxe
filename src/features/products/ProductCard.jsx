@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '@/app/hooks'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,8 +18,8 @@ import {
 import StarRating from './StarRating'
 
 export default function ProductCard({ product, featured }) {
-  const dispatch = useAppDispatch()
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   const { data } = useGetWishlistQuery()
   const [toggleWishlist] = useToggleWishlistMutation()
@@ -37,6 +37,7 @@ export default function ProductCard({ product, featured }) {
       const updatedCart = await cartApi.addToCart(product._id, 1)
       dispatch(setCart(updatedCart))
       toast({ title: 'Added to cart', description: product.title })
+      navigate('/cart')
     } catch {
       toast({
         title: 'Error',

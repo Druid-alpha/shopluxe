@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Heart, ShoppingCart, X } from 'lucide-react'
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useGetWishlistQuery, useToggleWishlistMutation } from './wishlistApi'
 import { useAppDispatch } from '@/app/hooks'
 import { useToast } from '@/hooks/use-toast'
@@ -11,6 +11,7 @@ import * as cartApi from '../cart/cartApi'
 export default function Wishlist() {
   const dispatch = useAppDispatch()
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   // Fetch wishlist from backend
   const { data, isLoading, isError } = useGetWishlistQuery()
@@ -31,6 +32,7 @@ export default function Wishlist() {
       const updatedCart = await cartApi.addToCart(product._id, 1, null)
       dispatch(setCart(updatedCart))
       toast({ title: 'Added to Cart' })
+      navigate('/cart')
     } catch (err) {
       toast({ title: 'Error', description: err.data?.message || 'Failed to add to cart', variant: 'destructive' })
     }
