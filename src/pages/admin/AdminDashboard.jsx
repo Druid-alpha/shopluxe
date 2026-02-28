@@ -6,25 +6,26 @@ import AdminProducts from './AdminProducts'
 import AdminUsers from './AdminUsers'
 import AdminOrders from './AdminOrders'
 import AdminAnalytics from './AdminAnalytics'
+import { LayoutDashboard, Package, ShoppingBag, Users } from 'lucide-react'
 
 export default function AdminDashboard() {
-    const[tab, setTab]=useState('products')
+  const [tab, setTab] = useState('products')
   return (
     <div className='p-6 space-y-6'>
-   <h1 className='text-2xl font-bold'>Admin Dashboard</h1>
-    <div className='flex  gap-2 mb-4'>
-<Button onClick={()=>setTab('products')}>Products</Button>
-<Button onClick={()=>setTab('users')}>Users</Button>
-<Button onClick={()=>setTab('orders')}>Orders</Button>
-<Button onClick={()=>setTab('analytics')}>Analytics</Button>
-    </div>
-    <div>
-        {tab === 'products' && <AdminProducts/>}
-        {tab === 'users' && <AdminUsers/>}
-        {tab === 'orders' && <AdminOrders/>}
-        {tab === 'analytics' && <AdminAnalytics/>}
+      <h1 className='text-2xl font-bold'>Admin Dashboard</h1>
+      <div className='flex  gap-2 mb-4'>
+        <Button onClick={() => setTab('products')}>Products</Button>
+        <Button onClick={() => setTab('users')}>Users</Button>
+        <Button onClick={() => setTab('orders')}>Orders</Button>
+        <Button onClick={() => setTab('analytics')}>Analytics</Button>
+      </div>
+      <div>
+        {tab === 'products' && <AdminProducts />}
+        {tab === 'users' && <AdminUsers />}
+        {tab === 'orders' && <AdminOrders />}
+        {tab === 'analytics' && <AdminAnalytics />}
 
-    </div>
+      </div>
     </div>
   )
 }

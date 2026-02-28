@@ -219,45 +219,53 @@ export default function Navbar() {
               </span>
             )}
           </Link>
+        </div>
 
-          {user ? (
-            <>
-              <Link to="/profile" className="flex items-center gap-3 py-2">
-                <User className="h-5 w-5" />
-                Profile
-              </Link>
+        {user && (
+          <div className="p-4 border-t bg-gray-50 space-y-4">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10 border border-gray-200">
+                {user.avatar ? (
+                  <AvatarImage src={user.avatar} />
+                ) : (
+                  <AvatarFallback>
+                    {user.name?.[0]?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div>
+                <p className="text-sm font-semibold">{user.name}</p>
+                <p className="text-xs text-gray-500 truncate max-w-[180px]">{user.email}</p>
+              </div>
+            </div>
 
-              {user.role === 'admin' &&
-                adminLinks.map((link) => (
-                  <Link key={link.path} to={link.path} className="flex items-center gap-3 py-2">
-                    <Shield className="h-5 w-5" />
-                    {link.name}
-                  </Link>
-                ))}
-
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" asChild onClick={() => setMobileOpen(false)}>
+                <Link to="/profile">Profile</Link>
+              </Button>
               <Button
                 variant="destructive"
-                className="w-full flex items-center gap-2"
+                size="sm"
+                className="flex items-center gap-2"
                 onClick={handleLogout}
               >
                 <LogOut className="h-4 w-4" />
                 Logout
               </Button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="flex items-center gap-3 py-2">
-                <User className="h-5 w-5" />
-                Login
-              </Link>
+            </div>
+          </div>
+        )}
 
-              <Link to="/register" className="flex items-center gap-3 py-2">
-                <User className="h-5 w-5" />
-                Sign up
-              </Link>
-            </>
-          )}
-        </div>
+        {!user && (
+          <div className="p-4 border-t grid grid-cols-2 gap-2">
+            <Button variant="outline" asChild onClick={() => setMobileOpen(false)}>
+              <Link to="/login">Login</Link>
+            </Button>
+            <Button asChild onClick={() => setMobileOpen(false)}>
+              <Link to="/register">Sign up</Link>
+            </Button>
+          </div>
+        )}
       </div>
     </header>
   )

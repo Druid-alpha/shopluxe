@@ -5,12 +5,14 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { Button } from '@/components/ui/button';
 import { setCart } from '@/features/cart/cartSlice';
 import * as cartApi from '@/features/cart/cartApi';
-import { Trash, Loader2 } from 'lucide-react';
+import { Trash, Loader2, Toast } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Cart() {
   const cart = useAppSelector(state => state.cart.items);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [updatingItems, setUpdatingItems] = useState({})
 
   /* ================= LOAD CART ================= */
@@ -43,8 +45,15 @@ export default function Cart() {
   const changeQty = async (item, delta) => {
     if (updatingItems[item.key]) return // Prevent multi-clicks
 
-    const newQty = Number(item.qty) + Number(delta);
+    const currentQty = Number(item.qty);
+    const availableStock = item.product?.stock ?? 99; // Fallback to 99 if stock not available
+    const newQty = currentQty + Number(delta);
+
     if (newQty < 1) return;
+    if (newQty > availableStock) {
+      toast({ title: 'Reached maximum stock limit', variant: 'destructive' });
+      return;
+    }
 
     setUpdatingItems(prev => ({ ...prev, [item.key]: true }))
 
@@ -136,7 +145,7 @@ export default function Cart() {
                       <button
                         className="px-3 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-black transition flex items-center justify-center disabled:opacity-50"
                         onClick={() => changeQty(item, 1)}
-                        disabled={updatingItems[item.key]}
+                        disabled={updatingItems[item.key] || item.qty >= (item.product?.stock ?? 99)}
                       >
                         +
                       </button>

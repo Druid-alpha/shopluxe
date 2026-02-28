@@ -14,6 +14,7 @@ import {
 } from '@/features/products/productApi'
 import ProductForm from './ProductForm'
 import Modal from './Modal'
+import { Star, Edit, Trash2, RotateCcw, Trash } from 'lucide-react'
 
 export default function AdminProducts() {
   const [toggleFeatured] = useToggleFeaturedMutation()
@@ -175,123 +176,185 @@ export default function AdminProducts() {
 
   return (
     <div className="space-y-4">
-      {/* FILTERS */}
-      <div className="flex gap-2 flex-wrap">
-        <Select
-          className="min-w-[200px]"
-          placeholder="Category"
-          isClearable
-          options={options.categories.map(c => ({ value: c._id, label: c.name }))}
-          value={
-            filters.category
-              ? { value: filters.category, label: options.categories.find(c => c._id === filters.category)?.name || '' }
-              : null
-          }
-          onChange={opt => handleFilterChange('category', opt?.value)}
-        />
+      {/* FILTERS & ACTIONS */}
+      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h2 className="text-lg font-bold text-gray-900">Filters & Inventory</h2>
+          <div className="flex gap-2">
+            <Button onClick={() => setEditingProduct({})} className="bg-black hover:bg-gray-800 rounded-xl">
+              + Create Product
+            </Button>
+            <Button variant="outline" className="rounded-xl border-red-200 text-red-600 hover:bg-red-50" onClick={handleHardDeleteAll}>
+              Purge Deleted
+            </Button>
+          </div>
+        </div>
 
-        <Select
-          className="min-w-[200px]"
-          placeholder="Clothing Type"
-          isClearable
-          options={[
-            { value: 'clothes', label: 'Clothes' },
-            { value: 'shoes', label: 'Shoes' },
-            { value: 'bag', label: 'Bag' },
-            { value: 'eyeglass', label: 'Eyeglass' },
-          ]}
-          value={filters.clothingType ? { value: filters.clothingType, label: filters.clothingType } : null}
-          onChange={opt => handleFilterChange('clothingType', opt?.value)}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <Select
+            className="text-sm"
+            placeholder="Category"
+            isClearable
+            options={options.categories.map(c => ({ value: c._id, label: c.name }))}
+            value={filters.category ? { value: filters.category, label: options.categories.find(c => c._id === filters.category)?.name || '' } : null}
+            onChange={opt => handleFilterChange('category', opt?.value)}
+          />
 
-        <Select
-          className="min-w-[200px]"
-          placeholder="Brand"
-          isClearable
-          options={options.brands.map(b => ({ value: b._id, label: b.name }))}
-          value={filters.brand ? { value: filters.brand, label: options.brands.find(b => b._id === filters.brand)?.name || '' } : null}
-          onChange={opt => handleFilterChange('brand', opt?.value)}
-        />
+          <Select
+            className="text-sm"
+            placeholder="Type"
+            isClearable
+            options={[
+              { value: 'clothes', label: 'Clothes' },
+              { value: 'shoes', label: 'Shoes' },
+              { value: 'bag', label: 'Bag' },
+              { value: 'eyeglass', label: 'Eyeglass' },
+            ]}
+            value={filters.clothingType ? { value: filters.clothingType, label: filters.clothingType } : null}
+            onChange={opt => handleFilterChange('clothingType', opt?.value)}
+          />
 
-        <Select
-          className="min-w-[200px]"
-          placeholder="Color"
-          isClearable
-          options={options.colors.map(c => ({ value: c._id, label: c.name }))}
-          value={filters.color ? { value: filters.color, label: options.colors.find(c => c._id === filters.color)?.name || '' } : null}
-          onChange={opt => handleFilterChange('color', opt?.value)}
-        />
+          <Select
+            className="text-sm"
+            placeholder="Brand"
+            isClearable
+            options={options.brands.map(b => ({ value: b._id, label: b.name }))}
+            value={filters.brand ? { value: filters.brand, label: options.brands.find(b => b._id === filters.brand)?.name || '' } : null}
+            onChange={opt => handleFilterChange('brand', opt?.value)}
+          />
 
-        <Button variant="destructive" onClick={resetFilters}>
-          Reset
-        </Button>
+          <Select
+            className="text-sm"
+            placeholder="Color"
+            isClearable
+            options={options.colors.map(c => ({ value: c._id, label: c.name }))}
+            value={filters.color ? { value: filters.color, label: options.colors.find(c => c._id === filters.color)?.name || '' } : null}
+            onChange={opt => handleFilterChange('color', opt?.value)}
+          />
+
+          <Button variant="ghost" className="text-gray-500 hover:text-black" onClick={resetFilters}>
+            Reset Filters
+          </Button>
+        </div>
       </div>
 
-      {/* CREATE */}
-      <Button onClick={() => setEditingProduct({})}>+ Create Product</Button>
+      {/* PRODUCT TABLE */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100 italic text-xs text-gray-500">
+                <th className="px-6 py-4 font-medium uppercase tracking-wider">Product</th>
+                <th className="px-6 py-4 font-medium uppercase tracking-wider">Info</th>
+                <th className="px-6 py-4 font-medium uppercase tracking-wider">Price</th>
+                <th className="px-6 py-4 font-medium uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 font-medium uppercase tracking-wider text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {data?.products?.map((p) => (
+                <tr key={p._id} className={`hover:bg-gray-50/50 transition-colors ${p.isDeleted ? 'opacity-50' : ''}`}>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-lg bg-gray-50 border border-gray-100 flex-shrink-0 overflow-hidden">
+                        <img
+                          src={p.images?.[0]?.url || '/placeholder.png'}
+                          alt={p.title}
+                          className="w-full h-full object-contain mix-blend-multiply"
+                        />
+                      </div>
+                      <div className="max-w-[200px]">
+                        <p className="font-semibold text-gray-900 line-clamp-1">{p.title}</p>
+                        <p className="text-xs text-gray-400 font-mono tracking-tighter">#{p._id.slice(-8)}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-xs space-y-1">
+                      <p><span className="text-gray-400">Cat:</span> {p.category?.name || '—'}</p>
+                      <p><span className="text-gray-400">Brand:</span> {p.brand?.name || '—'}</p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm font-bold text-gray-900 italic">₦{p.price.toLocaleString()}</div>
+                    {p.variants?.length > 0 && (
+                      <div className="text-[10px] text-gray-400 mt-0.5">{p.variants.length} Variants</div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col gap-1.5">
+                      {p.featured && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-tighter w-fit">
+                          Featured
+                        </span>
+                      )}
+                      {p.isDeleted ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-800 uppercase tracking-tighter w-fit text-red-600">
+                          Deleted
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 uppercase tracking-tighter w-fit">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => handleToggleFeatured(p)}
+                        className={`p-2 rounded-lg border transition-colors ${p.featured ? 'bg-amber-50 border-amber-200 text-amber-600' : 'bg-white border-gray-200 text-gray-400 hover:text-black'}`}
+                        title={p.featured ? "Unfeature" : "Feature"}
+                      >
+                        <Star size={16} fill={p.featured ? "currentColor" : "none"} />
+                      </button>
 
-      {/* HARD DELETE ALL SOFT DELETED */}
-      <Button variant="destructive" onClick={handleHardDeleteAll}>
-        Hard Delete All Soft-Deleted
-      </Button>
-
-      {/* LIST */}
-      {data?.products?.length ? (
-        data.products.map(p => (
-          <div key={p._id} className="border p-4 rounded flex gap-4">
-            <img src={p.images?.[0]?.url || '/placeholder.png'} className="w-24 h-24 object-cover rounded border" />
-
-            <div className="flex-1">
-              <p className="font-semibold">{p.title}</p>
-
-              {/* Base Price */}
-              <p>Base Price: ₦{p.price}</p>
-
-              {/* Variant Prices */}
-              {p.variants?.length > 0 && (
-                <div>
-                  <p>Variant Prices:</p>
-                  <ul className="ml-4 list-disc">
-                    {p.variants.map((v, idx) => (
-                      <li key={idx}>
-                        {v.options?.size ? `Size ${v.options.size}` : ''}
-                        {v.options?.color?.name ? `, Color ${v.options.color.name}` : ''}: ₦{v.price}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <p>Category: {p.category?.name || '—'}</p>
-              <p>Brand: {p.brand?.name || '—'}</p>
-              {p.clothingType && <p>Type: {p.clothingType}</p>}
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant={p.featured ? "secondary" : "outline"}
-                onClick={() => handleToggleFeatured(p)}
-              >
-                {p.featured ? "Unfeature" : "Feature"}
-              </Button>
-              {!p.isDeleted ? (
-                <>
-                  <Button size="sm" onClick={() => setEditingProduct(p)}>Edit</Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleSoftDelete(p._id)}>Delete</Button>
-                </>
-              ) : (
-                <>
-                  <Button size="sm" variant="secondary" onClick={() => handleRestore(p._id)}>Restore</Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleHardDelete(p._id)}>Hard Delete</Button>
-                </>
-              )}
-            </div>
-          </div>
-        ))
-      ) : (
-        <p>No products found</p>
-      )}
+                      {!p.isDeleted ? (
+                        <>
+                          <button
+                            onClick={() => setEditingProduct(p)}
+                            className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:text-black hover:bg-gray-50 transition-colors"
+                            title="Edit Product"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleSoftDelete(p._id)}
+                            className="p-2 rounded-lg border border-red-100 text-red-400 hover:text-red-700 hover:bg-red-50 transition-colors"
+                            title="Delete Product"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleRestore(p._id)}
+                            className="p-2 rounded-lg border border-green-200 text-green-600 hover:bg-green-50 transition-colors"
+                            title="Restore Product"
+                          >
+                            <RotateCcw size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleHardDelete(p._id)}
+                            className="p-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                            title="Permanently Delete"
+                          >
+                            <Trash size={16} />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {(!data?.products || data.products.length === 0) && (
+          <div className="p-12 text-center text-gray-500 italic">No products matched your filters.</div>
+        )}
+      </div>
 
       {/* PAGINATION */}
       {totalPages > 1 && (

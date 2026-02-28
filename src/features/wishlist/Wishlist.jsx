@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { Heart } from 'lucide-react'
+import { Heart, ShoppingCart, X } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useGetWishlistQuery, useToggleWishlistMutation } from './wishlistApi'
@@ -23,79 +23,73 @@ export default function Wishlist() {
 
   if (!wishlist.length) {
     return (
-      <div className="p-10 text-center">
-        <Heart className="mx-auto mb-4 text-red-500" size={40} />
-        <p>Your wishlist is empty</p>
-        <Link to="/products" className="text-primary underline">
-          Browse products
-        </Link>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+          <Heart className="text-gray-300" size={32} />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Your wishlist is empty</h2>
+        <p className="text-gray-500 max-w-xs mb-8">
+          Save items you love to find them later and keep track of what you want.
+        </p>
+        <Button asChild size="lg" className="rounded-full px-8 bg-black hover:bg-gray-800 transition-all">
+          <Link to="/products">Explore Products</Link>
+        </Button>
       </div>
     )
   }
 
-  // Add product to backend cart and sync Redux
-  const handleAddToCart = async (product) => {
-    try {
-      const updatedCart = await cartApi.addToCart(product._id, 1)
-      dispatch(setCart(updatedCart))
-      toast({
-        title: 'Added to cart',
-        description: product.title,
-      })
-    } catch (err) {
-      toast({
-        title: 'Error',
-        description: 'Failed to add to cart. Please try again.',
-        variant: 'destructive',
-      })
-    }
-  }
-
-  // Remove product from wishlist
-  const handleRemoveWishlist = async (product) => {
-    try {
-      await toggleWishlist(product._id).unwrap()
-      toast({
-        title: 'Removed from wishlist',
-        description: product.title,
-      })
-    } catch (err) {
-      toast({
-        title: 'Error',
-        description: 'Could not remove from wishlist',
-        variant: 'destructive',
-      })
-    }
-  }
-
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">❤️ My Wishlist</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex items-center justify-between mb-10">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Saved Items</h1>
+          <p className="text-gray-500 mt-1">{wishlist.length} item{wishlist.length !== 1 ? 's' : ''} in your wishlist</p>
+        </div>
+        <Button variant="outline" asChild className="hidden sm:flex rounded-full border-gray-200">
+          <Link to="/products">Continue Shopping</Link>
+        </Button>
+      </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {wishlist.map((product) => (
-          <div key={product._id} className="border rounded-lg p-4 space-y-3">
-           <img
-  src={product.images?.[0]?.url || '/placeholder.png'}
-  alt={product.title}
-  className="h-40 w-full object-cover rounded"
-/>
-
-            <h3 className="font-semibold">{product.title}</h3>
-            <p className="font-bold">₦{product.price}</p>
-
-            <div className="flex gap-2">
-              <Button size="sm" onClick={() => handleAddToCart(product)}>
-                Add to Cart
-              </Button>
-
-              <Button
-                size="sm"
-                variant="destructive"
+          <div
+            key={product._id}
+            className="group relative bg-white border border-gray-100 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+          >
+            {/* Image Container */}
+            <div className="relative aspect-[4/5] overflow-hidden bg-gray-50">
+              <img
+                src={product.images?.[0]?.url || '/placeholder.png'}
+                alt={product.title}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <button
                 onClick={() => handleRemoveWishlist(product)}
+                className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-sm rounded-full text-gray-400 hover:text-red-500 hover:bg-white transition-all shadow-sm"
+                title="Remove from wishlist"
               >
-                Remove
-              </Button>
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-5 space-y-4">
+              <div className="space-y-1">
+                <h3 className="font-semibold text-gray-900 line-clamp-1 group-hover:text-black transition-colors">
+                  {product.title}
+                </h3>
+                <p className="text-lg font-bold text-gray-900">₦{product.price.toLocaleString()}</p>
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  className="w-full rounded-xl bg-black hover:bg-gray-800 text-white shadow-sm transition-all flex items-center justify-center gap-2 group-hover:shadow-md"
+                  onClick={() => handleAddToCart(product)}
+                >
+                  <ShoppingCart size={16} />
+                  Add to Cart
+                </Button>
+              </div>
             </div>
           </div>
         ))}

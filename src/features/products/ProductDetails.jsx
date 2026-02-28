@@ -213,12 +213,30 @@ export default function ProductDetails() {
           </div>
         </div>
 
-        <div className="flex gap-4 mt-8">
+        <div className="flex items-center gap-4 mt-8">
+          <div className="flex items-center border border-gray-200 rounded-lg bg-white h-12">
+            <button
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="px-4 h-full text-gray-500 hover:text-black transition-colors border-r disabled:opacity-30"
+              disabled={quantity <= 1}
+            >
+              -
+            </button>
+            <span className="px-6 font-semibold min-w-[3rem] text-center">{quantity}</span>
+            <button
+              onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
+              className="px-4 h-full text-gray-500 hover:text-black transition-colors border-l disabled:opacity-30"
+              disabled={quantity >= currentStock}
+            >
+              +
+            </button>
+          </div>
+
           <Button
             onClick={handleAddToCart}
             disabled={currentStock < 1}
             size="lg"
-            className={`flex-1 text-lg h-12 ${currentStock < 1 ? 'opacity-50 cursor-not-allowed bg-gray-400' : 'bg-black hover:bg-gray-800'}`}
+            className={`flex-1 text-lg h-12 shadow-sm transition-all ${currentStock < 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white'}`}
           >
             {currentStock > 0 ? 'Add to Cart' : 'Out of Stock'}
           </Button>
@@ -226,9 +244,9 @@ export default function ProductDetails() {
             variant={isInWishlist ? 'destructive' : 'outline'}
             onClick={handleWishlistToggle}
             size="lg"
-            className="h-12 w-12 p-0 flex-shrink-0"
+            className="h-12 w-12 p-0 flex-shrink-0 rounded-xl"
           >
-            <Heart className={isInWishlist ? "fill-current" : ""} />
+            <Heart size={20} className={isInWishlist ? "fill-current" : ""} />
           </Button>
         </div>
         <ReviewForm
