@@ -213,7 +213,7 @@ export default function ProductDetails() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 mt-8">
+        <div className="flex flex-wrap items-center gap-4 mt-8">
           <div className="flex items-center border border-gray-200 rounded-lg bg-white h-12">
             <button
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -232,22 +232,24 @@ export default function ProductDetails() {
             </button>
           </div>
 
-          <Button
-            onClick={handleAddToCart}
-            disabled={currentStock < 1}
-            size="lg"
-            className={`flex-1 text-lg h-12 shadow-sm transition-all ${currentStock < 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white'}`}
-          >
-            {currentStock > 0 ? 'Add to Cart' : 'Out of Stock'}
-          </Button>
-          <Button
-            variant={isInWishlist ? 'destructive' : 'outline'}
-            onClick={handleWishlistToggle}
-            size="lg"
-            className="h-12 w-12 p-0 flex-shrink-0 rounded-xl"
-          >
-            <Heart size={20} className={isInWishlist ? "fill-current" : ""} />
-          </Button>
+          <div className="flex-1 flex gap-3 min-w-[200px]">
+            <Button
+              onClick={handleAddToCart}
+              disabled={currentStock < 1}
+              size="lg"
+              className={`flex-1 text-lg h-12 shadow-sm transition-all ${currentStock < 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white'}`}
+            >
+              {currentStock > 0 ? 'Add to Cart' : 'Out of Stock'}
+            </Button>
+            <Button
+              variant={isInWishlist ? 'destructive' : 'outline'}
+              onClick={handleWishlistToggle}
+              size="lg"
+              className="h-12 w-12 p-0 flex-shrink-0 rounded-xl"
+            >
+              <Heart size={20} className={isInWishlist ? "fill-current" : ""} />
+            </Button>
+          </div>
         </div>
         <ReviewForm
           productId={product._id}

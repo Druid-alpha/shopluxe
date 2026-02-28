@@ -5,37 +5,50 @@ import { Input } from "@/components/ui/input"
 import { Loader2 } from "lucide-react"
 import { useRegisterMutation } from "@/features/auth/authApi"
 import { useToast } from "@/hooks/use-toast"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+
+const registerSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  avatar: z.any().optional(),
+})
 
 export default function Register() {
   const navigate = useNavigate()
   const { toast } = useToast()
 
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    avatar: null,
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors }
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+    mode: "onBlur"
   })
 
-  const [register, { isLoading }] = useRegisterMutation()
+  const [registerApi, { isLoading }] = useRegisterMutation()
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-
+  const onSubmit = async (data) => {
     const formData = new FormData()
-    formData.append("name", form.name)
-    formData.append("email", form.email)
-    formData.append("password", form.password)
-    if (form.avatar) formData.append("avatar", form.avatar)
+    formData.append("name", data.name)
+    formData.append("email", data.email)
+    formData.append("password", data.password)
+    if (data.avatar?.[0]) {
+      formData.append("avatar", data.avatar[0])
+    }
 
     try {
-      await register(formData).unwrap()
+      await registerApi(formData).unwrap()
       toast({ title: "Registration successful" })
-      navigate("/verify-email", { state: { email: form.email } })
+      navigate("/verify-email", { state: { email: data.email } })
     } catch (err) {
       toast({
         title: "Registration failed",
-        description: err?.data?.message,
+        description: err?.data?.message || "Something went wrong",
         variant: "destructive",
       })
     }
@@ -48,15 +61,15 @@ export default function Register() {
           <h1 className="text-3xl font-bold text-center text-gray-900 tracking-tight">Create Account</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5 mt-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 mt-8">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Your name</label>
             <Input
               placeholder="First and last name"
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+              {...register("name")}
+              className={`appearance-none block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
             />
+            {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
           </div>
 
           <div>
@@ -64,10 +77,10 @@ export default function Register() {
             <Input
               type="email"
               placeholder="Email address"
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              required
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+              {...register("email")}
+              className={`appearance-none block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
             />
+            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
           </div>
 
           <div>
@@ -75,10 +88,10 @@ export default function Register() {
             <Input
               type="password"
               placeholder="At least 6 characters"
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              required
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+              {...register("password")}
+              className={`appearance-none block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
             />
+            {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
           </div>
 
           <div>
@@ -86,9 +99,7 @@ export default function Register() {
             <Input
               type="file"
               accept="image/*"
-              onChange={(e) =>
-                setForm({ ...form, avatar: e.target.files[0] })
-              }
+              {...register("avatar")}
               className="appearance-none block w-full px-3 text-gray-500 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
             />
           </div>

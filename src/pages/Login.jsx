@@ -7,29 +7,36 @@ import { useLoginMutation } from "@/features/auth/authApi"
 import { useToast } from "@/hooks/use-toast"
 import { useAppDispatch } from "@/app/hooks"
 import { setUser, setToken } from "@/features/auth/authSlice"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+})
 
 export default function Login() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { toast } = useToast()
 
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    mode: "onBlur"
+  })
 
-  const [login, { isLoading }] = useLoginMutation()
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-
+  const onSubmit = async (data) => {
     try {
-      const res = await login({ email, password }).unwrap()
-
-      // ✅ FIX: PASS USER DIRECTLY (NO EXTRA OBJECT)
+      const res = await login(data).unwrap()
       dispatch(setUser(res.user))
       if (res.accessToken) {
         dispatch(setToken(res.accessToken))
       }
-
       toast({ title: "Login successful" })
       navigate("/")
     } catch (err) {
@@ -38,10 +45,9 @@ export default function Login() {
           title: "Email not verified",
           description: "Please verify OTP",
         })
-        navigate("/verify-email", { state: { email } })
+        navigate("/verify-email", { state: { email: data.email } })
         return
       }
-
       toast({
         title: "Login failed",
         description: err?.data?.message || "Invalid credentials",
@@ -60,18 +66,17 @@ export default function Login() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
               <Input
                 type="email"
                 placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                {...register("email")}
+                className={`appearance-none block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
               />
+              {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
             </div>
 
             <div>
@@ -84,11 +89,10 @@ export default function Login() {
               <Input
                 type="password"
                 placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                {...register("password")}
+                className={`appearance-none block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
               />
+              {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
             </div>
           </div>
 

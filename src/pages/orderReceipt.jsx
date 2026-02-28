@@ -90,6 +90,13 @@ export default function OrderReceipt() {
             </div>
           </div>
           <div className="flex gap-3 w-full md:w-auto">
+            {order.invoiceUrl && (
+              <Button asChild variant="outline" className="flex-1 md:flex-none border-gray-200 text-gray-700 rounded-xl h-12 px-6 font-bold flex items-center gap-2">
+                <a href={order.invoiceUrl} target="_blank" rel="noopener noreferrer">
+                  <Download size={18} /> Official Invoice
+                </a>
+              </Button>
+            )}
             <Button onClick={downloadPDF} className="flex-1 md:flex-none bg-black hover:bg-gray-800 text-white rounded-xl h-12 px-6 font-bold flex items-center gap-2">
               <Download size={18} /> Download
             </Button>
