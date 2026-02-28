@@ -1,7 +1,5 @@
 import { api } from "@/app/api";
 
-
-
 export const orderApi = api.injectEndpoints({
     endpoints: (builder) => ({
         createOrder: builder.mutation({
@@ -17,9 +15,23 @@ export const orderApi = api.injectEndpoints({
             query: () => '/orders/my',
             providesTags: ['Order']
         }),
+        getAllOrders: builder.query({
+            query: () => '/orders',
+            providesTags: ['Order'],
+            credentials: 'include'
+        }),
         getOrder: builder.query({
             query: (id) => `/orders/${id}`,
             providesTags: (result, error, id) => [{ type: 'Order', id }]
+        }),
+        updateOrderStatus: builder.mutation({
+            query: ({ id, status }) => ({
+                url: `/orders/${id}/status`,
+                method: 'PATCH',
+                body: { status },
+                credentials: 'include'
+            }),
+            invalidatesTags: (result, error, { id }) => [{ type: 'Order', id }, 'Order']
         })
     })
 })
@@ -27,5 +39,7 @@ export const orderApi = api.injectEndpoints({
 export const {
     useCreateOrderMutation,
     useGetOrderQuery,
-    useGetMyOrdersQuery
+    useGetMyOrdersQuery,
+    useGetAllOrdersQuery,
+    useUpdateOrderStatusMutation
 } = orderApi

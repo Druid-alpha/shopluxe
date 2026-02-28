@@ -16,13 +16,18 @@ export default function OrderReceipt() {
   const dispatch = useAppDispatch()
   const receiptRef = useRef(null)
 
-  const { data, isLoading, error: queryError } = useGetOrderQuery(id)
+  const { data, isLoading, error: queryError, refetch } = useGetOrderQuery(id, {
+    // Poll every 3 seconds if order is still pending to catch the webhook update
+    pollingInterval: order?.status === 'pending' ? 3000 : 0
+  })
   const order = data?.order
 
   useEffect(() => {
-    // 🔥 Force refresh products so stock reduction is reflected
-    dispatch(productApi.util.invalidateTags(['Product']))
-  }, [dispatch])
+    if (order?.status === 'paid' || order?.paymentStatus === 'paid') {
+      // 🔥 Force refresh products so stock reduction is reflected
+      dispatch(productApi.util.invalidateTags(['Product']))
+    }
+  }, [order?.status, order?.paymentStatus, dispatch])
 
   const downloadPDF = () => {
     if (order.invoiceUrl) {

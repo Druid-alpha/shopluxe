@@ -1,78 +1,145 @@
-import React, { useEffect, useState } from 'react'
-import { useAppSelector } from '@/app/hooks'
+import React, { useEffect } from 'react'
+import { useAppDispatch } from '@/app/hooks'
+import {
+  useGetAllOrdersQuery,
+  useUpdateOrderStatusMutation
+} from '@/features/orders/orderApi'
+import { Loader2, RefreshCcw } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+import { productApi } from '@/features/products/productApi'
+import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function AdminOrders() {
-  const [orders, setOrders] = useState([])
-  const token = useAppSelector(state => state.auth.token)
+  const dispatch = useAppDispatch()
+  const { toast } = useToast()
 
-  useEffect(() => {
-    async function fetchOrders() {
-      try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
-          credentials: 'include',
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {})
-          }
-        })
+  // Use RTK Query for fetching orders with polling
+  const { data, isLoading, isError, refetch } = useGetAllOrdersQuery(undefined, {
+    pollingInterval: 15000 // Poll every 15s for new orders
+  })
 
-        if (!res.ok) throw new Error('Unauthorized')
+  const [updateStatus, { isLoading: isUpdating }] = useUpdateOrderStatusMutation()
 
-        const data = await res.json()
-        setOrders(data.orders || [])
-      } catch (err) {
-        console.error('Failed to fetch orders:', err)
-        setOrders([])
-      }
+  const orders = data?.orders || []
+
+  const handleStatusUpdate = async (id, newStatus) => {
+    try {
+      await updateStatus({ id, status: newStatus }).unwrap()
+      toast({ title: 'Success', description: `Order status updated to ${newStatus}` })
+      // Products refetch in case someone cancelled or status affects stock logic elsewhere
+      dispatch(productApi.util.invalidateTags(['Product']))
+    } catch (err) {
+      toast({
+        title: 'Error',
+        description: err.data?.message || 'Update failed',
+        variant: 'destructive'
+      })
     }
-
-    fetchOrders()
-  }, [])
-
-  if (!orders.length) {
-    return <p>No orders found</p>
   }
 
+  if (isLoading) return (
+    <div className="flex flex-col items-center justify-center p-20 space-y-4">
+      <Loader2 className="animate-spin text-gray-400" size={40} />
+      <p className="text-gray-500 font-medium">Loading orders...</p>
+    </div>
+  )
+
+  if (isError) return (
+    <div className="p-10 text-center text-red-500 font-medium">
+      Failed to load orders. Please check your connection.
+    </div>
+  )
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-100 italic text-sm text-gray-500">
-              <th className="px-6 py-4 font-medium uppercase tracking-wider">Order ID</th>
-              <th className="px-6 py-4 font-medium uppercase tracking-wider">Customer</th>
-              <th className="px-6 py-4 font-medium uppercase tracking-wider">Items</th>
-              <th className="px-6 py-4 font-medium uppercase tracking-wider text-right">Total</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {orders.map((order) => (
-              <tr key={order._id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-6 py-4">
-                  <span className="text-xs font-mono text-gray-400">#{order._id.slice(-8)}</span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm font-semibold text-gray-900">{order.user?.name || 'Guest'}</div>
-                  <div className="text-xs text-gray-400 capitalize">{order.user?.email || 'N/A'}</div>
-                </td>
-                <td className="px-6 py-4">
-                  <p className="text-sm text-gray-600 line-clamp-1 max-w-xs">
-                    {order.items
-                      .map((i) => i.product?.title)
-                      .filter(Boolean)
-                      .join(', ')}
-                  </p>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <span className="font-bold text-gray-900">₦{order.totalAmount?.toLocaleString()}</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">Order Management</h2>
+        <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
+          <RefreshCcw size={14} /> Refresh
+        </Button>
       </div>
-      {orders.length === 0 && (
-        <div className="p-12 text-center text-gray-500 italic">No orders found.</div>
-      )}
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100 text-xs text-gray-500 font-bold uppercase tracking-widest">
+                <th className="px-6 py-4">Order Details</th>
+                <th className="px-6 py-4">Customer</th>
+                <th className="px-6 py-4">Items</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4 text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {orders.map((order) => (
+                <tr key={order._id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm font-bold text-gray-900 leading-none">#{order._id.slice(-8).toUpperCase()}</span>
+                      <span className="text-[10px] text-gray-400 font-mono">{new Date(order.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm font-semibold text-gray-900">{order.user?.name || 'Guest'}</div>
+                    <div className="text-xs text-gray-400">{order.user?.email || 'N/A'}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-wrap gap-1 max-w-xs">
+                      {order.items.map((item, idx) => (
+                        <span key={idx} className="bg-gray-100 px-2 py-0.5 rounded text-[10px] font-medium text-gray-600 border border-gray-200">
+                          {item.title || 'Product'} x{item.qty}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      {/* Payment Badge */}
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-tight ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                        }`}>
+                        {order.paymentStatus}
+                      </span>
+
+                      {/* Operational Status Dropdown */}
+                      <Select
+                        defaultValue={order.status}
+                        onValueChange={(val) => handleStatusUpdate(order._id, val)}
+                        disabled={isUpdating}
+                      >
+                        <SelectTrigger className="h-8 w-32 text-[11px] font-bold uppercase rounded-lg border-gray-200">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent side="left">
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="paid">Paid</SelectItem>
+                          <SelectItem value="processing">Processing</SelectItem>
+                          <SelectItem value="shipped">Shipped</SelectItem>
+                          <SelectItem value="delivered">Delivered</SelectItem>
+                          <SelectItem value="failed">Failed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <span className="font-bold text-gray-900">₦{order.totalAmount?.toLocaleString()}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {orders.length === 0 && (
+          <div className="p-12 text-center text-gray-500 italic">No orders found.</div>
+        )}
+      </div>
     </div>
   )
 }
