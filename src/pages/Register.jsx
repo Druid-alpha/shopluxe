@@ -41,6 +41,7 @@ export default function Register() {
     formData.append("name", data.name)
     formData.append("email", data.email)
     formData.append("password", data.password)
+    formData.append("confirmPassword", data.confirmPassword)
     if (data.avatar?.[0]) {
       formData.append("avatar", data.avatar[0])
     }
