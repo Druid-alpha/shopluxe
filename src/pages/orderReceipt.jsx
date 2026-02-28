@@ -6,6 +6,7 @@ import html2pdf from 'html2pdf.js'
 import { useAppDispatch } from '@/app/hooks'
 import { logout } from '@/features/auth/authSlice'
 import { authApi } from '@/features/auth/authApi'
+import { productApi } from '@/features/products/productApi'
 
 export default function OrderReceipt() {
   const { id } = useParams()
@@ -16,6 +17,9 @@ export default function OrderReceipt() {
   const receiptRef = useRef(null)
 
   useEffect(() => {
+    // 🔥 Force refresh products and featured list so stock reduction is reflected
+    dispatch(productApi.util.invalidateTags(['Product']))
+
     fetch(`${import.meta.env.VITE_API_URL}/orders/${id}`, {
       credentials: 'include'
     })
@@ -31,7 +35,7 @@ export default function OrderReceipt() {
         console.error('Fetch error:', err)
         setError(err.message)
       })
-  }, [id])
+  }, [id, dispatch])
 
   const downloadPDF = () => {
     const element = receiptRef.current

@@ -9,16 +9,19 @@ export const normalizeCart = (cart) =>
       typeof i.variant === 'string'
         ? i.variant
         : i.variant?.sku || null;
+    const variantObj = i.product?.variants?.find(v => v.sku === variantSku) || null;
     const productImage =
-      i.variant?.image?.url || i.product?.images?.[0]?.url || null
+      variantObj?.image?.url || i.product?.images?.[0]?.url || null
 
     return {
       key: `${i.product._id}-${variantSku || 'default'}`,
       productId: i.product._id,
       title: i.product.title,
-      price: i.variant?.price || i.product.price,
+      price: variantObj?.price || i.product.price,
       qty: i.qty,
-      variant: variantSku, // ✅ Always string or null
+      variant: variantSku, // Always string or null
+      variantStock: variantObj?.stock, // Specific variant stock
+      productStock: i.product.stock,    // Base product stock
       productImage
     };
   });
