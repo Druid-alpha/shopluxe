@@ -8,38 +8,21 @@ import { logout } from '@/features/auth/authSlice'
 import { authApi } from '@/features/auth/authApi'
 import { productApi } from '@/features/products/productApi'
 
+import { useGetOrderQuery } from '@/features/orders/orderApi'
+
 export default function OrderReceipt() {
   const { id } = useParams()
-  const [order, setOrder] = useState(null)
-  const [error, setError] = useState(null)
-  const token = useAppSelector((state) => state.auth.token)
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const receiptRef = useRef(null)
 
-  useEffect(() => {
-    // 🔥 Force refresh products and featured list so stock reduction is reflected
-    dispatch(productApi.util.invalidateTags(['Product']))
+  const { data, isLoading, error: queryError } = useGetOrderQuery(id)
+  const order = data?.order
 
-    fetch(`${import.meta.env.VITE_API_URL}/orders/${id}`, {
-      credentials: 'include',
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      }
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Order not found or unauthorized')
-        return res.json()
-      })
-      .then(data => {
-        if (data.order) setOrder(data.order)
-        else throw new Error('Invalid order data')
-      })
-      .catch(err => {
-        console.error('Fetch error:', err)
-        setError(err.message)
-      })
-  }, [id, dispatch, token])
+  useEffect(() => {
+    // 🔥 Force refresh products so stock reduction is reflected
+    dispatch(productApi.util.invalidateTags(['Product']))
+  }, [dispatch])
 
   const downloadPDF = () => {
     const element = receiptRef.current
@@ -66,16 +49,16 @@ export default function OrderReceipt() {
     }
   }
 
-  if (error) return (
+  if (queryError) return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-4">
       <div className="bg-red-50 p-4 rounded-full text-red-500"><LogOut size={32} /></div>
       <h2 className="text-xl font-bold">Failed to load order</h2>
-      <p className="text-gray-500 max-w-xs">{error}</p>
+      <p className="text-gray-500 max-w-xs">{queryError?.data?.message || 'Access denied or network error'}</p>
       <Button onClick={() => navigate('/')}>Back to Shop</Button>
     </div>
   )
 
-  if (!order) return (
+  if (isLoading || !order) return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 space-y-4">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
       <p className="text-gray-500 font-medium animate-pulse text-sm">Generating your premium receipt...</p>

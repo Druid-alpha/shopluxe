@@ -94,7 +94,7 @@ export default function Home() {
                 className="absolute inset-0 h-full w-full object-cover"
                 alt={slide.title}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
               <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
                 <motion.div
@@ -104,19 +104,19 @@ export default function Home() {
                   variants={staggerContainer}
                   className="max-w-3xl"
                 >
-                  <motion.h1 variants={fadeUp} className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-4 drop-shadow-md">
+                  <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6 drop-shadow-2xl uppercase">
                     {slide.title}
                   </motion.h1>
-                  <motion.p variants={fadeUp} className="text-lg md:text-xl lg:text-2xl font-light text-gray-200 mb-8 drop-shadow-sm max-w-2xl mx-auto">
+                  <motion.p variants={fadeUp} className="text-sm md:text-xl lg:text-2xl font-medium text-gray-300 mb-10 drop-shadow-lg max-w-2xl mx-auto leading-relaxed">
                     {slide.description}
                   </motion.p>
                   <motion.div variants={fadeUp}>
                     <Button
                       size="lg"
-                      className="bg-white text-black hover:bg-gray-200 text-lg px-8 py-6 rounded-full font-semibold transition-all hover:scale-105"
+                      className="bg-white text-black hover:bg-gray-100 text-base md:text-xl px-10 py-8 rounded-2xl font-bold transition-all hover:scale-105 active:scale-95 shadow-2xl"
                       onClick={() => navigate(slide.link)}
                     >
-                      Shop Collection <ArrowRight className="ml-2 h-5 w-5" />
+                      Explore Now <ArrowRight className="ml-2 h-6 w-6" />
                     </Button>
                   </motion.div>
                 </motion.div>
