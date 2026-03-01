@@ -8,13 +8,7 @@ import { Loader2, RefreshCcw } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { productApi } from '@/features/products/productApi'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function AdminOrders() {
   const dispatch = useAppDispatch()
