@@ -25,10 +25,10 @@ export const orderApi = api.injectEndpoints({
             providesTags: (result, error, id) => [{ type: 'Order', id }]
         }),
         updateOrderStatus: builder.mutation({
-            query: ({ id, status }) => ({
+            query: ({ id, ...body }) => ({
                 url: `/orders/${id}/status`,
                 method: 'PATCH',
-                body: { status },
+                body: body,
                 credentials: 'include'
             }),
             invalidatesTags: (result, error, { id }) => [{ type: 'Order', id }, 'Order']

@@ -8,7 +8,7 @@ import { Loader2, RefreshCcw } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { productApi } from '@/features/products/productApi'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select"
 
 export default function AdminOrders() {
   const dispatch = useAppDispatch()
@@ -84,7 +84,7 @@ export default function AdminOrders() {
                 <tr key={order._id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1">
-                      <span className="text-sm font-bold text-gray-900 leading-none">#{order._id.slice(-8).toUpperCase()}</span>
+                      <span className="text-sm font-bold text-gray-900 leading-none">#{String(order._id || '').slice(-8).toUpperCase()}</span>
                       <span className="text-[10px] text-gray-400 font-mono">{new Date(order.createdAt).toLocaleDateString()}</span>
                     </div>
                   </td>
@@ -94,7 +94,7 @@ export default function AdminOrders() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-1 max-w-xs">
-                      {order.items.map((item, idx) => (
+                      {order.items?.map((item, idx) => (
                         <span key={idx} className="bg-gray-100 px-2 py-0.5 rounded text-[10px] font-medium text-gray-600 border border-gray-200">
                           {item.title || 'Product'} x{item.qty}
                         </span>
