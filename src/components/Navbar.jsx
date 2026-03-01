@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import * as React from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { logoutAndReset } from '@/features/auth/authSlice'
@@ -24,7 +24,7 @@ export default function Navbar() {
   const dispatch = useAppDispatch()
   const location = useLocation()
   const navigate = useNavigate()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = React.useState(false)
 
   // Wishlist count
   const { data: wishlistData } = useGetWishlistQuery(undefined, { skip: !user })
@@ -50,7 +50,7 @@ export default function Navbar() {
     }
   }
 
-  useEffect(() => {
+  React.useEffect(() => {
     setMobileOpen(false)
   }, [location.pathname])
 

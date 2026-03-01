@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import PageTransition from './components/PageTransition'
@@ -24,7 +24,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminProducts from './pages/admin/AdminProducts'
-import AdminUSers from './pages/admin/AdminUsers'
+import AdminUsers from './pages/admin/AdminUsers'
 import AdminOrders from './pages/admin/AdminOrders'
 import ProductDetails from './features/products/ProductDetails'
 import OrderReceipt from './pages/orderReceipt'
@@ -109,7 +109,7 @@ export default function App() {
               path="/admin/users"
               element={
                 <ProtectedRoute roles={['admin']}>
-                  <PageTransition><AdminUSers /></PageTransition>
+                  <PageTransition><AdminUsers /></PageTransition>
                 </ProtectedRoute>
               }
             />

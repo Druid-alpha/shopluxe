@@ -64,8 +64,8 @@ export default function ProductDetails() {
       <div className="md:w-1/2 space-y-4">
         <div className="w-full h-96 bg-gray-200 rounded"></div>
         <div className="flex gap-2">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="w-20 h-20 bg-gray-200 rounded"></div>
+          {[...Array(4)].map((_, idx) => (
+            <div key={idx} className="h-20 sm:h-24 bg-gray-100 rounded-xl animate-pulse" />
           ))}
         </div>
       </div>

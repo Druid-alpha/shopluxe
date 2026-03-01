@@ -187,8 +187,8 @@ export default function Home() {
             className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
           >
             {isLoading
-              ? Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="animate-pulse border rounded-xl p-4 space-y-3">
+              ? Array.from({ length: 4 }).map((_, idx) => (
+                <div key={idx} className="animate-pulse border rounded-xl p-4 space-y-3">
                   <div className="h-48 bg-gray-200 rounded-lg w-full" />
                   <div className="h-4 bg-gray-200 rounded w-3/4 mt-4" />
                   <div className="h-4 bg-gray-200 rounded w-1/2" />

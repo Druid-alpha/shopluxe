@@ -169,7 +169,7 @@ export default function ProductForm({ product, onClose, onSuccess }) {
     })
   }
 
-  const removeVariant = index => setVariants(prev => prev.filter((_, i) => i !== index))
+  const removeVariant = index => setVariants(prev => prev.filter((_, idx) => idx !== index))
 
   const handleVariantFile = (index, file) => {
     setVariants(prev => {
@@ -243,8 +243,8 @@ export default function ProductForm({ product, onClose, onSuccess }) {
       const fd = new FormData()
 
       images.forEach(f => fd.append('images', f))
-      variants.forEach((v, i) => {
-        if (v.imageFile) fd.append(`variant_${i}`, v.imageFile)
+      variants.forEach((v, idx) => {
+        if (v.imageFile) fd.append(`variant_${idx}`, v.imageFile)
       })
 
       const payloadVariants = variants.map(v => ({
@@ -353,13 +353,13 @@ export default function ProductForm({ product, onClose, onSuccess }) {
       {/* ====== VARIANTS ====== */}
       <div>
         <p className="font-semibold">Variants</p>
-        {variants.map((v, i) => (
-          <div key={i} className="border p-2 space-y-2">
+        {variants.map((v, idx) => (
+          <div key={idx} className="border p-2 space-y-2">
             <Input value={v.sku} readOnly />
-            {errors[`sku_${i}`] && <p className="text-red-500 text-sm">{errors[`sku_${i}`]}</p>}
+            {errors[`sku_${idx}`] && <p className="text-red-500 text-sm">{errors[`sku_${idx}`]}</p>}
 
             {isClothing && (
-              <select value={v.type} onChange={e => updateVariant(i, 'type', e.target.value)} className="w-full border rounded">
+              <select value={v.type} onChange={e => updateVariant(idx, 'type', e.target.value)} className="w-full border rounded">
                 <option value="">Select type</option>
                 {clothingTypes.map(t => (
                   <option key={t} value={t}>{t}</option>
@@ -367,29 +367,29 @@ export default function ProductForm({ product, onClose, onSuccess }) {
               </select>
             )}
 
-            <select value={v.options.color} onChange={e => updateVariant(i, 'color', e.target.value)} className="w-full border rounded">
+            <select value={v.options.color} onChange={e => updateVariant(idx, 'color', e.target.value)} className="w-full border rounded">
               <option value="">Select color</option>
               {colors.map(c => (
                 <option key={c._id} value={c._id}>{c.name}</option>
               ))}
             </select>
 
-            <select value={v.options.size} onChange={e => updateVariant(i, 'size', e.target.value)} className="w-full border rounded">
+            <select value={v.options.size} onChange={e => updateVariant(idx, 'size', e.target.value)} className="w-full border rounded">
               <option value="">Select size</option>
               {getSizesForType(v.type || clothingType).map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
 
-            <Input type="number" value={v.price} onChange={e => updateVariant(i, 'price', e.target.value)} placeholder="Price" />
-            {errors[`price_${i}`] && <p className="text-red-500 text-sm">{errors[`price_${i}`]}</p>}
+            <Input type="number" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} placeholder="Price" />
+            {errors[`price_${idx}`] && <p className="text-red-500 text-sm">{errors[`price_${idx}`]}</p>}
 
-            <Input type="number" value={v.stock} onChange={e => updateVariant(i, 'stock', e.target.value)} placeholder="Stock" />
+            <Input type="number" value={v.stock} onChange={e => updateVariant(idx, 'stock', e.target.value)} placeholder="Stock" />
 
-            <input type="file" onChange={e => handleVariantFile(i, e.target.files[0])} />
+            <input type="file" onChange={e => handleVariantFile(idx, e.target.files[0])} />
             {v.imageUrl && <img src={v.imageUrl} className="h-16" />}
 
-            <Button type="button" variant="destructive" onClick={() => removeVariant(i)}>Remove</Button>
+            <Button type="button" variant="destructive" onClick={() => removeVariant(idx)}>Remove</Button>
           </div>
         ))}
 
@@ -401,8 +401,8 @@ export default function ProductForm({ product, onClose, onSuccess }) {
         <p className="font-semibold">Main Images</p>
         <input type="file" multiple accept="image/*" onChange={handleMainImages} />
         <div className="flex gap-2 flex-wrap mt-2">
-          {imagePreviews.map((src, i) => (
-            <img key={i} src={src} className="h-20 rounded border" />
+          {imagePreviews.map((src, idx) => (
+            <img key={idx} src={src} className="h-20 rounded border" />
           ))}
         </div>
       </div>

@@ -33,19 +33,17 @@ export default function Products() {
     // Reset clothingType and brand if category changes
     setClothingType('')
     setBrand(null)
-    setPage(1) // 🚀 Reset to page 1
   }, [category])
 
   React.useEffect(() => {
     // Reset brand if clothingType changes
     setBrand(null)
-    setPage(1) // 🚀 Reset to page 1
   }, [clothingType])
 
-  // ---------------- Reset page on other filters ----------------
+  // ---------------- Reset page on ALL filter changes ----------------
   React.useEffect(() => {
     setPage(1)
-  }, [debouncedSearch, brand, color, minPrice, maxPrice])
+  }, [debouncedSearch, category, brand, color, clothingType, minPrice, maxPrice])
 
   // ---------------- Update URL ----------------
   React.useEffect(() => {
@@ -116,16 +114,30 @@ export default function Products() {
         <div className="lg:col-span-3">
           <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
             {isLoading
-              ? Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} className="animate-pulse border rounded-lg p-4 space-y-3">
+              ? Array.from({ length: 12 }).map((_, idx) => (
+                <div key={idx} className="animate-pulse border rounded-lg p-4 space-y-3">
                   <div className="h-40 bg-gray-200 rounded" />
                   <div className="h-4 bg-gray-200 rounded w-3/4" />
                   <div className="h-4 bg-gray-200 rounded w-1/2" />
                 </div>
               ))
-              : data?.products?.map(product => (
-                <ProductCard key={product._id} product={product} />
-              ))
+              : data?.products?.length > 0
+                ? data.products.map(product => (
+                  <ProductCard key={product._id} product={product} />
+                ))
+                : (
+                  <div className="col-span-full py-20 text-center space-y-4">
+                    <p className="text-gray-400 text-lg font-medium">No products match your current filters.</p>
+                    <Button variant="outline" onClick={() => {
+                      setCategory('')
+                      setBrand(null)
+                      setColor(null)
+                      setSearch('')
+                      setMinPrice(0)
+                      setMaxPrice(5000000)
+                    }}>Clear All Filters</Button>
+                  </div>
+                )
             }
           </div>
 

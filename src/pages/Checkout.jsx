@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom'
 export default function Checkout() {
   const cart = useAppSelector(state => state.cart.items)
   const token = useAppSelector(state => state.auth.token)
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0)
+  const total = cart.reduce((s, item) => s + item.price * item.qty, 0)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { toast } = useToast()

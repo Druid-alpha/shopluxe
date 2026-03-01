@@ -39,7 +39,7 @@ export default function Cart() {
     );
   }
 
-  const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
   /* ================= CHANGE QUANTITY ================= */
   const changeQty = async (item, delta) => {

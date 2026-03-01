@@ -8,8 +8,8 @@ export default function StarRating({ rating = 0, maxStars = 5, size = 20 }) {
   return (
     <div className="flex items-center gap-0.5">
       {/* Full stars */}
-      {Array(fullStars).fill(0).map((_, i) => (
-        <span key={`full-${i}`} style={{ fontSize: size, color: '#facc15' }}>★</span>
+      {Array(fullStars).fill(0).map((_, idx) => (
+        <span key={`full-${idx}`} style={{ fontSize: size, color: '#facc15' }}>★</span>
       ))}
 
       {/* Half star */}
@@ -21,8 +21,8 @@ export default function StarRating({ rating = 0, maxStars = 5, size = 20 }) {
       )}
 
       {/* Empty stars */}
-      {Array(emptyStars).fill(0).map((_, i) => (
-        <span key={`empty-${i}`} style={{ fontSize: size, color: '#d1d5db' }}>★</span>
+      {Array(emptyStars).fill(0).map((_, idx) => (
+        <span key={`empty-${idx}`} style={{ fontSize: size, color: '#d1d5db' }}>★</span>
       ))}
     </div>
   )

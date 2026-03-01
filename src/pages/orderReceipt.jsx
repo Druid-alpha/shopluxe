@@ -17,14 +17,20 @@ export default function OrderReceipt() {
   const receiptRef = React.useRef(null)
 
   // Get order first without polling to get initial status
-  const { data, isLoading, error: queryError, refetch } = useGetOrderQuery(id, {
-    // Poll every 3 seconds if order is still pending to catch the webhook update
-    pollingInterval: data?.order?.status === 'pending' ? 3000 : 0
-  })
+  const { data, isLoading, error: queryError, refetch } = useGetOrderQuery(id)
+
   const order = data?.order
 
+  // Stable polling logic: only poll if we have order data and it's pending
   React.useEffect(() => {
-    if (order?.status === 'paid' || order?.paymentStatus === 'paid') {
+    if (order?.status === 'pending') {
+      const timer = setInterval(() => refetch(), 3000)
+      return () => clearInterval(timer)
+    }
+  }, [order?.status, refetch])
+
+  React.useEffect(() => {
+    if (order?.status === 'paid' || order?.paymentStatus === 'paid' || order?.status === 'processing') {
       // 🔥 Force refresh products so stock reduction is reflected
       dispatch(productApi.util.invalidateTags(['Product']))
     }
