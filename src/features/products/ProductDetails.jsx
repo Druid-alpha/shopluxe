@@ -190,7 +190,7 @@ export default function ProductDetails() {
 
         {/* PRICE DISPLAY */}
         <div className="text-3xl font-bold my-4">
-          ₦{(selectedVariant.price ?? product.price).toLocaleString()}
+          ₦{(selectedVariant?.price ?? product?.price ?? 0).toLocaleString()}
         </div>
 
         {/* VARIANT SELECTOR */}

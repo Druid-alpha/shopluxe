@@ -19,6 +19,8 @@ import {
 import StarRating from './StarRating'
 
 export default function ProductCard({ product, featured }) {
+  if (!product) return null
+
   const dispatch = useAppDispatch()
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -28,11 +30,11 @@ export default function ProductCard({ product, featured }) {
   const [toggleWishlist] = useToggleWishlistMutation()
   const wishlist = data?.wishlist || []
 
-  const isWishlisted = wishlist.some((p) => p._id === product._id)
+  const isWishlisted = wishlist.some((p) => p?._id === product._id)
 
-  const totalStock = product.stock > 0
+  const totalStock = (product.stock > 0)
     ? product.stock
-    : (product.variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0)
+    : (product.variants?.reduce((sum, v) => sum + (v?.stock || 0), 0) || 0)
   const isOutOfStock = totalStock < 1
 
   const user = useAppSelector((state) => state.auth.user)
@@ -112,7 +114,7 @@ export default function ProductCard({ product, featured }) {
             {product.title}
           </h3>
         </Link>
-        <p className="font-medium">₦{product.price}</p>
+        <p className="font-medium">₦{product?.price ?? 0}</p>
         <StarRating rating={product.avgRating} />
         <span className="ml-2 text-gray-600 text-sm">
           {product.avgRating.toFixed(1)}

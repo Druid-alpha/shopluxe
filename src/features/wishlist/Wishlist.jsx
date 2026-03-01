@@ -45,7 +45,7 @@ export default function Wishlist() {
   if (isLoading) return <p className="text-center p-10">Loading...</p>
   if (isError) return <p className="text-center p-10">Error fetching wishlist</p>
 
-  const wishlist = data?.wishlist || []
+  const wishlist = (data?.wishlist || []).filter(p => p !== null)
 
   if (!wishlist.length) {
     return (
@@ -104,7 +104,7 @@ export default function Wishlist() {
                 <h3 className="font-semibold text-gray-900 line-clamp-1 group-hover:text-black transition-colors">
                   {product.title}
                 </h3>
-                <p className="text-lg font-bold text-gray-900">₦{product.price.toLocaleString()}</p>
+                <p className="text-lg font-bold text-gray-900">₦{product?.price?.toLocaleString() ?? 0}</p>
               </div>
 
               <div className="pt-2">
