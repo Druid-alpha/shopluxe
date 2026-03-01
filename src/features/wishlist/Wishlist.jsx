@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Heart, ShoppingCart, X } from 'lucide-react'
-import React from 'react'
+import * as React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useGetWishlistQuery, useToggleWishlistMutation } from './wishlistApi'
 import { useAppDispatch } from '@/app/hooks'

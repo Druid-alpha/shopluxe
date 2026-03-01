@@ -7,13 +7,13 @@ export const normalizeCart = (cart) => {
   if (!cart || !Array.isArray(cart)) return [];
 
   return cart
-    .filter(i => i.product && (typeof i.product === 'object')) // Safety: Filter out unpopulated/deleted products
-    .map((i) => {
-      const product = i.product;
+    .filter(item => item.product && (typeof item.product === 'object')) // Safety: Filter out unpopulated/deleted products
+    .map((item) => {
+      const product = item.product;
       const variantSku =
-        typeof i.variant === 'string'
-          ? i.variant
-          : i.variant?.sku || null;
+        typeof item.variant === 'string'
+          ? item.variant
+          : item.variant?.sku || null;
 
       const variantObj = product.variants?.find(v => v.sku === variantSku) || null;
       const productImage =
@@ -24,7 +24,7 @@ export const normalizeCart = (cart) => {
         productId: product._id || product.id,
         title: product.title || 'Product',
         price: variantObj?.price || product.price || 0,
-        qty: i.qty,
+        qty: item.qty,
         variant: variantSku,
         variantStock: variantObj?.stock,
         productStock: product.stock,

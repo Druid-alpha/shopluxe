@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import * as React from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useGetProductQuery, useGetReviewsQuery } from './productApi'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
@@ -42,16 +42,16 @@ export default function ProductDetails() {
   const [toggleWishlist] = useToggleWishlistMutation()
 
   /* ================= STATE ================= */
-  const [mainImage, setMainImage] = useState('')
-  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0)
-  const [quantity, setQuantity] = useState(1)
-  const [isAdding, setIsAdding] = useState(false)
+  const [mainImage, setMainImage] = React.useState('')
+  const [selectedVariantIndex, setSelectedVariantIndex] = React.useState(0)
+  const [quantity, setQuantity] = React.useState(1)
+  const [isAdding, setIsAdding] = React.useState(false)
 
   const variants = product?.variants || []
   const selectedVariant = variants.length > 0 ? variants[selectedVariantIndex] : null
 
   /* ================= EFFECTS (ALWAYS BEFORE RETURN) ================= */
-  useEffect(() => {
+  React.useEffect(() => {
     if (product) {
       setMainImage(product.images?.[0]?.url || '')
     }

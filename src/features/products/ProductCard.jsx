@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { Button } from '@/components/ui/button'
@@ -117,7 +117,7 @@ export default function ProductCard({ product, featured }) {
         <p className="font-medium">₦{product?.price ?? 0}</p>
         <StarRating rating={product.avgRating} />
         <span className="ml-2 text-gray-600 text-sm">
-          {product.avgRating.toFixed(1)}
+          {product?.avgRating?.toFixed(1) ?? '0.0'}
         </span>
 
       </CardContent>
