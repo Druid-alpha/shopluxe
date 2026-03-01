@@ -45,6 +45,7 @@ export default function ProductDetails() {
   const [mainImage, setMainImage] = useState('')
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
+  const [isAdding, setIsAdding] = useState(false)
 
   const variants = product?.variants || []
   const selectedVariant = variants[selectedVariantIndex] || {}
@@ -106,14 +107,26 @@ export default function ProductDetails() {
       return
     }
 
-    const updatedCart = await cartApi.addToCart(
-      product._id,
-      quantity,
-      selectedVariant
-    )
-    dispatch(setCart(updatedCart))
-    toast({ title: 'Added to Cart' })
-    navigate('/cart')
+    setIsAdding(true)
+    try {
+      const updatedCart = await cartApi.addToCart(
+        product._id,
+        quantity,
+        selectedVariant
+      )
+      dispatch(setCart(updatedCart))
+      toast({ title: 'Added to Cart' })
+      navigate('/cart')
+    } catch (err) {
+      console.error('Add to cart failed:', err)
+      toast({
+        title: 'Error',
+        description: err.response?.data?.message || 'Failed to add to cart',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsAdding(false)
+    }
   }
 
   const handleWishlistToggle = async () => {
@@ -217,11 +230,15 @@ export default function ProductDetails() {
           {product.tags?.length > 0 && <div className="mt-2 text-gray-500">Tags: <span className="text-gray-800">{product.tags.join(', ')}</span></div>}
 
           <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
-            <span className="font-semibold text-lg">Availability:</span>
+            <span className="font-semibold text-lg">Inventory Status:</span>
             {currentStock > 0 ? (
-              <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full">{currentStock} in stock</span>
+              <span className="text-green-600 font-bold bg-green-50 px-4 py-1.5 rounded-full border border-green-100 shadow-sm animate-in fade-in zoom-in duration-300">
+                {currentStock} UNITS AVAILABLE
+              </span>
             ) : (
-              <span className="text-red-500 font-bold bg-red-50 px-3 py-1 rounded-full">Out of stock</span>
+              <span className="text-red-500 font-bold bg-red-50 px-4 py-1.5 rounded-full border border-red-100 shadow-sm">
+                OUT OF STOCK
+              </span>
             )}
           </div>
         </div>
@@ -248,11 +265,11 @@ export default function ProductDetails() {
           <div className="flex-1 flex gap-3 min-w-[200px]">
             <Button
               onClick={handleAddToCart}
-              disabled={currentStock < 1}
+              disabled={currentStock < 1 || isAdding}
               size="lg"
-              className={`flex-1 text-lg h-12 shadow-sm transition-all ${currentStock < 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white'}`}
+              className={`flex-1 text-lg h-12 shadow-sm transition-all ${currentStock < 1 || isAdding ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white'}`}
             >
-              {currentStock > 0 ? 'Add to Cart' : 'Out of Stock'}
+              {isAdding ? 'Adding...' : (currentStock > 0 ? 'Add to Cart' : 'Out of Stock')}
             </Button>
             <Button
               variant={isInWishlist ? 'destructive' : 'outline'}

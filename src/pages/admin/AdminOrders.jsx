@@ -29,12 +29,19 @@ export default function AdminOrders() {
 
   const orders = data?.orders || []
 
-  const handleStatusUpdate = async (id, newStatus) => {
+  const handleStatusUpdate = async (id, newValue, field = 'status') => {
     try {
-      await updateStatus({ id, status: newStatus }).unwrap()
-      toast({ title: 'Success', description: `Order status updated to ${newStatus}` })
-      // Products refetch in case someone cancelled or status affects stock logic elsewhere
-      dispatch(productApi.util.invalidateTags(['Product']))
+      const payload = { id }
+      if (field === 'status') payload.status = newValue
+      else payload.paymentStatus = newValue
+
+      await updateStatus(payload).unwrap()
+      toast({ title: 'Success', description: `Order ${field} updated to ${newValue}` })
+
+      // If we manually mark as paid, refresh products to show stock reduction
+      if (newValue === 'paid' && field === 'paymentStatus') {
+        dispatch(productApi.util.invalidateTags(['Product']))
+      }
     } catch (err) {
       toast({
         title: 'Error',
@@ -74,7 +81,7 @@ export default function AdminOrders() {
                 <th className="px-6 py-4">Order Details</th>
                 <th className="px-6 py-4">Customer</th>
                 <th className="px-6 py-4">Items</th>
-                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Labels</th>
                 <th className="px-6 py-4 text-right">Total</th>
               </tr>
             </thead>
@@ -101,17 +108,29 @@ export default function AdminOrders() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      {/* Payment Badge */}
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-tight ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                        }`}>
-                        {order.paymentStatus}
-                      </span>
+                    <div className="flex flex-col gap-2">
+                      {/* Payment Status Dropdown */}
+                      <Select
+                        defaultValue={order.paymentStatus}
+                        onValueChange={(val) => handleStatusUpdate(order._id, val, 'paymentStatus')}
+                        disabled={isUpdating}
+                      >
+                        <SelectTrigger className={`h-8 w-28 text-[10px] font-bold uppercase rounded-lg border-none shadow-none text-center ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                          }`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="paid">Paid</SelectItem>
+                          <SelectItem value="failed">Failed</SelectItem>
+                          <SelectItem value="refunded">Refunded</SelectItem>
+                        </SelectContent>
+                      </Select>
 
                       {/* Operational Status Dropdown */}
                       <Select
                         defaultValue={order.status}
-                        onValueChange={(val) => handleStatusUpdate(order._id, val)}
+                        onValueChange={(val) => handleStatusUpdate(order._id, val, 'status')}
                         disabled={isUpdating}
                       >
                         <SelectTrigger className="h-8 w-32 text-[11px] font-bold uppercase rounded-lg border-gray-200">
@@ -124,6 +143,7 @@ export default function AdminOrders() {
                           <SelectItem value="shipped">Shipped</SelectItem>
                           <SelectItem value="delivered">Delivered</SelectItem>
                           <SelectItem value="failed">Failed</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

@@ -12,6 +12,7 @@ export default function Wishlist() {
   const dispatch = useAppDispatch()
   const { toast } = useToast()
   const navigate = useNavigate()
+  const [isAdding, setIsAdding] = React.useState(false)
 
   // Fetch wishlist from backend
   const { data, isLoading, isError } = useGetWishlistQuery()
@@ -27,6 +28,7 @@ export default function Wishlist() {
   }
 
   const handleAddToCart = async (product) => {
+    setIsAdding(true)
     try {
       // Add as base product (no variant selected in wishlist usually)
       const updatedCart = await cartApi.addToCart(product._id, 1, null)
@@ -35,6 +37,8 @@ export default function Wishlist() {
       navigate('/cart')
     } catch (err) {
       toast({ title: 'Error', description: err.data?.message || 'Failed to add to cart', variant: 'destructive' })
+    } finally {
+      setIsAdding(false)
     }
   }
 
@@ -107,9 +111,10 @@ export default function Wishlist() {
                 <Button
                   className="w-full rounded-xl bg-black hover:bg-gray-800 text-white shadow-sm transition-all flex items-center justify-center gap-2 group-hover:shadow-md"
                   onClick={() => handleAddToCart(product)}
+                  disabled={isAdding}
                 >
                   <ShoppingCart size={16} />
-                  Add to Cart
+                  {isAdding ? 'Adding...' : 'Add to Cart'}
                 </Button>
               </div>
             </div>

@@ -16,9 +16,10 @@ export default function OrderReceipt() {
   const dispatch = useAppDispatch()
   const receiptRef = useRef(null)
 
+  // Get order first without polling to get initial status
   const { data, isLoading, error: queryError, refetch } = useGetOrderQuery(id, {
     // Poll every 3 seconds if order is still pending to catch the webhook update
-    pollingInterval: order?.status === 'pending' ? 3000 : 0
+    pollingInterval: data?.order?.status === 'pending' ? 3000 : 0
   })
   const order = data?.order
 
@@ -31,7 +32,14 @@ export default function OrderReceipt() {
 
   const downloadPDF = () => {
     if (order.invoiceUrl) {
-      window.open(order.invoiceUrl, '_blank')
+      // 🚀 ROBUST DOWNLOAD METHOD
+      const link = document.createElement('a')
+      link.href = order.invoiceUrl
+      link.target = '_blank'
+      link.download = `ShopLuxe_Receipt_${order._id.slice(-6).toUpperCase()}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
     } else {
       const element = receiptRef.current
       const opt = {

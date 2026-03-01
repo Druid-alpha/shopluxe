@@ -43,6 +43,7 @@ export const productApi = api.injectEndpoints({
       query: (id) => `/products/${id}`,
       providesTags: (result, error, id) => [
         { type: "Product", id },
+        "Product"
       ],
     }),
 
@@ -89,30 +90,30 @@ export const productApi = api.injectEndpoints({
 
     /* ================= ADMIN ================= */
 
-   getAdminProducts: builder.query({
-  query: ({
-    page = 1,
-    limit = 10,
-    search,
-    category,
-    brand,
-    color,
-  clothingType=null
-  } = {}) => ({
-    url: "/products/admin",
-    params: {
-      page,
-      limit,
-      search,
-      category,
-      brand,
-      color,
-    clothingType: clothingType === 'all' ? null : clothingType,
-    },
-    credentials: "include",
-  }),
-  providesTags: ["Product"],
-}),
+    getAdminProducts: builder.query({
+      query: ({
+        page = 1,
+        limit = 10,
+        search,
+        category,
+        brand,
+        color,
+        clothingType = null
+      } = {}) => ({
+        url: "/products/admin",
+        params: {
+          page,
+          limit,
+          search,
+          category,
+          brand,
+          color,
+          clothingType: clothingType === 'all' ? null : clothingType,
+        },
+        credentials: "include",
+      }),
+      providesTags: ["Product"],
+    }),
 
 
     createProduct: builder.mutation({
@@ -144,15 +145,15 @@ export const productApi = api.injectEndpoints({
       }),
       invalidatesTags: ["Product"],
     }),
-toggleFeatured: builder.mutation({
-  query: ({ id, featured }) => ({
-    url: `/products/admin/${id}/feature`,
-    method: "PATCH",
-    body: { featured },
-    credentials: "include",
-  }),
-  invalidatesTags: ["Product"],
-}),
+    toggleFeatured: builder.mutation({
+      query: ({ id, featured }) => ({
+        url: `/products/admin/${id}/feature`,
+        method: "PATCH",
+        body: { featured },
+        credentials: "include",
+      }),
+      invalidatesTags: ["Product"],
+    }),
     deleteProduct: builder.mutation({
       query: (id) => ({
         url: `/products/admin/${id}`,

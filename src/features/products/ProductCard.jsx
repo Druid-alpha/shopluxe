@@ -21,6 +21,7 @@ export default function ProductCard({ product, featured }) {
   const dispatch = useAppDispatch()
   const { toast } = useToast()
   const navigate = useNavigate()
+  const [isAdding, setIsAdding] = React.useState(false)
 
   const { data } = useGetWishlistQuery()
   const [toggleWishlist] = useToggleWishlistMutation()
@@ -48,6 +49,7 @@ export default function ProductCard({ product, featured }) {
       return
     }
 
+    setIsAdding(true)
     try {
       const updatedCart = await cartApi.addToCart(product._id, 1, null)
       dispatch(setCart(updatedCart))
@@ -60,6 +62,8 @@ export default function ProductCard({ product, featured }) {
         description: err.response?.data?.message || 'Failed to add to cart',
         variant: 'destructive',
       })
+    } finally {
+      setIsAdding(false)
     }
   }
 
@@ -120,9 +124,9 @@ export default function ProductCard({ product, featured }) {
           onClick={handleAddToCart}
           size="sm"
           className="w-full me-2"
-          disabled={isOutOfStock}
+          disabled={isOutOfStock || isAdding}
         >
-          {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+          {isAdding ? 'Adding...' : (isOutOfStock ? 'Out of Stock' : 'Add to Cart')}
         </Button>
         <Link to={`/products/${product._id}`} className="w-full">
           <Button variant="outline" size="sm" className="w-full">

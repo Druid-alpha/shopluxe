@@ -28,7 +28,7 @@ export default function ProductFilters({
     () =>
       categories.find(
         c =>
-          c._id === category ||
+          String(c._id) === String(category) ||
           c.name.toLowerCase() === category?.toLowerCase()
       ),
     [categories, category]
@@ -37,6 +37,7 @@ export default function ProductFilters({
 
   // ---------------- Load filter options ----------------
   const loadFilters = async () => {
+    setLoading(true)
     try {
       const params = { category: category || undefined }
       if (isClothing && clothingType) params.clothingType = clothingType
@@ -53,12 +54,14 @@ export default function ProductFilters({
       if (clothingType && !res.data.clothingTypes.includes(clothingType)) setClothingType(null)
     } catch (err) {
       console.error('Failed to load filters', err)
+    } finally {
+      setLoading(false)
     }
   }
 
   useEffect(() => {
     loadFilters()
-  }, [category, clothingType])
+  }, [category, clothingType, isClothing])
 
   // ---------------- Price slider ----------------
   useEffect(() => setRange([minPrice, maxPrice]), [minPrice, maxPrice])
@@ -83,7 +86,7 @@ export default function ProductFilters({
 
   // ---------------- Render ----------------
   return (
-    <div className="flex flex-col gap-6 mb-6">
+    <div className={`flex flex-col gap-6 mb-6 transition-opacity duration-200 ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
       {/* CATEGORY */}
       <div>
         <label className="block mb-2 font-medium">Category:</label>
