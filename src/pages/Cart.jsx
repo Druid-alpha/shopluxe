@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { Button } from '@/components/ui/button';
 import { setCart } from '@/features/cart/cartSlice';
 import * as cartApi from '@/features/cart/cartApi';
-import { Trash, Loader2, Toast } from 'lucide-react';
+import { Trash, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Cart() {
