@@ -48,7 +48,7 @@ export default function ProductDetails() {
   const [isAdding, setIsAdding] = useState(false)
 
   const variants = product?.variants || []
-  const selectedVariant = variants[selectedVariantIndex] || {}
+  const selectedVariant = variants.length > 0 ? variants[selectedVariantIndex] : null
 
   /* ================= EFFECTS (ALWAYS BEFORE RETURN) ================= */
   useEffect(() => {
@@ -89,7 +89,7 @@ export default function ProductDetails() {
     id => id.toString() === product._id.toString() || id?.productId === product._id
   )
 
-  const currentStock = selectedVariant.stock ?? product.stock ?? 0;
+  const currentStock = selectedVariant?.stock ?? product.stock ?? 0;
 
   const handleAddToCart = async () => {
     if (!user) {

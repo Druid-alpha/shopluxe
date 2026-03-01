@@ -7,26 +7,27 @@ export const normalizeCart = (cart) => {
   if (!cart || !Array.isArray(cart)) return [];
 
   return cart
-    .filter(i => i.product) // Safety: Filter out deleted products
+    .filter(i => i.product && (typeof i.product === 'object')) // Safety: Filter out unpopulated/deleted products
     .map((i) => {
+      const product = i.product;
       const variantSku =
         typeof i.variant === 'string'
           ? i.variant
           : i.variant?.sku || null;
 
-      const variantObj = i.product?.variants?.find(v => v.sku === variantSku) || null;
+      const variantObj = product.variants?.find(v => v.sku === variantSku) || null;
       const productImage =
-        variantObj?.image?.url || i.product?.images?.[0]?.url || null
+        variantObj?.image?.url || product.images?.[0]?.url || null
 
       return {
-        key: `${i.product._id}-${variantSku || 'default'}`,
-        productId: i.product._id,
-        title: i.product.title,
-        price: variantObj?.price || i.product.price,
+        key: `${product._id || product.id || Math.random()}-${variantSku || 'default'}`,
+        productId: product._id || product.id,
+        title: product.title || 'Product',
+        price: variantObj?.price || product.price || 0,
         qty: i.qty,
         variant: variantSku,
         variantStock: variantObj?.stock,
-        productStock: i.product.stock,
+        productStock: product.stock,
         productImage
       };
     });
