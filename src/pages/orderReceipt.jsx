@@ -1,5 +1,5 @@
+import * as React from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useEffect, useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Download, ChevronLeft, LogOut, CheckCircle2 } from 'lucide-react'
 import html2pdf from 'html2pdf.js'
@@ -14,7 +14,7 @@ export default function OrderReceipt() {
   const { id } = useParams()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const receiptRef = useRef(null)
+  const receiptRef = React.useRef(null)
 
   // Get order first without polling to get initial status
   const { data, isLoading, error: queryError, refetch } = useGetOrderQuery(id, {
@@ -23,7 +23,7 @@ export default function OrderReceipt() {
   })
   const order = data?.order
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (order?.status === 'paid' || order?.paymentStatus === 'paid') {
       // 🔥 Force refresh products so stock reduction is reflected
       dispatch(productApi.util.invalidateTags(['Product']))
@@ -173,8 +173,8 @@ export default function OrderReceipt() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {order.items.map((item, i) => (
-                    <tr key={i}>
+                  {order.items.map((item, itemIdx) => (
+                    <tr key={itemIdx}>
                       <td className="py-6">
                         <p className="font-bold text-gray-900">{item.product.title}</p>
                         {item.variant && (

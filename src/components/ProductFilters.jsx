@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import * as React from 'react'
 import { Slider } from './ui/slider'
 import axios from '@/lib/axios'
 
@@ -16,15 +16,15 @@ export default function ProductFilters({
   clothingType,
   setClothingType
 }) {
-  const [range, setRange] = useState([minPrice, maxPrice])
-  const [categories, setCategories] = useState([])
-  const [brands, setBrands] = useState([])
-  const [colors, setColors] = useState([])
-  const [clothingTypes, setClothingTypes] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [range, setRange] = React.useState([minPrice, maxPrice])
+  const [categories, setCategories] = React.useState([])
+  const [brands, setBrands] = React.useState([])
+  const [colors, setColors] = React.useState([])
+  const [clothingTypes, setClothingTypes] = React.useState([])
+  const [loading, setLoading] = React.useState(false)
 
   // ---------------- Derived values ----------------
-  const selectedCategoryObj = useMemo(
+  const selectedCategoryObj = React.useMemo(
     () =>
       categories.find(
         c =>
@@ -59,12 +59,12 @@ export default function ProductFilters({
     }
   }
 
-  useEffect(() => {
+  React.useEffect(() => {
     loadFilters()
   }, [category, clothingType, isClothing])
 
   // ---------------- Price slider ----------------
-  useEffect(() => setRange([minPrice, maxPrice]), [minPrice, maxPrice])
+  React.useEffect(() => setRange([minPrice, maxPrice]), [minPrice, maxPrice])
   const handlePriceChange = (values) => {
     setRange(values)
     setMinPrice(values[0])
@@ -72,13 +72,13 @@ export default function ProductFilters({
   }
 
   // ---------------- Reset dependent filters ----------------
-  useEffect(() => {
+  React.useEffect(() => {
     // When category changes → reset clothingType & brand
     setClothingType(null)
     setBrand(null)
   }, [category])
 
-  useEffect(() => {
+  React.useEffect(() => {
     // When clothingType changes → reset brand
     if (!isClothing) setClothingType(null)
     setBrand(null)

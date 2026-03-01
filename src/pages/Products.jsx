@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import * as React from 'react'
 import { useSearchParams } from 'react-router-dom'
 import ProductFilters from '@/components/ProductFilters'
 import ProductSearch from '@/components/ProductSearch'
@@ -11,37 +11,44 @@ import clsx from 'clsx'
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const [page, setPage] = useState(Number(searchParams.get('page')) || 1)
-  const [search, setSearch] = useState(searchParams.get('search') || '')
-  const [debouncedSearch, setDebouncedSearch] = useState(search)
-  const [category, setCategory] = useState(searchParams.get('category') || '')
-  const [brand, setBrand] = useState(searchParams.get('brand') || '')
-  const [color, setColor] = useState(searchParams.get('color') || '')
-  const [minPrice, setMinPrice] = useState(Number(searchParams.get('minPrice')) || 0)
-  const [maxPrice, setMaxPrice] = useState(Number(searchParams.get('maxPrice')) || 5000000)
-  const [clothingType, setClothingType] = useState(searchParams.get('clothingType') || '')
-  const [mobileFilters, setMobileFilters] = useState(false)
+  const [page, setPage] = React.useState(Number(searchParams.get('page')) || 1)
+  const [search, setSearch] = React.useState(searchParams.get('search') || '')
+  const [debouncedSearch, setDebouncedSearch] = React.useState(search)
+  const [category, setCategory] = React.useState(searchParams.get('category') || '')
+  const [brand, setBrand] = React.useState(searchParams.get('brand') || null)
+  const [color, setColor] = React.useState(searchParams.get('color') || null)
+  const [minPrice, setMinPrice] = React.useState(Number(searchParams.get('minPrice')) || 0)
+  const [maxPrice, setMaxPrice] = React.useState(Number(searchParams.get('maxPrice')) || 5000000)
+  const [clothingType, setClothingType] = React.useState(searchParams.get('clothingType') || '')
+  const [mobileFilters, setMobileFilters] = React.useState(false)
 
   // ---------------- Debounced search ----------------
-  useEffect(() => {
+  React.useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 500)
     return () => clearTimeout(timer)
   }, [search])
 
   // ---------------- Reset dependent filters ----------------
-  useEffect(() => {
+  React.useEffect(() => {
     // Reset clothingType and brand if category changes
     setClothingType('')
-    setBrand('')
+    setBrand(null)
+    setPage(1) // 🚀 Reset to page 1
   }, [category])
 
-  useEffect(() => {
+  React.useEffect(() => {
     // Reset brand if clothingType changes
-    setBrand('')
+    setBrand(null)
+    setPage(1) // 🚀 Reset to page 1
   }, [clothingType])
 
+  // ---------------- Reset page on other filters ----------------
+  React.useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch, brand, color, minPrice, maxPrice])
+
   // ---------------- Update URL ----------------
-  useEffect(() => {
+  React.useEffect(() => {
     const params = {
       page: page.toString(),
       search: debouncedSearch || '',
@@ -56,7 +63,7 @@ export default function Products() {
   }, [page, debouncedSearch, category, clothingType, brand, color, minPrice, maxPrice])
 
   // ---------------- Mobile scroll lock ----------------
-  useEffect(() => {
+  React.useEffect(() => {
     document.body.style.overflow = mobileFilters ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [mobileFilters])

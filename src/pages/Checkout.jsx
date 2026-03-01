@@ -1,9 +1,9 @@
+import * as React from 'react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { Button } from '@/components/ui/button'
 import { clearCart } from '@/features/cart/cartSlice'
 import { useToast } from '@/hooks/use-toast'
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
 
 export default function Checkout() {
   const cart = useAppSelector(state => state.cart.items)
@@ -12,7 +12,7 @@ export default function Checkout() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { toast } = useToast()
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = React.useState(false)
 
   const pay = async () => {
     if (!cart.length) return
