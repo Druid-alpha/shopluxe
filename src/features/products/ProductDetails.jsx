@@ -30,7 +30,9 @@ export default function ProductDetails() {
   const user = useAppSelector(state => state.auth.user)
 
   /* ================= QUERIES ================= */
-  const { data, isLoading } = useGetProductQuery(id)
+ const { data, isLoading } = useGetProductQuery(id, {
+  refetchOnMountOrArgChange: true
+})
   const product = data?.product
 
   const { data: reviewsData, refetch: refetchReviews } =
@@ -92,42 +94,54 @@ export default function ProductDetails() {
   const currentStock = selectedVariant?.stock ?? product.stock ?? 0;
 
   const handleAddToCart = async () => {
-    if (!user) {
-      toast({
-        title: 'Login required',
-        description: 'Please login to add items to your cart',
-        variant: 'destructive'
-      })
-      navigate('/login')
-      return
-    }
-
-    if (currentStock < quantity) {
-      toast({ title: 'Not enough stock', variant: 'destructive' })
-      return
-    }
-
-    setIsAdding(true)
-    try {
-      const updatedCart = await cartApi.addToCart(
-        product._id,
-        quantity,
-        selectedVariant
-      )
-      dispatch(setCart(updatedCart))
-      toast({ title: 'Added to Cart' })
-      navigate('/cart')
-    } catch (err) {
-      console.error('Add to cart failed:', err)
-      toast({
-        title: 'Error',
-        description: err.response?.data?.message || 'Failed to add to cart',
-        variant: 'destructive'
-      })
-    } finally {
-      setIsAdding(false)
-    }
+  if (!user) {
+    toast({
+      title: 'Login required',
+      description: 'Please login to add items to your cart',
+      variant: 'destructive'
+    })
+    navigate('/login')
+    return
   }
+
+  if (currentStock < quantity) {
+    toast({ title: 'Not enough stock', variant: 'destructive' })
+    return
+  }
+
+  setIsAdding(true)
+
+  try {
+
+    /* ---------- FIX #5 (SAFE VARIANT PAYLOAD) ---------- */
+    const variantPayload = selectedVariant
+      ? {
+          _id: selectedVariant._id,
+          sku: selectedVariant.sku
+        }
+      : null
+
+    const updatedCart = await cartApi.addToCart(
+      product._id,
+      quantity,
+      variantPayload
+    )
+
+    dispatch(setCart(updatedCart))
+    toast({ title: 'Added to Cart' })
+    navigate('/cart')
+
+  } catch (err) {
+    console.error('Add to cart failed:', err)
+    toast({
+      title: 'Error',
+      description: err.response?.data?.message || 'Failed to add to cart',
+      variant: 'destructive'
+    })
+  } finally {
+    setIsAdding(false)
+  }
+}
 
   const handleWishlistToggle = async () => {
     if (!user) {

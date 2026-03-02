@@ -36,29 +36,25 @@ export default function OrderReceipt() {
     }
   }, [order?.status, order?.paymentStatus, dispatch])
 
-  const downloadPDF = () => {
-    if (order.invoiceUrl) {
-      // 🚀 ROBUST DOWNLOAD METHOD
-      const link = document.createElement('a')
-      link.href = order.invoiceUrl
-      link.target = '_blank'
-      link.download = `ShopLuxe_Receipt_${order._id.slice(-6).toUpperCase()}.pdf`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    } else {
-      const element = receiptRef.current
-      const opt = {
-        margin: 10,
-        filename: `receipt-${id}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      }
-      html2pdf().from(element).set(opt).save()
-    }
-  }
+  const downloadPDF = async () => {
+  if (order.invoiceUrl) {
+    const response = await fetch(order.invoiceUrl)
+    const blob = await response.blob()
 
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = `ShopLuxe_Receipt_${order._id.slice(-6)}.pdf`
+
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  } else {
+    const element = receiptRef.current
+    html2pdf().from(element).save()
+  }
+}
   const handleLogout = async () => {
     try {
       await authApi.endpoints.logout.initiate().unwrap()
@@ -137,8 +133,8 @@ export default function OrderReceipt() {
               </div>
               <div className="text-left sm:text-right space-y-1 text-sm">
                 <p className="font-bold text-gray-900 text-lg">ShopLuxe Ltd.</p>
-                <p className="text-gray-500">123 Premium Way, Victoria Island</p>
-                <p className="text-gray-500">Lagos, 100001</p>
+                <p className="text-gray-500">Zone 7, Ota-Efun Osogbo</p>
+                <p className="text-gray-500">Osun, 230281</p>
                 <p className="text-gray-500 font-mono tracking-tighter">support@shopluxe.com</p>
               </div>
             </div>
@@ -169,7 +165,7 @@ export default function OrderReceipt() {
             </div>
 
             {/* Table */}
-            <div className="mt-12">
+            <div className="mt-10">
               <table className="w-full text-left">
                 <thead>
                   <tr className="text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">
@@ -214,7 +210,7 @@ export default function OrderReceipt() {
             </div>
 
             {/* Footer */}
-            <div className="pt-20 text-center space-y-6">
+            <div className="pt-20 text-center space-y-4">
               <p className="text-gray-400 text-[10px] font-medium leading-relaxed max-w-sm mx-auto">
                 Thank you for choosing ShopLuxe. We appreciate your business and hope you enjoy your premium selection.
               </p>
