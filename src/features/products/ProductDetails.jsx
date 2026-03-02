@@ -29,14 +29,18 @@ export default function ProductDetails() {
   const { toast } = useToast()
   const user = useAppSelector(state => state.auth.user)
 
-  /* ================= QUERIES ================= */
- const { data, isLoading } = useGetProductQuery(id, {
-  refetchOnMountOrArgChange: true
-})
+ const { data, isLoading, refetch } = useGetProductQuery(id)
   const product = data?.product
 
   const { data: reviewsData, refetch: refetchReviews } =
     useGetReviewsQuery(id)
+    React.useEffect(() => {
+  const timer = setInterval(() => {
+    refetch()
+  }, 3000)
+
+  return () => clearInterval(timer)
+}, [refetch])
   const reviews = reviewsData?.reviews || []
 
   const { data: wishlistData } = useGetWishlistQuery()

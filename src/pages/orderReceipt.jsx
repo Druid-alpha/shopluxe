@@ -50,6 +50,7 @@ export default function OrderReceipt() {
     document.body.appendChild(link)
     link.click()
     link.remove()
+    console.log("Stock update result:", result.modifiedCount)
   } else {
     const element = receiptRef.current
     html2pdf().from(element).save()

@@ -43,7 +43,7 @@ export const productApi = api.injectEndpoints({
       query: (id) => `/products/${id}`,
       providesTags: (result, error, id) => [
         { type: "Product", id },
-        "Product"
+      
       ],
     }),
 
