@@ -30,6 +30,7 @@ import ProductDetails from './features/products/ProductDetails'
 import OrderReceipt from './pages/orderReceipt'
 import Register from './pages/Register'
 import PaymentSuccess from './pages/PaymentSuccess'
+import NotFound from './pages/NotFound'
 
 export default function App() {
   const location = useLocation()
@@ -114,7 +115,7 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
- <Route path="/payment/success" element={<PaymentSuccess />} />
+            <Route path="/payment/success" element={<PaymentSuccess />} />
             <Route
               path="/admin/orders"
               element={
@@ -123,6 +124,7 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
           </Routes>
         </AnimatePresence>
       </main>

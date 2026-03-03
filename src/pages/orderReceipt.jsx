@@ -1,13 +1,11 @@
 import * as React from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Download, ChevronLeft, LogOut, CheckCircle2 } from 'lucide-react'
+import { Download, ChevronLeft, LogOut, CheckCircle2, Clock } from 'lucide-react'
 import html2pdf from 'html2pdf.js'
-import { useAppDispatch, useAppSelector } from '@/app/hooks'
+import { useAppDispatch } from '@/app/hooks'
 import { logout } from '@/features/auth/authSlice'
-import { authApi } from '@/features/auth/authApi'
 import { productApi } from '@/features/products/productApi'
-
 import { useGetOrderQuery } from '@/features/orders/orderApi'
 
 export default function OrderReceipt() {
@@ -16,57 +14,49 @@ export default function OrderReceipt() {
   const dispatch = useAppDispatch()
   const receiptRef = React.useRef(null)
 
-  // Get order first without polling to get initial status
   const { data, isLoading, error: queryError, refetch } = useGetOrderQuery(id)
-
   const order = data?.order
 
-  // Stable polling logic: only poll if we have order data and it's pending
+  // Poll while payment is still pending
   React.useEffect(() => {
-    if (order?.status === 'pending') {
+    if (order?.paymentStatus === 'pending') {
       const timer = setInterval(() => refetch(), 3000)
       return () => clearInterval(timer)
     }
-  }, [order?.status, refetch])
+  }, [order?.paymentStatus, refetch])
 
+  // Invalidate product cache once paid so stock reflects
   React.useEffect(() => {
-    if (order?.status === 'paid' || order?.paymentStatus === 'paid' || order?.status === 'processing') {
-      // 🔥 Force refresh products so stock reduction is reflected
+    if (order?.paymentStatus === 'paid') {
       dispatch(productApi.util.invalidateTags(['Product']))
     }
-  }, [order?.status, order?.paymentStatus, dispatch])
+  }, [order?.paymentStatus, dispatch])
 
   const downloadPDF = async () => {
-  if (order.invoiceUrl) {
-    const response = await fetch(order.invoiceUrl)
-    const blob = await response.blob()
-
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-
-    link.href = url
-    link.download = `ShopLuxe_Receipt_${order._id.slice(-6)}.pdf`
-
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    console.log("Stock update result:", result.modifiedCount)
-  } else {
-    const element = receiptRef.current
-    html2pdf().from(element).save()
-  }
-}
-  const handleLogout = async () => {
-    try {
-      await authApi.endpoints.logout.initiate().unwrap()
-      dispatch(logout())
-      navigate('/login')
-    } catch (err) {
-      console.error('Logout failed:', err)
-      // Fallback
-      dispatch(logout())
-      navigate('/login')
+    if (order?.invoiceUrl) {
+      try {
+        const response = await fetch(order.invoiceUrl)
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `ShopLuxe_Invoice_${order._id.slice(-6)}.pdf`
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        window.URL.revokeObjectURL(url)
+      } catch (err) {
+        console.error('PDF download failed, falling back to html2pdf', err)
+        html2pdf().from(receiptRef.current).save()
+      }
+    } else {
+      html2pdf().from(receiptRef.current).save()
     }
+  }
+
+  const handleLogout = async () => {
+    dispatch(logout())
+    navigate('/login')
   }
 
   if (queryError) return (
@@ -80,8 +70,29 @@ export default function OrderReceipt() {
 
   if (isLoading || !order) return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 space-y-4">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
-      <p className="text-gray-500 font-medium animate-pulse text-sm">Generating your premium receipt...</p>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black" />
+      <p className="text-gray-500 font-medium animate-pulse text-sm">Loading your receipt…</p>
+    </div>
+  )
+
+  // Show pending state if payment hasn't been confirmed yet
+  if (order.paymentStatus === 'pending') return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-6">
+      <div className="relative w-20 h-20">
+        <div className="absolute inset-0 rounded-full bg-amber-100 animate-ping opacity-50" />
+        <div className="relative w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center">
+          <Clock size={36} className="text-amber-500 animate-pulse" />
+        </div>
+      </div>
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Awaiting Payment Confirmation</h2>
+        <p className="text-gray-500 text-sm mt-2">We're waiting for your payment to be confirmed. This page will update automatically.</p>
+      </div>
+      <div className="flex gap-1.5">
+        {[0, 1, 2].map(i => (
+          <div key={i} className="w-2 h-2 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+        ))}
+      </div>
     </div>
   )
 
@@ -144,16 +155,30 @@ export default function OrderReceipt() {
               <div className="space-y-4">
                 <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Billed To</h4>
                 <div className="space-y-1">
-                  <p className="font-bold text-xl text-gray-900">{order.shippingAddress?.fullName || 'Valued Customer'}</p>
-                  <p className="text-gray-500 text-sm leading-relaxed">{order.shippingAddress?.address}</p>
-                  <p className="text-gray-500 text-sm">{order.shippingAddress?.city}, {order.shippingAddress?.state}</p>
+                  <p className="font-bold text-xl text-gray-900">
+                    {order.shippingAddress?.fullName || order.user?.name || 'Valued Customer'}
+                  </p>
+                  {order.shippingAddress?.phone && (
+                    <p className="text-gray-500 text-sm">📞 {order.shippingAddress.phone}</p>
+                  )}
+                  {order.shippingAddress?.address && (
+                    <p className="text-gray-500 text-sm leading-relaxed">{order.shippingAddress.address}</p>
+                  )}
+                  {(order.shippingAddress?.city || order.shippingAddress?.state) && (
+                    <p className="text-gray-500 text-sm">
+                      {order.shippingAddress.city}{order.shippingAddress.city && order.shippingAddress.state ? ', ' : ''}{order.shippingAddress.state}
+                    </p>
+                  )}
                   <p className="text-gray-500 text-sm italic">Nigeria</p>
                 </div>
               </div>
               <div className="space-y-4 sm:text-right">
                 <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Invoice Details</h4>
                 <div className="space-y-2">
-                  <p className="text-sm font-medium"><span className="text-gray-400 mr-2">Issue Date:</span> {new Date(order.createdAt).toLocaleDateString('en-US', { dateStyle: 'long' })}</p>
+                  <p className="text-sm font-medium">
+                    <span className="text-gray-400 mr-2">Issue Date:</span>
+                    {new Date(order.createdAt).toLocaleDateString('en-US', { dateStyle: 'long' })}
+                  </p>
                   <p className="text-sm font-medium">
                     <span className="text-gray-400 mr-2">Status:</span>
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase italic tracking-wider ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
@@ -165,27 +190,34 @@ export default function OrderReceipt() {
               </div>
             </div>
 
-            {/* Table */}
+            {/* Items Table */}
             <div className="mt-10">
               <table className="w-full text-left">
                 <thead>
                   <tr className="text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">
                     <th className="pb-4 font-black">Description</th>
-                    <th className="pb-4 text-center font-black">Quantity</th>
+                    <th className="pb-4 text-center font-black">Qty</th>
+                    <th className="pb-4 text-right font-black">Unit Price</th>
                     <th className="pb-4 text-right font-black">Amount</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {order.items.map((item, itemIdx) => (
-                    <tr key={itemIdx}>
+                  {order.items.map((item, idx) => (
+                    <tr key={idx}>
                       <td className="py-6">
-                        <p className="font-bold text-gray-900">{item.product.title}</p>
+                        {/* Use item.title directly - product may not be populated */}
+                        <p className="font-bold text-gray-900">{item.title || (item.product?.title) || 'Product'}</p>
                         {item.variant && (
-                          <p className="text-[10px] text-gray-400 font-medium mt-1 uppercase tracking-tighter">Variant: {item.variant.sku || item.variant}</p>
+                          <p className="text-[10px] text-gray-400 font-medium mt-1 uppercase tracking-tighter">
+                            Variant: {item.variant.sku || item.variant}
+                          </p>
                         )}
                       </td>
                       <td className="py-6 text-center font-mono text-gray-500">{item.qty}</td>
-                      <td className="py-6 text-right font-bold text-gray-900 italic">₦{item.priceAtPurchase?.toLocaleString()}</td>
+                      <td className="py-6 text-right text-gray-500 text-sm">₦{(item.priceAtPurchase || 0).toLocaleString()}</td>
+                      <td className="py-6 text-right font-bold text-gray-900 italic">
+                        ₦{((item.priceAtPurchase || 0) * item.qty).toLocaleString()}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -216,15 +248,15 @@ export default function OrderReceipt() {
                 Thank you for choosing ShopLuxe. We appreciate your business and hope you enjoy your premium selection.
               </p>
               <div className="flex items-center justify-center gap-2 opacity-30">
-                <div className="h-[1px] w-8 bg-black"></div>
+                <div className="h-[1px] w-8 bg-black" />
                 <span className="text-[8px] font-black uppercase tracking-[0.5em]">Authentic Selection</span>
-                <div className="h-[1px] w-8 bg-black"></div>
+                <div className="h-[1px] w-8 bg-black" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Post-Purchase Navigation */}
+        {/* Navigation */}
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-center pt-4 pb-12">
           <Button
             onClick={() => navigate('/')}
