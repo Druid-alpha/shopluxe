@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { Button } from '@/components/ui/button'
+import { setCart } from '@/features/cart/cartSlice'
 import { clearCart } from '@/features/cart/cartSlice'
 import { useToast } from '@/hooks/use-toast'
 import { useNavigate } from 'react-router-dom'
@@ -39,21 +40,51 @@ export default function Checkout() {
         amount: Math.round(total * 100)
       })
 
-      const handler = window.PaystackPop.setup({
-        key: import.meta.env.VITE_PAYSTACK_PUBLICKEY, // MUST be pk_
-        email: data.userEmail || 'customer@example.com',
-        amount: Math.round(total * 100), // ✅ INTEGER ONLY
-        currency: 'NGN',
-        ref: `${data.order._id}-${Date.now()}`,
-        callback: () => {
-          dispatch(clearCart())
-          toast({ title: 'Payment successful' })
-          navigate(`/orders/${data.order._id}`)
-        },
-        onclose: () => toast({ title: 'Payment cancelled' })
-      })
+     const pay = async () => {
+  if (!cart.length) return
+  setLoading(true)
 
-      handler.openIframe()
+  try {
+    // 1️⃣ Create order
+    const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      credentials: 'include'
+    })
+
+    const orderData = await orderRes.json()
+    if (!orderRes.ok) throw new Error(orderData.message)
+
+    // 2️⃣ Initialize Paystack transaction
+    const payRes = await fetch(`${import.meta.env.VITE_API_URL}/payments/init`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      credentials: 'include',
+      body: JSON.stringify({ orderId: orderData.order._id })
+    })
+
+    const payData = await payRes.json()
+    if (!payRes.ok) throw new Error(payData.message)
+
+    // 3️⃣ Redirect user to Paystack hosted page
+    window.location.href = payData.authorizationUrl
+
+  } catch (e) {
+    toast({
+      title: 'Payment error',
+      description: e.message,
+      variant: 'destructive'
+    })
+  } finally {
+    setLoading(false)
+  }
+}
     } catch (e) {
       toast({
         title: 'Payment error',

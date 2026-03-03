@@ -2,6 +2,8 @@ import * as React from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useGetProductQuery, useGetReviewsQuery } from './productApi'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
+import { addGuestCart } from '../cart/cartSlice'
+import { toggleGuestWishlist } from '../wishlist/wishlistSlice'
 import { setCart } from '../cart/cartSlice'
 import * as cartApi from '../cart/cartApi'
 import { Button } from '@/components/ui/button'
@@ -98,15 +100,24 @@ export default function ProductDetails() {
   const currentStock = selectedVariant?.stock ?? product.stock ?? 0;
 
   const handleAddToCart = async () => {
-  if (!user) {
-    toast({
-      title: 'Login required',
-      description: 'Please login to add items to your cart',
-      variant: 'destructive'
-    })
-    navigate('/login')
-    return
-  }
+ if (!user) {
+
+  const variantPayload = selectedVariant
+    ? {
+        _id: selectedVariant._id,
+        sku: selectedVariant.sku
+      }
+    : null
+
+  dispatch(addGuestCart({
+    product: product._id,
+    qty: quantity,
+    variant: variantPayload
+  }))
+
+  toast({ title: 'Added to cart (Guest)' })
+  return
+}
 
   if (currentStock < quantity) {
     toast({ title: 'Not enough stock', variant: 'destructive' })
@@ -149,9 +160,10 @@ export default function ProductDetails() {
 
   const handleWishlistToggle = async () => {
     if (!user) {
-      toast({ title: 'Login required', variant: 'destructive' })
-      return
-    }
+  dispatch(toggleGuestWishlist(product._id))
+  toast({ title: 'Wishlist updated (Guest)' })
+  return
+}
     const result = await toggleWishlist(product._id).unwrap()
     toast({ title: result.message || 'Wishlist updated' })
   }

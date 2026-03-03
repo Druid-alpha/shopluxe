@@ -1,4 +1,7 @@
 import React, { useState } from "react"
+import { useSelector } from "react-redux"
+import { clearCart, setCart } from "@/features/cart/cartSlice"
+import { syncCart, getCart } from "@/features/cart/cartApi"
 import { useNavigate, Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,6 +22,7 @@ const loginSchema = z.object({
 export default function Login() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
+  const guestCart = useSelector((state) => state.cart.items)
   const { toast } = useToast()
 
   const {
@@ -31,16 +35,33 @@ export default function Login() {
   })
 
   const [login, { isLoading }] = useLoginMutation()
-
+ 
   const onSubmit = async (data) => {
     try {
       const res = await login(data).unwrap()
-      dispatch(setUser(res.user))
-      if (res.accessToken) {
-        dispatch(setToken(res.accessToken))
-      }
-      toast({ title: "Login successful" })
-      navigate("/")
+     dispatch(setUser(res.user))
+
+if (res.accessToken) {
+  dispatch(setToken(res.accessToken))
+}
+
+// ✅ Merge guest cart
+if (guestCart.length > 0) {
+  try {
+    const mergedCart = await syncCart(guestCart)
+    dispatch(setCart(mergedCart))
+    dispatch(clearCart())
+  } catch (err) {
+    console.log("Cart sync failed", err)
+  }
+} else {
+  // If no guest cart, fetch existing DB cart
+  const dbCart = await getCart()
+  dispatch(setCart(dbCart))
+}
+
+toast({ title: "Login successful" })
+navigate("/")
     } catch (err) {
       if (err?.data?.message === "email not verified") {
         toast({

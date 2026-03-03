@@ -29,6 +29,7 @@ import AdminOrders from './pages/admin/AdminOrders'
 import ProductDetails from './features/products/ProductDetails'
 import OrderReceipt from './pages/orderReceipt'
 import Register from './pages/Register'
+import PaymentSuccess from './pages/PaymentSuccess'
 
 export default function App() {
   const location = useLocation()
@@ -113,7 +114,7 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-
+ <Route path="/payment/success" element={<PaymentSuccess />} />
             <Route
               path="/admin/orders"
               element={

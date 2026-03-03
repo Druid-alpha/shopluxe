@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/card'
 import { Heart } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { addGuestCart } from '../cart/cartSlice'
+import { toggleGuestWishlist } from '../wishlist/wishlistSlice'
 import { setCart } from '../cart/cartSlice'
 import * as cartApi from '../cart/cartApi'
 import {
@@ -42,15 +44,16 @@ export default function ProductCard({ product, featured }) {
     e.preventDefault()
     e.stopPropagation()
 
-    if (!user) {
-      toast({
-        title: 'Login required',
-        description: 'Please login to add items to your cart',
-        variant: 'destructive',
-      })
-      navigate('/login')
-      return
-    }
+   if (!user) {
+  dispatch(addGuestCart({
+    product: product._id,
+    qty: 1,
+    variant: null
+  }))
+
+  toast({ title: 'Added to cart (Guest)' })
+  return
+}
 
     setIsAdding(true)
     try {
@@ -70,19 +73,32 @@ export default function ProductCard({ product, featured }) {
     }
   }
 
-  const handleWishlist = async () => {
-    try {
-      await toggleWishlist(product._id).unwrap()
-      toast({
-        title: isWishlisted ? 'Removed from wishlist' : 'Added to wishlist ❤️',
-      })
-    } catch {
-      toast({
-        title: 'Login required',
-        variant: 'destructive',
-      })
-    }
+ const handleWishlist = async (e) => {
+  e.preventDefault()
+  e.stopPropagation()
+
+  if (!user) {
+    dispatch(toggleGuestWishlist(product._id))
+    toast({
+      title: 'Wishlist updated (Guest)'
+    })
+    return
   }
+
+  try {
+    await toggleWishlist(product._id).unwrap()
+    toast({
+      title: isWishlisted
+        ? 'Removed from wishlist'
+        : 'Added to wishlist ❤️'
+    })
+  } catch {
+    toast({
+      title: 'Something went wrong',
+      variant: 'destructive'
+    })
+  }
+}
 
   return (
     <Card className={`relative ${featured ? 'border-yellow-500' : ''}`}>

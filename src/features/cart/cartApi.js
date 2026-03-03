@@ -71,3 +71,12 @@ export const clearCartBackend = async () => {
   const res = await axios.delete(`${API}/clear`, { withCredentials: true });
   return normalizeCart(res.data.cart);
 };
+export const syncCart = async (items) => {
+  const res = await axios.post(
+    `${API}/sync`,
+    { items },
+    { withCredentials: true }
+  )
+
+  return normalizeCart(res.data.cart)
+}
