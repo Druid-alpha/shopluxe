@@ -38,7 +38,8 @@ export default function OrderReceipt() {
       filename: `ShopLuxe_Invoice_${order?._id?.slice(-6) || 'receipt'}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     if (order?.invoiceUrl) {
@@ -169,7 +170,7 @@ export default function OrderReceipt() {
                 <p className="font-bold text-gray-900 text-lg">ShopLuxe Ltd.</p>
                 <p className="text-gray-500">Zone 7, Ota-Efun Osogbo</p>
                 <p className="text-gray-500">Osun, 230281</p>
-                <p className="text-gray-500 font-mono tracking-tighter">support@shopluxe.com</p>
+                <p className="text-gray-500 font-mono">support@shopluxe.com</p>
               </div>
             </div>
 
@@ -213,7 +214,7 @@ export default function OrderReceipt() {
             </div>
 
             {/* Items Table */}
-            <div className="mt-10">
+            <div className="mt-10" style={{ breakInside: 'avoid' }}>
               <table className="w-full text-left">
                 <thead>
                   <tr className="text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">
@@ -247,7 +248,7 @@ export default function OrderReceipt() {
             </div>
 
             {/* Totals */}
-            <div className="flex justify-end pt-10 border-t-2 border-dashed border-gray-100">
+            <div className="flex justify-end pt-10 border-t-2 border-dashed border-gray-100" style={{ breakInside: 'avoid' }}>
               <div className="w-full sm:w-72 space-y-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400 font-medium">Subtotal</span>
