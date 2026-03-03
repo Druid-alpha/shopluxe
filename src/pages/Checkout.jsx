@@ -20,71 +20,36 @@ export default function Checkout() {
     setLoading(true)
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
+      // 1️⃣ Create order
+      const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: 'include'
+      })
+
+      const orderData = await orderRes.json()
+      if (!orderRes.ok) throw new Error(orderData.message)
+
+      // 2️⃣ Initialize Paystack transaction
+      const payRes = await fetch(`${import.meta.env.VITE_API_URL}/payments/paystack/init`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
         credentials: 'include',
-        body: JSON.stringify({})
+        body: JSON.stringify({ orderId: orderData.order._id })
       })
 
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message)
+      const payData = await payRes.json()
+      if (!payRes.ok) throw new Error(payData.message)
 
-      // 🔍 DEBUG — remove later
-      console.log({
-        key: import.meta.env.VITE_PAYSTACK_PUBLICKEY,
-        email: data.userEmail,
-        amount: Math.round(total * 100)
-      })
+      // 3️⃣ Redirect user to Paystack hosted page
+      window.location.href = payData.authorizationUrl
 
-      const pay = async () => {
-        if (!cart.length) return
-        setLoading(true)
-
-        try {
-          // 1️⃣ Create order
-          const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(token ? { Authorization: `Bearer ${token}` } : {})
-            },
-            credentials: 'include'
-          })
-
-          const orderData = await orderRes.json()
-          if (!orderRes.ok) throw new Error(orderData.message)
-
-          // 2️⃣ Initialize Paystack transaction
-          const payRes = await fetch(`${import.meta.env.VITE_API_URL}/payments/init`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(token ? { Authorization: `Bearer ${token}` } : {})
-            },
-            credentials: 'include',
-            body: JSON.stringify({ orderId: orderData.order._id })
-          })
-
-          const payData = await payRes.json()
-          if (!payRes.ok) throw new Error(payData.message)
-
-          // 3️⃣ Redirect user to Paystack hosted page
-          window.location.href = payData.authorizationUrl
-
-        } catch (e) {
-          toast({
-            title: 'Payment error',
-            description: e.message,
-            variant: 'destructive'
-          })
-        } finally {
-          setLoading(false)
-        }
-      }
     } catch (e) {
       toast({
         title: 'Payment error',
