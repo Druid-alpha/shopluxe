@@ -52,7 +52,10 @@ export default function OrderReceipt() {
         document.body.appendChild(link)
         link.click()
         link.remove()
-        window.URL.revokeObjectURL(url)
+
+        // Delay revoking the URL so the browser has time to start/finish downloading 
+        // the blob file, fixing the "0 bytes" / "zero of zero" download error.
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000)
       } catch (err) {
         console.error('PDF download failed, falling back to html2pdf', err)
         html2pdf().set(opt).from(receiptRef.current).save()
