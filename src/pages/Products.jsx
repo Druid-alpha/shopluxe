@@ -6,6 +6,7 @@ import ProductCard from '@/features/products/ProductCard'
 import { Button } from '@/components/ui/button'
 import { useGetProductsQuery } from '@/features/products/productApi'
 import { SlidersHorizontal, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 
 export default function Products() {
@@ -112,34 +113,59 @@ export default function Products() {
 
         {/* Products */}
         <div className="lg:col-span-3">
-          <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-            {isLoading
-              ? Array.from({ length: 12 }).map((_, idx) => (
-                <div key={idx} className="animate-pulse border rounded-lg p-4 space-y-3">
-                  <div className="h-40 bg-gray-200 rounded" />
-                  <div className="h-4 bg-gray-200 rounded w-3/4" />
-                  <div className="h-4 bg-gray-200 rounded w-1/2" />
-                </div>
-              ))
-              : data?.products?.length > 0
-                ? data.products.map(product => (
-                  <ProductCard key={product._id} product={product} />
+          <motion.div
+            layout
+            className="grid gap-6 sm:grid-cols-2 md:grid-cols-3"
+          >
+            <AnimatePresence mode="popLayout">
+              {isLoading
+                ? Array.from({ length: 12 }).map((_, idx) => (
+                  <motion.div
+                    key={`skeleton-${idx}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="animate-pulse border rounded-lg p-4 space-y-3"
+                  >
+                    <div className="h-40 bg-gray-200 rounded" />
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-4 bg-gray-200 rounded w-1/2" />
+                  </motion.div>
                 ))
-                : (
-                  <div className="col-span-full py-20 text-center space-y-4">
-                    <p className="text-gray-400 text-lg font-medium">No products match your current filters.</p>
-                    <Button variant="outline" onClick={() => {
-                      setCategory('')
-                      setBrand(null)
-                      setColor(null)
-                      setSearch('')
-                      setMinPrice(0)
-                      setMaxPrice(5000000)
-                    }}>Clear All Filters</Button>
-                  </div>
-                )
-            }
-          </div>
+                : data?.products?.length > 0
+                  ? data.products.map((product, index) => (
+                    <motion.div
+                      layout
+                      key={product._id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                    >
+                      <ProductCard product={product} />
+                    </motion.div>
+                  ))
+                  : (
+                    <motion.div
+                      key="no-products"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="col-span-full py-20 text-center space-y-4"
+                    >
+                      <p className="text-gray-400 text-lg font-medium">No products match your current filters.</p>
+                      <Button variant="outline" onClick={() => {
+                        setCategory('')
+                        setBrand(null)
+                        setColor(null)
+                        setSearch('')
+                        setMinPrice(0)
+                        setMaxPrice(5000000)
+                      }}>Clear All Filters</Button>
+                    </motion.div>
+                  )
+              }
+            </AnimatePresence>
+          </motion.div>
 
           {/* Pagination */}
           <div className="flex justify-center items-center gap-4 mt-10">

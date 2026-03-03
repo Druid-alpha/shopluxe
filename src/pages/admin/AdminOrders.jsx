@@ -2,13 +2,24 @@ import React, { useEffect } from 'react'
 import { useAppDispatch } from '@/app/hooks'
 import {
   useGetAllOrdersQuery,
-  useUpdateOrderStatusMutation
+  useUpdateOrderStatusMutation,
+  useDeleteOrderMutation
 } from '@/features/orders/orderApi'
-import { Loader2, RefreshCcw } from 'lucide-react'
+import { Loader2, RefreshCcw, Trash2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { productApi } from '@/features/products/productApi'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/CustomSelect"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function AdminOrders() {
   const dispatch = useAppDispatch()
@@ -20,6 +31,8 @@ export default function AdminOrders() {
   })
 
   const [updateStatus, { isLoading: isUpdating }] = useUpdateOrderStatusMutation()
+  const [deleteOrder] = useDeleteOrderMutation()
+  const [orderToDelete, setOrderToDelete] = React.useState(null)
 
   const orders = data?.orders || []
 
@@ -42,6 +55,18 @@ export default function AdminOrders() {
         description: err.data?.message || 'Update failed',
         variant: 'destructive'
       })
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!orderToDelete) return
+    try {
+      await deleteOrder(orderToDelete).unwrap()
+      toast({ title: 'Order Deleted', description: 'The order has been permanently removed.' })
+    } catch (err) {
+      toast({ title: 'Error', description: err.data?.message || 'Failed to delete order', variant: 'destructive' })
+    } finally {
+      setOrderToDelete(null)
     }
   }
 
@@ -77,6 +102,7 @@ export default function AdminOrders() {
                 <th className="px-6 py-4">Items</th>
                 <th className="px-6 py-4">Labels</th>
                 <th className="px-6 py-4 text-right">Total</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -145,6 +171,16 @@ export default function AdminOrders() {
                   <td className="px-6 py-4 text-right">
                     <span className="font-bold text-gray-900">₦{order.totalAmount?.toLocaleString()}</span>
                   </td>
+                  <td className="px-6 py-4 text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => setOrderToDelete(order._id)}
+                    >
+                      <Trash2 size={18} />
+                    </Button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -154,6 +190,23 @@ export default function AdminOrders() {
           <div className="p-12 text-center text-gray-500 italic">No orders found.</div>
         )}
       </div>
+
+      <AlertDialog open={!!orderToDelete} onOpenChange={() => setOrderToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the order from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white rounded-xl">
+              Delete Order
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

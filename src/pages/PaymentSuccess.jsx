@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react"
 import { useSearchParams, useNavigate } from "react-router-dom"
-import { useAppDispatch } from "@/app/hooks"
+import { useAppDispatch, useAppSelector } from "@/app/hooks"
 import { clearCart } from "@/features/cart/cartSlice"
+import { clearCartBackend } from "@/features/cart/cartApi"
 import { useToast } from "@/hooks/use-toast"
 import { CheckCircle2, XCircle, Loader2, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,7 +12,11 @@ export default function PaymentSuccess() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { toast } = useToast()
-  const [status, setStatus] = useState("verifying") // verifying | success | error
+  // Get token from Redux state; fall back to localStorage in case Redux was
+  // cleared during Paystack's full-page redirect
+  const reduxToken = useAppSelector(state => state.auth?.token)
+  const token = reduxToken || localStorage.getItem('token') || sessionStorage.getItem('token')
+  const [status, setStatus] = useState("verifying")
   const [errorMsg, setErrorMsg] = useState("")
 
   useEffect(() => {
@@ -26,10 +31,18 @@ export default function PaymentSuccess() {
       try {
         const res = await fetch(
           `${import.meta.env.VITE_API_URL}/payments/verify/${reference}`,
-          { credentials: "include" }
+          {
+            credentials: "include",
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {})
+            }
+          }
         )
         const data = await res.json()
         if (!res.ok) throw new Error(data.message || "Payment verification failed")
+
+        // Force backend cart clear just to be absolutely sure
+        try { await clearCartBackend() } catch (e) { console.error('Clear cart backend error', e) }
 
         dispatch(clearCart())
         setStatus("success")

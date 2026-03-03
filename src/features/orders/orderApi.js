@@ -32,6 +32,14 @@ export const orderApi = api.injectEndpoints({
                 credentials: 'include'
             }),
             invalidatesTags: (result, error, { id }) => [{ type: 'Order', id }, 'Order']
+        }),
+        deleteOrder: builder.mutation({
+            query: (id) => ({
+                url: `/orders/${id}`,
+                method: 'DELETE',
+                credentials: 'include'
+            }),
+            invalidatesTags: ['Order']
         })
     })
 })
@@ -41,5 +49,6 @@ export const {
     useGetOrderQuery,
     useGetMyOrdersQuery,
     useGetAllOrdersQuery,
-    useUpdateOrderStatusMutation
+    useUpdateOrderStatusMutation,
+    useDeleteOrderMutation
 } = orderApi
