@@ -15,7 +15,11 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-} from "@/components/ui/AlertDialog.jsx"
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/AlertDialog"
 
 export default function AdminOrders() {
   const dispatch = useAppDispatch()
