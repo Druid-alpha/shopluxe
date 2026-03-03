@@ -44,11 +44,22 @@ export default function OrderReceipt() {
     if (order?.invoiceUrl) {
       try {
         const response = await fetch(order.invoiceUrl)
+
+        // Ensure the response is valid and is not an HTML error page
+        if (!response.ok) throw new Error('Network response was not ok')
+        const contentType = response.headers.get('content-type')
+        if (contentType && contentType.includes('text/html')) {
+          throw new Error('Received HTML webpage instead of a valid file blob')
+        }
+
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
-        link.download = opt.filename
+
+        // Ensure strict PDF extension
+        link.download = opt.filename.endsWith('.pdf') ? opt.filename : `${opt.filename}.pdf`
+
         document.body.appendChild(link)
         link.click()
         link.remove()
@@ -57,7 +68,7 @@ export default function OrderReceipt() {
         // the blob file, fixing the "0 bytes" / "zero of zero" download error.
         setTimeout(() => window.URL.revokeObjectURL(url), 1000)
       } catch (err) {
-        console.error('PDF download failed, falling back to html2pdf', err)
+        console.error('PDF fetch failed, safely falling back to html2pdf generator:', err)
         html2pdf().set(opt).from(receiptRef.current).save()
       }
     } else {
