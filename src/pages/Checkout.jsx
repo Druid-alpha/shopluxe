@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom'
 export default function Checkout() {
   const cart = useAppSelector(state => state.cart.items)
   const token = useAppSelector(state => state.auth.token)
-  const total = cart.reduce((s, item) => s + item.price * item.qty, 0)
+  const total = cart.reduce((s, item) => s + (item.price || 0) * (item.qty || 1), 0)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -40,51 +40,51 @@ export default function Checkout() {
         amount: Math.round(total * 100)
       })
 
-     const pay = async () => {
-  if (!cart.length) return
-  setLoading(true)
+      const pay = async () => {
+        if (!cart.length) return
+        setLoading(true)
 
-  try {
-    // 1️⃣ Create order
-    const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      credentials: 'include'
-    })
+        try {
+          // 1️⃣ Create order
+          const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {})
+            },
+            credentials: 'include'
+          })
 
-    const orderData = await orderRes.json()
-    if (!orderRes.ok) throw new Error(orderData.message)
+          const orderData = await orderRes.json()
+          if (!orderRes.ok) throw new Error(orderData.message)
 
-    // 2️⃣ Initialize Paystack transaction
-    const payRes = await fetch(`${import.meta.env.VITE_API_URL}/payments/init`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      credentials: 'include',
-      body: JSON.stringify({ orderId: orderData.order._id })
-    })
+          // 2️⃣ Initialize Paystack transaction
+          const payRes = await fetch(`${import.meta.env.VITE_API_URL}/payments/init`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {})
+            },
+            credentials: 'include',
+            body: JSON.stringify({ orderId: orderData.order._id })
+          })
 
-    const payData = await payRes.json()
-    if (!payRes.ok) throw new Error(payData.message)
+          const payData = await payRes.json()
+          if (!payRes.ok) throw new Error(payData.message)
 
-    // 3️⃣ Redirect user to Paystack hosted page
-    window.location.href = payData.authorizationUrl
+          // 3️⃣ Redirect user to Paystack hosted page
+          window.location.href = payData.authorizationUrl
 
-  } catch (e) {
-    toast({
-      title: 'Payment error',
-      description: e.message,
-      variant: 'destructive'
-    })
-  } finally {
-    setLoading(false)
-  }
-}
+        } catch (e) {
+          toast({
+            title: 'Payment error',
+            description: e.message,
+            variant: 'destructive'
+          })
+        } finally {
+          setLoading(false)
+        }
+      }
     } catch (e) {
       toast({
         title: 'Payment error',
@@ -170,7 +170,7 @@ export default function Checkout() {
                     <p className="text-gray-500 mt-1">Qty: {item.qty}</p>
                   </div>
                   <div className="font-medium text-gray-900">
-                    ₦{(item.price * item.qty).toLocaleString()}
+                    ₦{((item.price || 0) * (item.qty || 1)).toLocaleString()}
                   </div>
                 </div>
               ))}

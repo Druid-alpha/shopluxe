@@ -73,7 +73,7 @@ export default function AdminAnalytics() {
     { label: 'Total Users', value: stats.users, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: 'Total Products', value: stats.products, icon: Package, color: 'text-purple-600', bg: 'bg-purple-50' },
     { label: 'Total Orders', value: stats.orders, icon: ShoppingBag, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { label: 'Total Revenue', value: `₦${stats.revenue.toLocaleString()}`, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
+    { label: 'Total Revenue', value: `₦${(stats.revenue || 0).toLocaleString()}`, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
   ]
 
   return (

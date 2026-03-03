@@ -276,7 +276,7 @@ export default function AdminProducts() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm font-bold text-gray-900 italic">₦{p.price.toLocaleString()}</div>
+                    <div className="text-sm font-bold text-gray-900 italic">₦{(p.price || 0).toLocaleString()}</div>
                     {p.variants?.length > 0 && (
                       <div className="text-[10px] text-gray-400 mt-0.5">{p.variants.length} Variants</div>
                     )}

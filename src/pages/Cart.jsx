@@ -39,7 +39,7 @@ export default function Cart() {
     );
   }
 
-  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const total = cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
 
   /* ================= CHANGE QUANTITY ================= */
   const changeQty = async (item, delta) => {
@@ -123,11 +123,11 @@ export default function Cart() {
 
                     </div>
                     <p className="font-bold text-lg text-gray-900">
-                      ₦{(item.price * item.qty).toLocaleString()}
+                      ₦{((item.price || 0) * (item.qty || 1)).toLocaleString()}
                     </p>
                   </div>
 
-                  <p className="text-sm text-gray-500">₦{item.price.toLocaleString()} each</p>
+                  <p className="text-sm text-gray-500">₦{(item.price || 0).toLocaleString()} each</p>
 
                   {/* Quantity & Remove actions */}
                   <div className="flex items-center justify-between pt-4">
