@@ -33,6 +33,14 @@ export default function OrderReceipt() {
   }, [order?.paymentStatus, dispatch])
 
   const downloadPDF = async () => {
+    const opt = {
+      margin: 0,
+      filename: `ShopLuxe_Invoice_${order?._id?.slice(-6) || 'receipt'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
     if (order?.invoiceUrl) {
       try {
         const response = await fetch(order.invoiceUrl)
@@ -40,17 +48,17 @@ export default function OrderReceipt() {
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
-        link.download = `ShopLuxe_Invoice_${order._id.slice(-6)}.pdf`
+        link.download = opt.filename
         document.body.appendChild(link)
         link.click()
         link.remove()
         window.URL.revokeObjectURL(url)
       } catch (err) {
         console.error('PDF download failed, falling back to html2pdf', err)
-        html2pdf().from(receiptRef.current).save()
+        html2pdf().set(opt).from(receiptRef.current).save()
       }
     } else {
-      html2pdf().from(receiptRef.current).save()
+      html2pdf().set(opt).from(receiptRef.current).save()
     }
   }
 

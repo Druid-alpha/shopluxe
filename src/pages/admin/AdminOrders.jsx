@@ -26,7 +26,7 @@ export default function AdminOrders() {
   const { toast } = useToast()
 
   // Use RTK Query for fetching orders with polling
-  const { data, isLoading, isError, refetch } = useGetAllOrdersQuery(undefined, {
+  const { data, isLoading, isError, isFetching, refetch } = useGetAllOrdersQuery(undefined, {
     pollingInterval: 15000 // Poll every 15s for new orders
   })
 
@@ -87,8 +87,15 @@ export default function AdminOrders() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-900">Order Management</h2>
-        <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
-          <RefreshCcw size={14} /> Refresh
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="gap-2"
+        >
+          <RefreshCcw size={14} className={isFetching ? "animate-spin" : ""} />
+          {isFetching ? "Refreshing..." : "Refresh"}
         </Button>
       </div>
 
