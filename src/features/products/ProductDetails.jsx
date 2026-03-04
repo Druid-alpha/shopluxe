@@ -31,18 +31,18 @@ export default function ProductDetails() {
   const { toast } = useToast()
   const user = useAppSelector(state => state.auth.user)
 
- const { data, isLoading, refetch } = useGetProductQuery(id)
+  const { data, isLoading, refetch } = useGetProductQuery(id)
   const product = data?.product
 
   const { data: reviewsData, refetch: refetchReviews } =
     useGetReviewsQuery(id)
-    React.useEffect(() => {
-  const timer = setInterval(() => {
-    refetch()
-  }, 3000)
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      refetch()
+    }, 3000)
 
-  return () => clearInterval(timer)
-}, [refetch])
+    return () => clearInterval(timer)
+  }, [refetch])
   const reviews = reviewsData?.reviews || []
 
   const { data: wishlistData } = useGetWishlistQuery()
@@ -51,12 +51,12 @@ export default function ProductDetails() {
 
   /* ================= STATE ================= */
   const [mainImage, setMainImage] = React.useState('')
-  const [selectedVariantIndex, setSelectedVariantIndex] = React.useState(0)
+  const [selectedVariantIndex, setSelectedVariantIndex] = React.useState(-1) // -1 means base product
   const [quantity, setQuantity] = React.useState(1)
   const [isAdding, setIsAdding] = React.useState(false)
 
   const variants = product?.variants || []
-  const selectedVariant = variants.length > 0 ? variants[selectedVariantIndex] : null
+  const selectedVariant = selectedVariantIndex >= 0 ? variants[selectedVariantIndex] : null
 
   /* ================= EFFECTS (ALWAYS BEFORE RETURN) ================= */
   React.useEffect(() => {
@@ -97,73 +97,74 @@ export default function ProductDetails() {
     id => id.toString() === product._id.toString() || id?.productId === product._id
   )
 
-  const currentStock = selectedVariant?.stock ?? product.stock ?? 0;
+  const currentStock = selectedVariant ? selectedVariant.stock : (product.stock ?? 0);
+  const currentPrice = selectedVariant ? selectedVariant.price : (product.price ?? 0);
 
   const handleAddToCart = async () => {
- if (!user) {
+    if (!user) {
 
-  const variantPayload = selectedVariant
-    ? {
-        _id: selectedVariant._id,
-        sku: selectedVariant.sku
-      }
-    : null
-
-  dispatch(addGuestCart({
-    product: product._id,
-    qty: quantity,
-    variant: variantPayload
-  }))
-
-  toast({ title: 'Added to cart (Guest)' })
-  return
-}
-
-  if (currentStock < quantity) {
-    toast({ title: 'Not enough stock', variant: 'destructive' })
-    return
-  }
-
-  setIsAdding(true)
-
-  try {
-
-    /* ---------- FIX #5 (SAFE VARIANT PAYLOAD) ---------- */
-    const variantPayload = selectedVariant
-      ? {
+      const variantPayload = selectedVariant
+        ? {
           _id: selectedVariant._id,
           sku: selectedVariant.sku
         }
-      : null
+        : null
 
-    const updatedCart = await cartApi.addToCart(
-      product._id,
-      quantity,
-      variantPayload
-    )
+      dispatch(addGuestCart({
+        product: product._id,
+        qty: quantity,
+        variant: variantPayload
+      }))
 
-    dispatch(setCart(updatedCart))
-    toast({ title: 'Added to Cart' })
-    navigate('/cart')
+      toast({ title: 'Added to cart (Guest)' })
+      return
+    }
 
-  } catch (err) {
-    console.error('Add to cart failed:', err)
-    toast({
-      title: 'Error',
-      description: err.response?.data?.message || 'Failed to add to cart',
-      variant: 'destructive'
-    })
-  } finally {
-    setIsAdding(false)
+    if (currentStock < quantity) {
+      toast({ title: 'Not enough stock', variant: 'destructive' })
+      return
+    }
+
+    setIsAdding(true)
+
+    try {
+
+      /* ---------- FIX #5 (SAFE VARIANT PAYLOAD) ---------- */
+      const variantPayload = selectedVariant
+        ? {
+          _id: selectedVariant._id,
+          sku: selectedVariant.sku
+        }
+        : null
+
+      const updatedCart = await cartApi.addToCart(
+        product._id,
+        quantity,
+        variantPayload
+      )
+
+      dispatch(setCart(updatedCart))
+      toast({ title: 'Added to Cart' })
+      navigate('/cart')
+
+    } catch (err) {
+      console.error('Add to cart failed:', err)
+      toast({
+        title: 'Error',
+        description: err.response?.data?.message || 'Failed to add to cart',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsAdding(false)
+    }
   }
-}
 
   const handleWishlistToggle = async () => {
     if (!user) {
-  dispatch(toggleGuestWishlist(product._id))
-  toast({ title: 'Wishlist updated (Guest)' })
-  return
-}
+      dispatch(toggleGuestWishlist(product._id))
+      toast({ title: 'Wishlist updated (Guest)' })
+      return
+    }
     const result = await toggleWishlist(product._id).unwrap()
     toast({ title: result.message || 'Wishlist updated' })
   }
@@ -220,34 +221,46 @@ export default function ProductDetails() {
 
         {/* PRICE DISPLAY */}
         <div className="text-3xl font-bold my-4">
-          ₦{(selectedVariant?.price ?? product?.price ?? 0).toLocaleString()}
+          ₦{currentPrice.toLocaleString()}
         </div>
 
         {/* VARIANT SELECTOR */}
-        {variants.length > 0 && (
-          <div className="space-y-3 mt-6">
-            <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-500 mb-2">Select Variant</h3>
-            <div className="flex flex-wrap gap-3">
-              {variants.map((v, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    setSelectedVariantIndex(idx);
-                    if (v.image?.url) setMainImage(v.image.url);
-                  }}
-                  className={`px-4 py-2 border rounded-md text-sm font-medium transition-all ${selectedVariantIndex === idx
-                    ? 'border-black bg-black text-white shadow-md'
-                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                    }`}
-                >
-                  {v.color && <span className="mr-2 capitalize">{v.color}</span>}
-                  {v.size && <span className="uppercase">{v.size}</span>}
-                  {(!v.color && !v.size) && (v.sku || `Variant ${idx + 1}`)}
-                </button>
-              ))}
-            </div>
+        <div className="space-y-3 mt-6">
+          <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-500 mb-2">Select Option</h3>
+          <div className="flex flex-wrap gap-3">
+            {/* Base Product Option */}
+            <button
+              onClick={() => {
+                setSelectedVariantIndex(-1);
+                setMainImage(product.images?.[0]?.url || '');
+              }}
+              className={`px-4 py-2 border rounded-md text-sm font-medium transition-all ${selectedVariantIndex === -1
+                ? 'border-black bg-black text-white shadow-md'
+                : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                }`}
+            >
+              Default (Main)
+            </button>
+
+            {/* Variants */}
+            {variants.map((v, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  setSelectedVariantIndex(idx);
+                  if (v.image?.url) setMainImage(v.image.url);
+                }}
+                className={`px-4 py-2 border rounded-md text-sm font-medium transition-all ${selectedVariantIndex === idx
+                  ? 'border-black bg-black text-white shadow-md'
+                  : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                  }`}
+              >
+                {v.options?.color?.name || v.options?.color || ''} {v.options?.size || ''}
+                {!v.options?.color && !v.options?.size && (v.sku || `Variant ${idx + 1}`)}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
 
         {/* Missing Product Details from ProductForm */}
         <div className="space-y-2 text-sm bg-gray-50 p-5 rounded-lg border mt-6">

@@ -23,7 +23,8 @@ export default function ProductForm({ product, onClose, onSuccess }) {
   const [brand, setBrand] = useState('')
   const [tags, setTags] = useState('')
   const [images, setImages] = useState([]) // NEW UPLOADS
-  const [imagePreviews, setImagePreviews] = useState([]) // EXISTING + NEW
+  const [existingImages, setExistingImages] = useState([]) // IMAGES FROM SERVER
+  const [imagePreviews, setImagePreviews] = useState([]) // NEW UPLOADS PREVIEWS
   const [clothingType, setClothingType] = useState('')
 
   // ---------------- VARIANTS STATE ----------------
@@ -79,25 +80,25 @@ export default function ProductForm({ product, onClose, onSuccess }) {
     setClothingType(product.clothingType || '')
 
     // MAIN IMAGES (EXISTING)
-    const existingImages = product.images || []
-    setImagePreviews(existingImages.map(i => i.url))
+    setExistingImages(product.images || [])
+    setImagePreviews([]) // Clear new uploads previews
 
     // VARIANTS
-   const normalizedVariants =
-  product.variants?.map(v => ({
-    _id: v._id, // ✅ ADD THIS LINE
-    sku: v.sku || generateSKU(),
-    type: v.type || 'clothes',
-    options: {
-      color: v.options?.color?._id || v.options?.color || '',
-      size: v.options?.size || ''
-    },
-    price: v.price || 0,
-    stock: v.stock || 0,
-    image: v.image,
-    imageFile: null,
-    imageUrl: v.image?.url || ''
-  })) || []
+    const normalizedVariants =
+      product.variants?.map(v => ({
+        _id: v._id, // ✅ ADD THIS LINE
+        sku: v.sku || generateSKU(),
+        type: v.type || 'clothes',
+        options: {
+          color: v.options?.color?._id || v.options?.color || '',
+          size: v.options?.size || ''
+        },
+        price: v.price || 0,
+        stock: v.stock || 0,
+        image: v.image,
+        imageFile: null,
+        imageUrl: v.image?.url || ''
+      })) || []
 
     setVariants(normalizedVariants)
   }, [product])
@@ -190,6 +191,15 @@ export default function ProductForm({ product, onClose, onSuccess }) {
     setImagePreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))])
   }
 
+  const removeExistingImage = (public_id) => {
+    setExistingImages(prev => prev.filter(img => img.public_id !== public_id))
+  }
+
+  const removeNewImage = (index) => {
+    setImages(prev => prev.filter((_, i) => i !== index))
+    setImagePreviews(prev => prev.filter((_, i) => i !== index))
+  }
+
   /* =====================================================
      AUTO-SYNC VARIANT SIZE WITH CLOTHING TYPE
   ===================================================== */
@@ -248,18 +258,18 @@ export default function ProductForm({ product, onClose, onSuccess }) {
         if (v.imageFile) fd.append(`variant_${idx}`, v.imageFile)
       })
 
-     const payloadVariants = variants.map(v => ({
-  _id: v._id, // ✅ ADD THIS LINE
-  sku: v.sku,
-  type: v.type,
-  options: {
-    color: v.options.color || undefined,
-    size: v.options.size || undefined,
-  },
-  price: Number(v.price),
-  stock: Number(v.stock),
-  image: v.imageFile ? null : v.image
-}))
+      const payloadVariants = variants.map(v => ({
+        _id: v._id, // ✅ ADD THIS LINE
+        sku: v.sku,
+        type: v.type,
+        options: {
+          color: v.options.color || undefined,
+          size: v.options.size || undefined,
+        },
+        price: Number(v.price),
+        stock: Number(v.stock),
+        image: v.imageFile ? null : v.image
+      }))
 
       const payload = {
         title,
@@ -272,6 +282,7 @@ export default function ProductForm({ product, onClose, onSuccess }) {
         clothingType: clothingType || undefined,
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
         variants: payloadVariants,
+        images: existingImages // Pass existing images to keep
       }
 
       fd.append('payload', JSON.stringify(payload))
@@ -403,8 +414,31 @@ export default function ProductForm({ product, onClose, onSuccess }) {
         <p className="font-semibold">Main Images</p>
         <input type="file" multiple accept="image/*" onChange={handleMainImages} />
         <div className="flex gap-2 flex-wrap mt-2">
+          {/* Existing Images */}
+          {existingImages.map((img) => (
+            <div key={img.public_id} className="relative group">
+              <img src={img.url} className="h-20 rounded border object-cover" />
+              <button
+                type="button"
+                onClick={() => removeExistingImage(img.public_id)}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          {/* New Image Previews */}
           {imagePreviews.map((src, idx) => (
-            <img key={idx} src={src} className="h-20 rounded border" />
+            <div key={idx} className="relative group">
+              <img src={src} className="h-20 rounded border object-cover border-blue-400" />
+              <button
+                type="button"
+                onClick={() => removeNewImage(idx)}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                ×
+              </button>
+            </div>
           ))}
         </div>
       </div>
