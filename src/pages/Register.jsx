@@ -41,14 +41,14 @@ export default function Register() {
   // Auto-hide password after 3 seconds
   useEffect(() => {
     if (showPassword) {
-      const timer = setTimeout(() => setShowPassword(false), 3000)
+      const timer = setTimeout(() => setShowPassword(false), 1000)
       return () => clearTimeout(timer)
     }
   }, [showPassword])
 
   useEffect(() => {
     if (showConfirmPassword) {
-      const timer = setTimeout(() => setShowConfirmPassword(false), 3000)
+      const timer = setTimeout(() => setShowConfirmPassword(false), 1000)
       return () => clearTimeout(timer)
     }
   }, [showConfirmPassword])
