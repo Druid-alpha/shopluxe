@@ -83,20 +83,21 @@ export default function ProductForm({ product, onClose, onSuccess }) {
     setImagePreviews(existingImages.map(i => i.url))
 
     // VARIANTS
-    const normalizedVariants =
-      product.variants?.map(v => ({
-        sku: v.sku || generateSKU(),
-        type: v.type || 'clothes',
-        options: {
-          color: v.options?.color?._id || v.options?.color || '',
-          size: v.options?.size || ''
-        },
-        price: v.price || 0,
-        stock: v.stock || 0,
-        image: v.image,           // KEEP existing image object
-        imageFile: null,          // new upload
-        imageUrl: v.image?.url || ''
-      })) || []
+   const normalizedVariants =
+  product.variants?.map(v => ({
+    _id: v._id, // ✅ ADD THIS LINE
+    sku: v.sku || generateSKU(),
+    type: v.type || 'clothes',
+    options: {
+      color: v.options?.color?._id || v.options?.color || '',
+      size: v.options?.size || ''
+    },
+    price: v.price || 0,
+    stock: v.stock || 0,
+    image: v.image,
+    imageFile: null,
+    imageUrl: v.image?.url || ''
+  })) || []
 
     setVariants(normalizedVariants)
   }, [product])
@@ -247,17 +248,18 @@ export default function ProductForm({ product, onClose, onSuccess }) {
         if (v.imageFile) fd.append(`variant_${idx}`, v.imageFile)
       })
 
-      const payloadVariants = variants.map(v => ({
-        sku: v.sku,
-        type: v.type,
-        options: {
-          color: v.options.color || undefined,
-          size: v.options.size || undefined,
-        },
-        price: Number(v.price),
-        stock: Number(v.stock),
-        image: v.imageFile ? null : v.image
-      }))
+     const payloadVariants = variants.map(v => ({
+  _id: v._id, // ✅ ADD THIS LINE
+  sku: v.sku,
+  type: v.type,
+  options: {
+    color: v.options.color || undefined,
+    size: v.options.size || undefined,
+  },
+  price: Number(v.price),
+  stock: Number(v.stock),
+  image: v.imageFile ? null : v.image
+}))
 
       const payload = {
         title,
