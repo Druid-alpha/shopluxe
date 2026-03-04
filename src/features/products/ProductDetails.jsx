@@ -225,42 +225,44 @@ export default function ProductDetails() {
         </div>
 
         {/* VARIANT SELECTOR */}
-        <div className="space-y-3 mt-6">
-          <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-500 mb-2">Select Option</h3>
-          <div className="flex flex-wrap gap-3">
-            {/* Base Product Option */}
-            <button
-              onClick={() => {
-                setSelectedVariantIndex(-1);
-                setMainImage(product.images?.[0]?.url || '');
-              }}
-              className={`px-4 py-2 border rounded-md text-sm font-medium transition-all ${selectedVariantIndex === -1
-                ? 'border-black bg-black text-white shadow-md'
-                : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                }`}
-            >
-              Default (Main)
-            </button>
-
-            {/* Variants */}
-            {variants.map((v, idx) => (
+        {variants.length > 0 && (
+          <div className="space-y-3 mt-6">
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-500 mb-2">Select Option</h3>
+            <div className="flex flex-wrap gap-3">
+              {/* Base Product Option */}
               <button
-                key={idx}
                 onClick={() => {
-                  setSelectedVariantIndex(idx);
-                  if (v.image?.url) setMainImage(v.image.url);
+                  setSelectedVariantIndex(-1)
+                  setMainImage(product.images?.[0]?.url || '')
                 }}
-                className={`px-4 py-2 border rounded-md text-sm font-medium transition-all ${selectedVariantIndex === idx
-                  ? 'border-black bg-black text-white shadow-md'
-                  : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                className={`px-4 py-2 border rounded-md text-sm font-medium transition-all ${selectedVariantIndex === -1
+                    ? 'border-black bg-black text-white shadow-md'
+                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                   }`}
               >
-                {v.options?.color?.name || v.options?.color || ''} {v.options?.size || ''}
-                {!v.options?.color && !v.options?.size && (v.sku || `Variant ${idx + 1}`)}
+                Default (Main)
               </button>
-            ))}
+
+              {/* Variants */}
+              {variants.map((v, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setSelectedVariantIndex(idx)
+                    if (v.image?.url) setMainImage(v.image.url)
+                  }}
+                  className={`px-4 py-2 border rounded-md text-sm font-medium transition-all ${selectedVariantIndex === idx
+                      ? 'border-black bg-black text-white shadow-md'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                    }`}
+                >
+                  {v.options?.color?.name || v.options?.color || ''} {v.options?.size || ''}
+                  {!v.options?.color && !v.options?.size && (v.sku || `Variant ${idx + 1}`)}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Missing Product Details from ProductForm */}
         <div className="space-y-2 text-sm bg-gray-50 p-5 rounded-lg border mt-6">
