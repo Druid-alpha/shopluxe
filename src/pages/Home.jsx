@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import Slider from 'react-slick'
 import { Laptop2, Shirt, ShoppingBasket, ArrowRight, Truck, ShieldCheck, Clock } from 'lucide-react'
 import { motion } from 'framer-motion'
