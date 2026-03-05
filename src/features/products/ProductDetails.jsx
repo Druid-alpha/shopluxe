@@ -62,10 +62,10 @@ export default function ProductDetails() {
 
   /* ================= EFFECTS (ALWAYS BEFORE RETURN) ================= */
   React.useEffect(() => {
-    if (product) {
+    if (product && !mainImage) {
       setMainImage(product.images?.[0]?.url || '')
     }
-  }, [product])
+  }, [product, mainImage])
 
 
   /* ================= SAFE EARLY RETURNS ================= */

@@ -118,9 +118,12 @@ export default function ProductCard({ product, featured }) {
       <Link to={`/products/${product._id}`} className="block relative aspect-[4/5] overflow-hidden bg-gray-50">
         {/* SALE BADGE */}
         {product.discount > 0 && (
-          <div className="absolute top-4 left-4 z-10">
-            <span className="bg-red-600 text-white text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 shadow-xl">
-              Sale -{product.discount}%
+          <div className="absolute top-4 left-4 z-10 flex flex-col gap-1">
+            <span className="bg-black text-white text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 shadow-xl rounded-sm">
+              Sale
+            </span>
+            <span className="bg-red-600 text-white text-[10px] font-black uppercase tracking-[0.1em] px-2 py-1 shadow-lg rounded-sm text-center">
+              -{product.discount}%
             </span>
           </div>
         )}
