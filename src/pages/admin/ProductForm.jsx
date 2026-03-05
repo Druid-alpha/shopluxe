@@ -513,4 +513,3 @@ export default function ProductForm({ product, onClose, onSuccess }) {
     </form>
   )
 }
-}
