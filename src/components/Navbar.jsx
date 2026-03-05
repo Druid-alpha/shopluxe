@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import { Heart, LogOut, Menu, Shield, ShoppingCart, User, X, Laptop2, Shirt, ShoppingBasket, ArrowRight } from 'lucide-react'
+import { Heart, LogOut, Menu, Shield, ShoppingCart, User, X, Laptop2, Shirt, ShoppingBasket, ArrowRight, Facebook, Instagram, Twitter, MessageCircle, Music2 } from 'lucide-react'
 import { useGetWishlistQuery } from '@/features/wishlist/wishlistApi'
 
 export default function Navbar() {
@@ -166,6 +166,13 @@ export default function Navbar() {
               </Button>
             </div>
           )}
+
+          {/* Desktop Social Links */}
+          <div className="hidden xl:flex items-center gap-3 pl-8 border-l border-gray-100 ml-4">
+            <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors"><Facebook size={16} /></a>
+            <a href="#" className="text-gray-400 hover:text-pink-600 transition-colors"><Instagram size={16} /></a>
+            <a href="#" className="text-gray-400 hover:text-green-600 transition-colors"><MessageCircle size={16} /></a>
+          </div>
         </div>
 
         {/* Mobile toggle */}
@@ -309,18 +316,25 @@ export default function Navbar() {
             </div>
 
             <div className="p-8 mt-4 border-t border-gray-50">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6">Connect with us</p>
               <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                  <span className="text-[10px] font-black">FB</span>
-                </div>
-                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                  <span className="text-[10px] font-black">IG</span>
-                </div>
-                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                  <span className="text-[10px] font-black">TW</span>
-                </div>
+                <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300">
+                  <Facebook size={18} />
+                </a>
+                <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-green-600 hover:bg-green-600 hover:text-white transition-all duration-300">
+                  <MessageCircle size={18} />
+                </a>
+                <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-pink-600 hover:bg-pink-600 hover:text-white transition-all duration-300">
+                  <Instagram size={18} />
+                </a>
+                <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-sky-500 hover:bg-sky-500 hover:text-white transition-all duration-300">
+                  <Twitter size={18} />
+                </a>
+                <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-black hover:bg-black hover:text-white transition-all duration-300">
+                  <Music2 size={18} />
+                </a>
               </div>
-              <p className="text-[8px] font-black uppercase tracking-widest text-gray-300 mt-6">© 2026 ShopLuxe. All rights reserved.</p>
+              <p className="text-[8px] font-black uppercase tracking-widest text-gray-300 mt-8">© 2026 ShopLuxe. All rights reserved.</p>
             </div>
           </div>
 
