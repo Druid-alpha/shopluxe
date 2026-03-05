@@ -148,20 +148,20 @@ export default function Home() {
             <Link to="/products" className="text-xs font-bold uppercase tracking-widest border-b-2 border-black pb-1 hover:text-gray-500 hover:border-gray-500 transition-all">View All</Link>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+          <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-2 md:gap-8 max-w-4xl mx-auto">
             {[
-              { id: 'electronics', icon: Laptop2, label: 'Electronics', color: 'bg-slate-50 border-slate-100' },
-              { id: 'clothing', icon: Shirt, label: 'Clothing', color: 'bg-slate-50 border-slate-100' },
-              { id: 'groceries', icon: ShoppingBasket, label: 'Groceries', color: 'bg-slate-50 border-slate-100' }
+              { id: 'electronics', icon: Laptop2, label: 'Electronics', color: 'bg-blue-50/50 border-blue-100/50 text-blue-600' },
+              { id: 'clothing', icon: Shirt, label: 'Clothing', color: 'bg-orange-50/50 border-orange-100/50 text-orange-600' },
+              { id: 'groceries', icon: ShoppingBasket, label: 'Groceries', color: 'bg-green-50/50 border-green-100/50 text-green-600' }
             ].map(cat => (
-              <motion.div key={cat.id} variants={scaleIn}>
+              <motion.div key={cat.id} variants={scaleIn} className="flex flex-col items-center">
                 <div
                   onClick={() => navigate(`/products?category=${cat.id}`)}
-                  className={`group relative flex flex-col items-center justify-center aspect-square rounded-full border-2 transition-all duration-500 cursor-pointer overflow-hidden ${cat.color} hover:bg-black hover:border-black`}
+                  className={`group relative flex items-center justify-center w-full aspect-square rounded-full border transition-all duration-500 cursor-pointer overflow-hidden ${cat.color} hover:bg-black hover:border-black hover:text-white shadow-sm hover:shadow-xl`}
                 >
-                  <cat.icon className="h-10 w-10 md:h-16 md:w-16 mb-2 transition-transform group-hover:scale-110 group-hover:filter group-hover:invert duration-500" />
-                  <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] group-hover:text-white transition-colors">{cat.label}</span>
+                  <cat.icon className="h-6 w-6 md:h-12 md:w-12 transition-transform group-hover:scale-110 duration-500" />
                 </div>
+                <span className="mt-4 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">{cat.label}</span>
               </motion.div>
             ))}
           </div>
