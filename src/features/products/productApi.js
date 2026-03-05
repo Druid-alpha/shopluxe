@@ -100,6 +100,22 @@ export const productApi = api.injectEndpoints({
       invalidatesTags: ["Review"],
     }),
 
+    getAdminReviews: builder.query({
+      query: (page = 1) => ({
+        url: "/reviews/admin/all",
+        params: { page },
+        credentials: "include",
+      }),
+      providesTags: ["Review"],
+    }),
+
+    getFeaturedReviews: builder.query({
+      query: () => ({
+        url: "/reviews/featured",
+      }),
+      providesTags: ["Review"],
+    }),
+
     /* ================= ADMIN ================= */
 
     getAdminProducts: builder.query({
@@ -110,7 +126,11 @@ export const productApi = api.injectEndpoints({
         category,
         brand,
         color,
-        clothingType = null
+        clothingType = null,
+        minPrice,
+        maxPrice,
+        availability,
+        sortBy
       } = {}) => ({
         url: "/products/admin",
         params: {
@@ -121,6 +141,10 @@ export const productApi = api.injectEndpoints({
           brand,
           color,
           clothingType: clothingType === 'all' ? null : clothingType,
+          minPrice,
+          maxPrice,
+          availability,
+          sortBy
         },
         credentials: "include",
       }),
@@ -228,6 +252,8 @@ export const {
   useUpdateReviewMutation,
   useDeleteReviewMutation,
   useToggleHelpfulMutation,
+  useGetAdminReviewsQuery,
+  useGetFeaturedReviewsQuery,
 
   // ADMIN
   useGetAdminProductsQuery,

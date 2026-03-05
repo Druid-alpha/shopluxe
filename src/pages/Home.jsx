@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { useGetFeaturedProductsQuery } from '@/features/products/productApi'
 import ProductCard from '@/features/products/ProductCard'
 import { Button } from '@/components/ui/button'
+import FeaturedReviews from '@/components/FeaturedReviews'
 
 import home from '../assets/women.jpg'
 import grocery from '../assets/grocery.jpg'
@@ -237,6 +238,9 @@ export default function Home() {
             ))}
           </motion.div>
         </section>
+
+        {/* FEATURED REVIEWS - Shopify Style */}
+        <FeaturedReviews />
 
         {/* PROMO SPLIT SECTION */}
         <motion.section

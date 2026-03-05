@@ -26,6 +26,7 @@ export default function ProductForm({ product, onClose, onSuccess }) {
   const [existingImages, setExistingImages] = useState([]) // IMAGES FROM SERVER
   const [imagePreviews, setImagePreviews] = useState([]) // NEW UPLOADS PREVIEWS
   const [clothingType, setClothingType] = useState('')
+  const [discount, setDiscount] = useState(0)
 
   // ---------------- VARIANTS STATE ----------------
   const [variants, setVariants] = useState([])
@@ -35,7 +36,7 @@ export default function ProductForm({ product, onClose, onSuccess }) {
   const [brands, setBrands] = useState([])
   const [colors, setColors] = useState([])
   const [sizes, setSizes] = useState([])
-  const clothingTypes = ['clothes', 'shoes', 'bag', 'eyeglass']
+  const clothingTypes = ['clothes', 'shoes', 'bags', 'eyeglass']
 
   // ---------------- ERRORS ----------------
   const [errors, setErrors] = useState({})
@@ -78,6 +79,7 @@ export default function ProductForm({ product, onClose, onSuccess }) {
     setColor(product.color?._id || product.color || '')
     setTags(product.tags?.join(', ') || '')
     setClothingType(product.clothingType || '')
+    setDiscount(product.discount || 0)
 
     // MAIN IMAGES (EXISTING)
     setExistingImages(product.images || [])
@@ -280,6 +282,7 @@ export default function ProductForm({ product, onClose, onSuccess }) {
         brand: brand || undefined,
         color: color || undefined,
         clothingType: clothingType || undefined,
+        discount: Number(discount),
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
         variants: payloadVariants,
         images: existingImages // Pass existing images to keep
@@ -312,141 +315,202 @@ export default function ProductForm({ product, onClose, onSuccess }) {
   const isClothing = categories.find(c => c._id === category)?.name.toLowerCase() === 'clothing'
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto p-2">
-      {/* ====== TITLE, DESCRIPTION, PRICE, STOCK ====== */}
-      <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" />
-      {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
+    <form onSubmit={handleSubmit} className="space-y-6 max-h-[85vh] overflow-y-auto px-4 py-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Left Column: Basic Info */}
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Title</label>
+            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Product Name" className="rounded-xl border-gray-100 placeholder:text-gray-300" />
+            {errors.title && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.title}</p>}
+          </div>
 
-      <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" />
+          <div>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Description</label>
+            <Textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Tell a story about this product..."
+              className="rounded-xl border-gray-100 min-h-[120px] placeholder:text-gray-300"
+            />
+          </div>
 
-      <Input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="Price" />
-      {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Price (₦)</label>
+              <Input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" className="rounded-xl border-gray-100" />
+              {errors.price && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.price}</p>}
+            </div>
+            <div>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Discount (%)</label>
+              <Input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0" className="rounded-xl border-gray-100" />
+            </div>
+          </div>
 
-      <Input type="number" value={stock} onChange={e => setStock(e.target.value)} placeholder="Stock" />
+          <div>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Base Stock</label>
+            <Input type="number" value={stock} onChange={e => setStock(e.target.value)} placeholder="0" className="rounded-xl border-gray-100" />
+          </div>
 
-      {/* ====== CATEGORY ====== */}
-      <select value={category} onChange={e => setCategory(e.target.value)} className="w-full border rounded">
-        <option value="">Select category</option>
-        {categories.map(c => (
-          <option key={c._id} value={c._id}>{c.name}</option>
-        ))}
-      </select>
-      {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
+          <div>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Tags (comma separated)</label>
+            <Input value={tags} onChange={e => setTags(e.target.value)} placeholder="luxury, limited, winter" className="rounded-xl border-gray-100" />
+          </div>
+        </div>
 
-      {/* ====== BRAND ====== */}
-      {brands.length > 0 && (
-        <select value={brand} onChange={e => setBrand(e.target.value)} className="w-full border rounded">
-          <option value="">Select brand</option>
-          {brands.map(b => (
-            <option key={b._id} value={b._id}>{b.name}</option>
-          ))}
-        </select>
-      )}
-
-      {/* ====== CLOTHING TYPE ====== */}
-      {isClothing && (
-        <select value={clothingType} onChange={e => setClothingType(e.target.value)} className="w-full border rounded">
-          <option value="">Select clothing type</option>
-          {clothingTypes.map(t => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
-      )}
-
-      {/* ====== COLOR ====== */}
-      {colors.length > 0 && (
-        <select value={color} onChange={e => setColor(e.target.value)} className="w-full border rounded">
-          <option value="">Select color</option>
-          {colors.map(c => (
-            <option key={c._id} value={c._id}>{c.name}</option>
-          ))}
-        </select>
-      )}
-
-      {/* ====== VARIANTS ====== */}
-      <div>
-        <p className="font-semibold">Variants</p>
-        {variants.map((v, idx) => (
-          <div key={idx} className="border p-2 space-y-2">
-            <Input value={v.sku} readOnly />
-            {errors[`sku_${idx}`] && <p className="text-red-500 text-sm">{errors[`sku_${idx}`]}</p>}
-
-            {isClothing && (
-              <select value={v.type} onChange={e => updateVariant(idx, 'type', e.target.value)} className="w-full border rounded">
-                <option value="">Select type</option>
-                {clothingTypes.map(t => (
-                  <option key={t} value={t}>{t}</option>
+        {/* Right Column: Facets & Images */}
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Category</label>
+              <select value={category} onChange={e => setCategory(e.target.value)} className="w-full h-10 px-3 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-0 focus:border-black transition-colors appearance-none">
+                <option value="">Select category</option>
+                {categories.map(c => (
+                  <option key={c._id} value={c._id}>{c.name}</option>
                 ))}
               </select>
+              {errors.category && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.category}</p>}
+            </div>
+
+            {brands.length > 0 && (
+              <div>
+                <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Brand</label>
+                <select value={brand} onChange={e => setBrand(e.target.value)} className="w-full h-10 px-3 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-0 focus:border-black transition-colors appearance-none">
+                  <option value="">Select brand</option>
+                  {brands.map(b => (
+                    <option key={b._id} value={b._id}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {isClothing && (
+              <div>
+                <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Clothing Type</label>
+                <select value={clothingType} onChange={e => setClothingType(e.target.value)} className="w-full h-10 px-3 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-0 focus:border-black transition-colors appearance-none uppercase">
+                  <option value="">Select type</option>
+                  {clothingTypes.map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
             )}
 
-            <select value={v.options.color} onChange={e => updateVariant(idx, 'color', e.target.value)} className="w-full border rounded">
-              <option value="">Select color</option>
-              {colors.map(c => (
-                <option key={c._id} value={c._id}>{c.name}</option>
-              ))}
-            </select>
-
-            <select value={v.options.size} onChange={e => updateVariant(idx, 'size', e.target.value)} className="w-full border rounded">
-              <option value="">Select size</option>
-              {getSizesForType(v.type || clothingType).map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-
-            <Input type="number" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} placeholder="Price" />
-            {errors[`price_${idx}`] && <p className="text-red-500 text-sm">{errors[`price_${idx}`]}</p>}
-
-            <Input type="number" value={v.stock} onChange={e => updateVariant(idx, 'stock', e.target.value)} placeholder="Stock" />
-
-            <input type="file" onChange={e => handleVariantFile(idx, e.target.files[0])} />
-            {v.imageUrl && <img src={v.imageUrl} className="h-16" />}
-
-            <Button type="button" variant="destructive" onClick={() => removeVariant(idx)}>Remove</Button>
+            {colors.length > 0 && (
+              <div>
+                <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Primary Color</label>
+                <select value={color} onChange={e => setColor(e.target.value)} className="w-full h-10 px-3 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-0 focus:border-black transition-colors appearance-none">
+                  <option value="">Select color</option>
+                  {colors.map(c => (
+                    <option key={c._id} value={c._id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
-        ))}
 
-        <Button type="button" onClick={addVariant}>+ Add Variant</Button>
-      </div>
-
-      {/* ====== MAIN IMAGES ====== */}
-      <div>
-        <p className="font-semibold">Main Images</p>
-        <input type="file" multiple accept="image/*" onChange={handleMainImages} />
-        <div className="flex gap-2 flex-wrap mt-2">
-          {/* Existing Images */}
-          {existingImages.map((img) => (
-            <div key={img.public_id} className="relative group">
-              <img src={img.url} className="h-20 rounded border object-cover" />
-              <button
-                type="button"
-                onClick={() => removeExistingImage(img.public_id)}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                ×
-              </button>
+          <div>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3 block">Product Images</label>
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              {existingImages.map((img) => (
+                <div key={img.public_id} className="relative aspect-square rounded-lg border border-gray-50 flex-shrink-0 overflow-hidden bg-gray-50 group">
+                  <img src={img.url} className="w-full h-full object-contain mix-blend-multiply" />
+                  <button type="button" onClick={() => removeExistingImage(img.public_id)} className="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity font-bold">REMOVE</button>
+                </div>
+              ))}
+              {imagePreviews.map((src, idx) => (
+                <div key={idx} className="relative aspect-square rounded-lg border border-blue-50 flex-shrink-0 overflow-hidden bg-blue-50 group">
+                  <img src={src} className="w-full h-full object-contain mix-blend-multiply" />
+                  <button type="button" onClick={() => removeNewImage(idx)} className="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity font-bold">DISCARD</button>
+                </div>
+              ))}
+              <label className="aspect-square rounded-lg border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-black hover:bg-gray-50 transition-all">
+                <Input type="file" multiple accept="image/*" onChange={handleMainImages} className="hidden" />
+                <span className="text-[20px] font-light text-gray-400">+</span>
+              </label>
             </div>
-          ))}
-          {/* New Image Previews */}
-          {imagePreviews.map((src, idx) => (
-            <div key={idx} className="relative group">
-              <img src={src} className="h-20 rounded border object-cover border-blue-400" />
-              <button
-                type="button"
-                onClick={() => removeNewImage(idx)}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                ×
-              </button>
-            </div>
-          ))}
+          </div>
         </div>
       </div>
 
-      <div className="flex gap-2">
-        <Button type="submit">Save</Button>
-        <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+      {/* ====== VARIANTS ====== */}
+      <div className="border-t border-gray-50 pt-6">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-sm font-black uppercase tracking-[.2em] text-gray-900">Product Variants</h3>
+          <Button type="button" onClick={addVariant} variant="outline" className="rounded-xl text-[10px] uppercase font-black tracking-widest border-black hover:bg-black hover:text-white">+ Add Variant</Button>
+        </div>
+
+        {variants.length > 0 ? (
+          <div className="space-y-4">
+            {variants.map((v, idx) => (
+              <div key={idx} className="bg-gray-50 p-6 rounded-2xl grid grid-cols-1 md:grid-cols-6 gap-4 items-end relative group">
+                <div className="md:col-span-1">
+                  <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">SKU</label>
+                  <Input value={v.sku} readOnly className="rounded-xl border-gray-100 bg-white font-mono text-[10px]" />
+                  {errors[`sku_${idx}`] && <p className="text-red-500 text-[8px] mt-1 font-bold uppercase">{errors[`sku_${idx}`]}</p>}
+                </div>
+
+                <div>
+                  <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Color</label>
+                  <select value={v.options.color} onChange={e => updateVariant(idx, 'color', e.target.value)} className="w-full h-10 px-3 py-2 text-[10px] border-white bg-white rounded-xl focus:outline-none focus:ring-0">
+                    <option value="">Color</option>
+                    {colors.map(c => (
+                      <option key={c._id} value={c._id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Size</label>
+                  <select value={v.options.size} onChange={e => updateVariant(idx, 'size', e.target.value)} className="w-full h-10 px-3 py-2 text-[10px] border-white bg-white rounded-xl focus:outline-none focus:ring-0">
+                    <option value="">Size</option>
+                    {getSizesForType(v.type || clothingType).map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Price (₦)</label>
+                  <Input type="number" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} className="rounded-xl border-white bg-white text-[10px]" />
+                </div>
+
+                <div className="flex gap-2 items-center md:col-span-2">
+                  <div className="flex-1">
+                    <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Stock</label>
+                    <Input type="number" value={v.stock} onChange={e => updateVariant(idx, 'stock', e.target.value)} className="rounded-xl border-white bg-white text-[10px]" />
+                  </div>
+
+                  <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-white bg-white">
+                    {v.imageUrl ? (
+                      <img src={v.imageUrl} className="w-full h-full object-cover" />
+                    ) : (
+                      <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer text-[10px] text-gray-300">+</label>
+                    )}
+                    <input type="file" onChange={e => handleVariantFile(idx, e.target.files[0])} className="absolute inset-0 opacity-0 cursor-pointer" />
+                  </div>
+
+                  <button type="button" onClick={() => removeVariant(idx)} className="p-2 text-red-300 hover:text-red-600 transition-colors">
+                    <Trash size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="border border-dashed border-gray-100 rounded-2xl py-8 text-center text-gray-300 text-xs italic">
+            No variants added. Base pricing and stock will be used.
+          </div>
+        )}
+      </div>
+
+      <div className="flex gap-4 pt-8 border-t border-gray-50">
+        <Button type="submit" className="bg-black text-white hover:bg-zinc-800 rounded-xl px-12 py-6 font-black uppercase tracking-widest text-[10px]">Publish Product</Button>
+        <Button type="button" variant="ghost" onClick={onClose} className="rounded-xl px-8 py-6 font-bold uppercase tracking-widest text-[10px] text-gray-400">Cancel</Button>
       </div>
     </form>
   )
+}
 }

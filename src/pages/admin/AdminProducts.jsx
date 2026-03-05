@@ -200,19 +200,21 @@ export default function AdminProducts() {
             onChange={opt => handleFilterChange('category', opt?.value)}
           />
 
-          <Select
-            className="text-sm"
-            placeholder="Type"
-            isClearable
-            options={[
-              { value: 'clothes', label: 'Clothes' },
-              { value: 'shoes', label: 'Shoes' },
-              { value: 'bag', label: 'Bag' },
-              { value: 'eyeglass', label: 'Eyeglass' },
-            ]}
-            value={filters.clothingType ? { value: filters.clothingType, label: filters.clothingType } : null}
-            onChange={opt => handleFilterChange('clothingType', opt?.value)}
-          />
+          {options.categories.find(c => c._id === filters.category)?.name.toLowerCase() === 'clothing' && (
+            <Select
+              className="text-sm"
+              placeholder="Type"
+              isClearable
+              options={[
+                { value: 'clothes', label: 'Clothes' },
+                { value: 'shoes', label: 'Shoes' },
+                { value: 'bags', label: 'Bags' },
+                { value: 'eyeglass', label: 'Eyeglass' },
+              ]}
+              value={filters.clothingType ? { value: filters.clothingType, label: filters.clothingType } : null}
+              onChange={opt => handleFilterChange('clothingType', opt?.value)}
+            />
+          )}
 
           <Select
             className="text-sm"
