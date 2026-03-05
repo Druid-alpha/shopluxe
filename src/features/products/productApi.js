@@ -43,7 +43,7 @@ export const productApi = api.injectEndpoints({
       query: (id) => `/products/${id}`,
       providesTags: (result, error, id) => [
         { type: "Product", id },
-      
+
       ],
     }),
 
@@ -84,6 +84,14 @@ export const productApi = api.injectEndpoints({
         url: `/reviews/${reviewId}`,
         method: "DELETE",
         credentials: "include",
+      }),
+      invalidatesTags: ["Review"],
+    }),
+
+    toggleHelpful: builder.mutation({
+      query: (reviewId) => ({
+        url: `/reviews/${reviewId}/helpful`,
+        method: "POST",
       }),
       invalidatesTags: ["Review"],
     }),
@@ -215,6 +223,7 @@ export const {
   useAddReviewMutation,
   useUpdateReviewMutation,
   useDeleteReviewMutation,
+  useToggleHelpfulMutation,
 
   // ADMIN
   useGetAdminProductsQuery,
