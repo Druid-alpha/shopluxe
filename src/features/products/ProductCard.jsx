@@ -18,6 +18,7 @@ import {
   useGetWishlistQuery,
   useToggleWishlistMutation,
 } from '../wishlist/wishlistApi'
+import PriceDisplay from '@/components/PriceDisplay'
 import StarRating from './StarRating'
 
 export default function ProductCard({ product, featured }) {
