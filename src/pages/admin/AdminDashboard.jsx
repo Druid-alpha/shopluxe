@@ -7,7 +7,7 @@ import AdminUsers from './AdminUsers'
 import AdminOrders from './AdminOrders'
 import AdminAnalytics from './AdminAnalytics'
 import AdminReviews from './AdminReviews'
-import { LayoutDashboard, Package, ShoppingBag, Users, MessageSquareCircle } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingBag, Users, MessageSquare } from 'lucide-react'
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState('products')
@@ -19,15 +19,15 @@ export default function AdminDashboard() {
           { id: 'products', label: 'Products', icon: Package },
           { id: 'users', label: 'Users', icon: Users },
           { id: 'orders', label: 'Orders', icon: ShoppingBag },
-          { id: 'reviews', label: 'Reviews', icon: MessageSquareCircle },
+          { id: 'reviews', label: 'Reviews', icon: MessageSquare },
           { id: 'analytics', label: 'Analytics', icon: LayoutDashboard },
         ].map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${tab === t.id
-                ? 'bg-black text-white shadow-lg shadow-black/20'
-                : 'text-gray-400 hover:text-black hover:bg-white'
+              ? 'bg-black text-white shadow-lg shadow-black/20'
+              : 'text-gray-400 hover:text-black hover:bg-white'
               }`}
           >
             <t.icon size={14} />
