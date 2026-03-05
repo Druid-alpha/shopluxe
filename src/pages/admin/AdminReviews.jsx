@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
 import {
     useGetAdminReviewsQuery,
-    useDeleteReviewMutation
+    useDeleteReviewMutation,
+    useToggleFeaturedReviewMutation
 } from '@/features/products/productApi'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import { Trash2, Star, User, Package, MessageSquare } from 'lucide-react'
+import { Trash2, Star, User, Package, MessageSquare, Home } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export default function AdminReviews() {
@@ -13,6 +13,17 @@ export default function AdminReviews() {
     const [page, setPage] = useState(1)
     const { data, isLoading, refetch } = useGetAdminReviewsQuery(page)
     const [deleteReview] = useDeleteReviewMutation()
+    const [toggleFeatured] = useToggleFeaturedReviewMutation()
+
+    const handleToggleFeature = async (id) => {
+        try {
+            await toggleFeatured(id).unwrap()
+            toast({ title: 'Featured status updated' })
+            refetch()
+        } catch (err) {
+            toast({ title: 'Failed to update status', variant: 'destructive' })
+        }
+    }
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this review?')) return
@@ -97,12 +108,21 @@ export default function AdminReviews() {
                                                 <h4 className="text-sm font-black uppercase tracking-tight text-gray-900">{review.title || 'No Title'}</h4>
                                                 <p className="text-xs text-gray-500 leading-relaxed italic">"{review.body || 'No comment provided.'}"</p>
                                             </div>
-                                            <button
-                                                onClick={() => handleDelete(review._id)}
-                                                className="p-3 rounded-xl bg-red-50 text-red-400 hover:bg-red-600 hover:text-white transition-all transform group-hover:scale-110"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleToggleFeature(review._id)}
+                                                    title={review.isFeatured ? "Remove from Home" : "Show on Home"}
+                                                    className={`p-3 rounded-xl transition-all transform group-hover:scale-110 ${review.isFeatured ? 'bg-black text-white' : 'bg-gray-50 text-gray-400 hover:text-black'}`}
+                                                >
+                                                    <Home size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(review._id)}
+                                                    className="p-3 rounded-xl bg-red-50 text-red-400 hover:bg-red-600 hover:text-white transition-all transform group-hover:scale-110"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div className="pt-4 border-t border-gray-50 flex flex-wrap items-center gap-6">

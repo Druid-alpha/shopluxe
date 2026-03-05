@@ -493,7 +493,7 @@ export default function ProductForm({ product, onClose, onSuccess }) {
                   </div>
 
                   <button type="button" onClick={() => removeVariant(idx)} className="p-2 text-red-300 hover:text-red-600 transition-colors">
-                    <Trash size={16} />
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </div>
