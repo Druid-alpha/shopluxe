@@ -114,6 +114,16 @@ export const productApi = api.injectEndpoints({
         url: "/reviews/featured",
       }),
       providesTags: ["Review"],
+      keepUnusedDataFor: 300,
+    }),
+
+    toggleFeaturedReview: builder.mutation({
+      query: (reviewId) => ({
+        url: `/reviews/admin/${reviewId}/feature`,
+        method: "PATCH",
+        credentials: "include",
+      }),
+      invalidatesTags: ["Review"],
     }),
 
     /* ================= ADMIN ================= */
