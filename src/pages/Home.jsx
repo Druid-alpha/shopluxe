@@ -249,7 +249,7 @@ export default function Home() {
           viewport={{ once: true, margin: "-100px" }}
           className="grid md:grid-cols-2 gap-12 items-center mb-24 overflow-hidden"
         >
-          <motion.div variants={slideInLeft} className="relative group rounded-3xl overflow-hidden shadow-2xl max-h-[500px]">
+          <motion.div variants={slideInLeft} className="relative group rounded-3xl overflow-hidden shadow-2xl max-h-[400px] lg:max-h-[450px] w-full max-w-xl mx-auto">
             <img
               src={delivery}
               className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105"

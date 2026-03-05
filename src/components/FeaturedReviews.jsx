@@ -10,26 +10,20 @@ export default function FeaturedReviews() {
     const settings = {
         dots: true,
         infinite: true,
-        speed: 500,
-        slidesToShow: 3,
+        speed: 800,
+        slidesToShow: 1,
         slidesToScroll: 1,
         autoplay: true,
-        autoplaySpeed: 4000,
+        autoplaySpeed: 5000,
+        arrows: true,
+        fade: true,
         responsive: [
-            {
-                breakpoint: 1024,
-                settings: {
-                    slidesToShow: 2,
-                    slidesToScroll: 1,
-                }
-            },
             {
                 breakpoint: 768,
                 settings: {
-                    slidesToShow: 1,
-                    slidesToScroll: 1,
+                    arrows: false,
                     centerMode: true,
-                    centerPadding: '20px',
+                    centerPadding: '0px',
                 }
             }
         ]
@@ -38,12 +32,8 @@ export default function FeaturedReviews() {
     if (isLoading || !data?.reviews?.length) return null
 
     return (
-        <section className="py-24 bg-white relative overflow-hidden">
-            {/* Background Accents */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-gray-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-50" />
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-gray-50 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 opacity-50" />
-
-            <div className="max-w-7xl mx-auto px-4 relative z-10">
+        <section className="py-24 bg-gray-50/50 relative overflow-hidden">
+            <div className="max-w-4xl mx-auto px-4 relative z-10">
                 <div className="text-center mb-16">
                     <motion.span
                         initial={{ opacity: 0 }}
@@ -57,79 +47,113 @@ export default function FeaturedReviews() {
                         whileInView={{ opacity: 1, y: 0 }}
                         className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-6"
                     >
-                        What Our <span className="text-gray-400">Community Says</span>
+                        Community <span className="text-gray-400">Voice</span>
                     </motion.h2>
-                    <div className="h-1.5 w-24 bg-black mx-auto rounded-full" />
+                    <div className="h-1.5 w-16 bg-black mx-auto rounded-full" />
                 </div>
 
-                <Slider {...settings} className="featured-reviews-slider">
-                    {data.reviews.map((review) => (
-                        <div key={review._id} className="px-2 py-4">
-                            <div className="bg-white border border-gray-100 p-6 md:p-8 rounded-[2rem] h-full flex flex-col hover:border-black transition-all duration-500 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 group">
-                                <div className="mb-6 flex justify-between items-start">
-                                    <Quote className="text-gray-100 group-hover:text-black transition-colors duration-500 h-8 w-8 mt-[-10px]" />
-                                    <div className="flex gap-0.5">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star
-                                                key={i}
-                                                size={10}
-                                                className={i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-100'}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-8 italic flex-1 line-clamp-4">
-                                    "{review.body}"
-                                </p>
-
-                                <div className="flex items-center gap-3 mt-auto pt-6 border-t border-gray-50 overflow-hidden">
-                                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-xl flex-shrink-0 bg-gray-50 flex items-center justify-center">
-                                        {review.user?.avatar ? (
-                                            <img src={review.user.avatar} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <User size={14} className="text-gray-300" />
+                <div className="relative">
+                    <Slider {...settings} className="featured-reviews-slider">
+                        {data.reviews.map((review) => (
+                            <div key={review._id} className="outline-none py-4">
+                                <div className="bg-white border border-gray-100 p-8 md:p-12 rounded-[2.5rem] shadow-xl shadow-gray-200/20 flex flex-col items-center text-center">
+                                    <div className="mb-8 flex flex-col items-center gap-4">
+                                        <div className="flex gap-1">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Star
+                                                    key={i}
+                                                    size={14}
+                                                    className={i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-100'}
+                                                />
+                                            ))}
+                                        </div>
+                                        {review.title && (
+                                            <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight text-gray-900">
+                                                {review.title}
+                                            </h3>
                                         )}
                                     </div>
-                                    <div className="min-w-0">
-                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-0.5 truncate">{review.user?.name}</h4>
-                                        <p className="text-[7px] font-black uppercase tracking-[.2em] text-gray-400">Verified Customer</p>
+
+                                    <div className="relative mb-10 max-w-2xl mx-auto">
+                                        <Quote className="absolute -top-6 -left-6 text-gray-50 h-12 w-12 -z-10" />
+                                        <p className="text-gray-600 text-lg md:text-xl leading-relaxed italic font-medium">
+                                            "{review.body}"
+                                        </p>
                                     </div>
-                                    <div className="ml-auto flex-shrink-0">
-                                        <span className="text-[8px] font-black text-gray-300 uppercase tracking-tighter">PURCHASED: {review.product?.title?.substring(0, 15)}...</span>
+
+                                    <div className="flex flex-col items-center gap-4 pt-8 border-t border-gray-50 w-full max-w-xs mx-auto">
+                                        <div className="w-14 h-14 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100">
+                                            {review.user?.avatar ? (
+                                                <img src={review.user.avatar} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-gray-50 uppercase font-black text-gray-300 text-sm">
+                                                    {review.user?.name?.charAt(0)}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-gray-900 mb-1">{review.user?.name}</h4>
+                                            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-600 bg-amber-50 px-3 py-1 rounded-full">Verified Customer</p>
+                                        </div>
+                                        <p className="text-[10px] font-bold text-gray-300 uppercase tracking-tighter">
+                                            Purchased: <span className="text-gray-400">{review.product?.title}</span>
+                                        </p>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </Slider>
+                        ))}
+                    </Slider>
+                </div>
             </div>
 
             <style jsx="true">{`
-        .featured-reviews-slider .slick-dots li button:before {
-          font-size: 8px;
-          color: #eee;
-          opacity: 1;
-        }
-        .featured-reviews-slider .slick-dots li.slick-active button:before {
-          color: #000;
-        }
-        .featured-reviews-slider .slick-dots {
-            bottom: -40px;
-        }
-        .slick-list {
-            margin: 0 -8px;
-            overflow: visible;
-        }
-        .slick-slide > div {
-            padding: 0 8px;
-        }
-        @media (max-width: 768px) {
-            .featured-reviews-slider {
-                padding: 0 10px;
-            }
-        }
-      `}</style>
+                .featured-reviews-slider .slick-dots {
+                    bottom: -50px;
+                }
+                .featured-reviews-slider .slick-dots li button:before {
+                    font-size: 10px;
+                    color: #ddd;
+                    opacity: 1;
+                }
+                .featured-reviews-slider .slick-dots li.slick-active button:before {
+                    color: #000;
+                }
+                .featured-reviews-slider .slick-prev, 
+                .featured-reviews-slider .slick-next {
+                    z-index: 20;
+                    width: 40px;
+                    height: 40px;
+                    background: white;
+                    border-radius: 50%;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    display: flex !important;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.3s ease;
+                }
+                .featured-reviews-slider .slick-prev:hover, 
+                .featured-reviews-slider .slick-next:hover {
+                    background: black;
+                    transform: scale(1.1);
+                }
+                .featured-reviews-slider .slick-prev:before, 
+                .featured-reviews-slider .slick-next:before {
+                    color: #bbb;
+                    font-size: 20px;
+                    transition: color 0.3s ease;
+                }
+                .featured-reviews-slider .slick-prev:hover:before, 
+                .featured-reviews-slider .slick-next:hover:before {
+                    color: white;
+                }
+                .featured-reviews-slider .slick-prev { left: -60px; }
+                .featured-reviews-slider .slick-next { right: -60px; }
+                
+                @media (max-width: 1280px) {
+                    .featured-reviews-slider .slick-prev { left: -20px; }
+                    .featured-reviews-slider .slick-next { right: -20px; }
+                }
+            `}</style>
         </section>
     )
 }
