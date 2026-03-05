@@ -46,11 +46,14 @@ export default function ProductCard({ product, featured }) {
     e.stopPropagation()
 
     if (!user) {
-      dispatch(addGuestCart({
-        product: product._id,
-        qty: 1,
-        variant: null
-      }))
+     dispatch(addGuestCart({
+  productId: product._id,
+  title: product.title,
+  price: product.price,
+  productImage: product.images?.[0]?.url,
+  qty: 1,
+  variant: null
+}))
 
       toast({ title: 'Added to cart (Guest)' })
       return

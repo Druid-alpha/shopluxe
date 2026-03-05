@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function Cart() {
   const cart = useAppSelector(state => state.cart.items);
+  const user = useAppSelector(state => state.auth.user)
+
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -17,6 +19,7 @@ export default function Cart() {
 
   /* ================= LOAD CART ================= */
   useEffect(() => {
+    if (!user) return
     const fetchCart = async () => {
       try {
         const data = await cartApi.getCart();

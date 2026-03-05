@@ -113,10 +113,13 @@ export default function ProductDetails() {
         : null
 
       dispatch(addGuestCart({
-        product: product._id,
-        qty: quantity,
-        variant: variantPayload
-      }))
+  productId: product._id,
+  title: product.title,
+  price: currentPrice,
+  productImage: mainImage,
+  qty: quantity,
+  variant: variantPayload?.sku || null
+}))
 
       toast({ title: 'Added to cart (Guest)' })
       return

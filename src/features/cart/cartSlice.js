@@ -27,7 +27,7 @@ const cartSlice = createSlice({
 
       const exists = state.items.find(
         i =>
-          i.product === item.product &&
+          i.productId === item.productId &&
           (i.variant || "") === (item.variant || "")
       )
 
