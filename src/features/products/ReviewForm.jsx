@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast'
 export default function ReviewForm({ productId, onSuccess, user }) {
   const [rating, setRating] = useState(5)
   const [hover, setHover] = useState(0)
+  const [title, setTitle] = useState('')
   const [comment, setComment] = useState('')
   const [addReview, { isLoading }] = useAddReviewMutation()
   const { toast } = useToast()
@@ -16,10 +17,11 @@ export default function ReviewForm({ productId, onSuccess, user }) {
     if (!productId) return toast({ title: 'Product ID missing', variant: 'destructive' })
 
     try {
-      await addReview({ productId, rating, comment }).unwrap()
+      await addReview({ productId, rating, title, comment }).unwrap()
       toast({ title: 'Review added' })
       setRating(5)
       setHover(0)
+      setTitle('')
       setComment('')
       onSuccess?.()
     } catch (err) {
@@ -46,11 +48,20 @@ export default function ReviewForm({ productId, onSuccess, user }) {
         <span className="ml-2 text-sm text-gray-600">{rating} / 5</span>
       </div>
 
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Review Title (e.g. Amazing product!)"
+        className="w-full border rounded-xl p-3 text-xs font-black uppercase tracking-widest placeholder:text-gray-300 focus:outline-none focus:border-black transition-all"
+        required
+      />
+
       <textarea
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         placeholder="Write your review..."
-        className="w-full border rounded p-2"
+        className="w-full border rounded-xl p-4 text-sm font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all min-h-[120px]"
         required
       />
 

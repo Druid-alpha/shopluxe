@@ -1,13 +1,12 @@
-import * as React from 'react'
-import { Slider } from './ui/slider'
-import axios from '@/lib/axios'
+import { Checkbox } from './ui/checkbox'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 
 export default function ProductFilters({
   category,
   setCategory,
-  brand,
+  brand, // This should now be a string of comma-separated IDs
   setBrand,
-  color,
+  color, // This should now be a string of comma-separated IDs
   setColor,
   minPrice,
   setMinPrice,
@@ -22,6 +21,13 @@ export default function ProductFilters({
   const [colors, setColors] = React.useState([])
   const [clothingTypes, setClothingTypes] = React.useState([])
   const [loading, setLoading] = React.useState(false)
+  const [openSections, setOpenSections] = React.useState({
+    categories: true,
+    types: true,
+    brands: true,
+    colors: true,
+    price: true
+  })
 
   // ---------------- Derived values ----------------
   const selectedCategoryObj = React.useMemo(
@@ -34,6 +40,9 @@ export default function ProductFilters({
     [categories, category]
   )
   const isClothing = selectedCategoryObj?.name?.toLowerCase() === 'clothing'
+
+  const selectedBrands = React.useMemo(() => brand ? brand.split(',').filter(Boolean) : [], [brand])
+  const selectedColors = React.useMemo(() => color ? color.split(',').filter(Boolean) : [], [color])
 
   // ---------------- Load filter options ----------------
   const loadFilters = async () => {
@@ -48,10 +57,6 @@ export default function ProductFilters({
       setBrands(res.data.brands || [])
       setColors(res.data.colors || [])
       setClothingTypes(res.data.clothingTypes || [])
-
-      // Reset invalid selections
-      if (brand && !res.data.brands.some(b => b._id === brand)) setBrand(null)
-      if (clothingType && !res.data.clothingTypes.includes(clothingType)) setClothingType(null)
     } catch (err) {
       console.error('Failed to load filters', err)
     } finally {
@@ -61,7 +66,24 @@ export default function ProductFilters({
 
   React.useEffect(() => {
     loadFilters()
-  }, [category, clothingType, isClothing])
+  }, [category, clothingType])
+
+  // ---------------- Toggles ----------------
+  const toggleSection = (section) => setOpenSections(prev => ({ ...prev, [section]: !prev[section] }))
+
+  const handleBrandToggle = (id) => {
+    const updated = selectedBrands.includes(id)
+      ? selectedBrands.filter(b => b !== id)
+      : [...selectedBrands, id]
+    setBrand(updated.join(','))
+  }
+
+  const handleColorToggle = (id) => {
+    const updated = selectedColors.includes(id)
+      ? selectedColors.filter(c => c !== id)
+      : [...selectedColors, id]
+    setColor(updated.join(','))
+  }
 
   // ---------------- Price slider ----------------
   React.useEffect(() => setRange([minPrice, maxPrice]), [minPrice, maxPrice])
@@ -71,125 +93,138 @@ export default function ProductFilters({
     setMaxPrice(values[1])
   }
 
-  // ---------------- Reset dependent filters ----------------
-  React.useEffect(() => {
-    // When category changes → reset clothingType & brand
-    setClothingType(null)
-    setBrand(null)
-  }, [category])
+  // ---------------- Render Helpers ----------------
+  const SectionHeader = ({ title, section, isOpen }) => (
+    <button
+      onClick={() => toggleSection(section)}
+      className="flex items-center justify-between w-full py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 border-b border-gray-50 hover:text-gray-500 transition-colors"
+    >
+      {title}
+      {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+    </button>
+  )
 
-  React.useEffect(() => {
-    // When clothingType changes → reset brand
-    if (!isClothing) setClothingType(null)
-    setBrand(null)
-  }, [clothingType, isClothing])
-
-  // ---------------- Render ----------------
   return (
-    <div className={`flex flex-col gap-6 mb-6 transition-opacity duration-200 ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-      {/* CATEGORY */}
-      <div>
-        <label className="block mb-2 font-medium">Category:</label>
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => { setCategory(null); setClothingType(null); setBrand(null) }}
-            className={`px-4 py-2 rounded border text-sm ${!category ? 'bg-black text-white' : 'bg-white'}`}
-          >
-            All
-          </button>
-          {categories.map(c => (
+    <div className={`space-y-2 ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+
+      {/* CATEGORIES */}
+      <div className="border-b border-gray-100">
+        <SectionHeader title="Categories" section="categories" isOpen={openSections.categories} />
+        {openSections.categories && (
+          <div className="py-6 space-y-3">
             <button
-              key={c._id}
-              onClick={() => { setCategory(c._id); setClothingType(null); setBrand(null) }}
-              className={`px-4 py-2 rounded border text-sm ${category === c._id ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}
+              onClick={() => { setCategory(null); setClothingType(null); setBrand(null); setColor(null) }}
+              className={`block w-full text-left text-xs font-bold uppercase tracking-widest hover:text-black transition-colors ${!category ? 'text-black' : 'text-gray-400'}`}
             >
-              {c.name}
+              All Categories
             </button>
-          ))}
-        </div>
+            {categories.map(c => (
+              <button
+                key={c._id}
+                onClick={() => { setCategory(c._id); setClothingType(null); setBrand(null); setColor(null) }}
+                className={`block w-full text-left text-xs font-bold uppercase tracking-widest hover:text-black transition-colors ${category === c._id ? 'text-black' : 'text-gray-400'}`}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* CLOTHING TYPE */}
       {isClothing && clothingTypes.length > 0 && (
-        <div>
-          <label className="block mb-2 font-medium">Type:</label>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setClothingType(null)} // ✅ sends null for "All Types"
-              className={`px-4 py-2 rounded border text-sm ${!clothingType ? 'bg-black text-white' : 'bg-white'}`}
-            >
-              All Types
-            </button>
-            {clothingTypes.map(t => (
+        <div className="border-b border-gray-100">
+          <SectionHeader title="Clothing Type" section="types" isOpen={openSections.types} />
+          {openSections.types && (
+            <div className="py-6 space-y-3">
               <button
-                key={t}
-                onClick={() => setClothingType(t)}
-                className={`px-4 py-2 rounded border text-sm ${clothingType === t ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}
+                onClick={() => setClothingType(null)}
+                className={`block w-full text-left text-xs font-bold uppercase tracking-widest hover:text-black transition-colors ${!clothingType ? 'text-black' : 'text-gray-400'}`}
               >
-                {t[0].toUpperCase() + t.slice(1)}
+                All Types
               </button>
-            ))}
-          </div>
+              {clothingTypes.map(t => (
+                <button
+                  key={t}
+                  onClick={() => setClothingType(t)}
+                  className={`block w-full text-left text-xs font-bold uppercase tracking-widest hover:text-black transition-colors ${clothingType === t ? 'text-black' : 'text-gray-400'}`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {/* BRAND */}
+      {/* BRANDS */}
       {brands.length > 0 && (
-        <div>
-          <label className="block mb-2 font-medium">Brand:</label>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setBrand(null)}
-              className={`px-4 py-2 rounded border text-sm ${!brand ? 'bg-black text-white' : 'bg-white'}`}
-            >
-              All
-            </button>
-            {brands.map(b => (
-              <button
-                key={b._id}
-                onClick={() => setBrand(b._id)}
-                className={`px-4 py-2 rounded border text-sm ${brand === b._id ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}
-              >
-                {b.name}
-              </button>
-            ))}
-          </div>
+        <div className="border-b border-gray-100">
+          <SectionHeader title="Brands" section="brands" isOpen={openSections.brands} />
+          {openSections.brands && (
+            <div className="py-6 space-y-4">
+              {brands.map(b => (
+                <div key={b._id} className="flex items-center gap-3 group cursor-pointer" onClick={() => handleBrandToggle(b._id)}>
+                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${selectedBrands.includes(b._id) ? 'bg-black border-black shadow-lg' : 'border-gray-200 bg-white group-hover:border-gray-400'}`}>
+                    {selectedBrands.includes(b._id) && <div className="w-1.5 h-1.5 bg-white rounded-sm" />}
+                  </div>
+                  <span className={`text-xs font-bold uppercase tracking-widest transition-colors ${selectedBrands.includes(b._id) ? 'text-black' : 'text-gray-400 group-hover:text-gray-600'}`}>
+                    {b.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {/* COLOR */}
+      {/* COLORS */}
       {colors.length > 0 && (
-        <div>
-          <label className="block mb-2 font-medium">Color:</label>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setColor(null)}
-              className={`px-3 py-1 text-sm border rounded ${!color ? 'bg-black text-white' : 'bg-white'}`}
-            >
-              All
-            </button>
-            {colors.map(c => (
-              <button
-                key={c._id}
-                title={c.name}
-                onClick={() => setColor(c._id)}
-                className={`w-8 h-8 rounded-full border-2 ${color === c._id ? 'border-black scale-110' : 'border-gray-300'}`}
-                style={{ backgroundColor: c.hex }}
-              />
-            ))}
-          </div>
+        <div className="border-b border-gray-100">
+          <SectionHeader title="Colors" section="colors" isOpen={openSections.colors} />
+          {openSections.colors && (
+            <div className="py-6 grid grid-cols-5 gap-3">
+              {colors.map(c => (
+                <button
+                  key={c._id}
+                  title={c.name}
+                  onClick={() => handleColorToggle(c._id)}
+                  className={`w-8 h-8 rounded-full border-2 transition-all relative ${selectedColors.includes(c._id) ? 'border-black scale-110 shadow-md ring-2 ring-black/5' : 'border-gray-200 hover:border-gray-400'}`}
+                  style={{ backgroundColor: c.hex }}
+                >
+                  {selectedColors.includes(c._id) && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className={`w-2 h-2 rounded-full ${c.hex.toLowerCase() === '#ffffff' ? 'bg-black' : 'bg-white shadow-sm'}`} />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {/* PRICE */}
-      <div>
-        <label className="block mb-2 font-medium">Price:</label>
-        <Slider value={range} onValueChange={handlePriceChange} min={0} max={5000000} step={500} />
-        <div className="flex justify-between mt-1 text-sm">
-          <span>₦{range[0]}</span>
-          <span>₦{range[1]}</span>
-        </div>
+      <div className="border-b border-gray-100">
+        <SectionHeader title="Price Range" section="price" isOpen={openSections.price} />
+        {openSections.price && (
+          <div className="py-10 px-2 space-y-6">
+            <Slider value={range} onValueChange={handlePriceChange} min={0} max={500000} step={100} />
+            <div className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
+              <div className="text-center">
+                <span className="block text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1">Min</span>
+                <span className="text-[10px] font-black text-slate-900">₦{range[0].toLocaleString()}</span>
+              </div>
+              <div className="h-4 w-px bg-gray-200" />
+              <div className="text-center">
+                <span className="block text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1">Max</span>
+                <span className="text-[10px] font-black text-slate-900">₦{range[1].toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
     </div>
   )
 }

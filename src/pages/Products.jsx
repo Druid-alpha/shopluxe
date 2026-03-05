@@ -158,6 +158,7 @@ export default function Products() {
                         setBrand(null)
                         setColor(null)
                         setSearch('')
+                        setClothingType('')
                         setMinPrice(0)
                         setMaxPrice(5000000)
                       }}>Clear All Filters</Button>

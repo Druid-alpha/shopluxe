@@ -15,7 +15,9 @@ import {
   useGetWishlistQuery
 } from '../wishlist/wishlistApi'
 import StarRating from './StarRating'
-import { Heart } from 'lucide-react'
+import { Heart, CheckCircle2 } from 'lucide-react'
+import PriceDisplay from '@/components/PriceDisplay'
+import ReviewSummary from './ReviewSummary'
 
 /* ================= IMAGE HELPER ================= */
 const getImageUrl = (img) => {
@@ -226,8 +228,13 @@ export default function ProductDetails() {
             {product.title}
           </h1>
 
-          <div className="text-2xl font-black text-slate-900 pt-2">
-            ₦{currentPrice.toLocaleString()}
+          <div className="flex items-center justify-between pt-2">
+            <PriceDisplay price={product.price} discount={product.discount} className="text-4xl" />
+            {product.discount > 0 && (
+              <div className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-red-100 shadow-sm animate-pulse">
+                Sale -{product.discount}%
+              </div>
+            )}
           </div>
         </div>
 
@@ -331,12 +338,29 @@ export default function ProductDetails() {
             </button>
           </div>
         </div>
-        <ReviewForm
-          productId={product._id}
-          onSuccess={refetchReviews}
-          user={user}
-        />
-        <ReviewList reviews={reviews} />
+        <div className="pt-20 border-t border-gray-100 space-y-16">
+          <section>
+            <h2 className="text-2xl font-black tracking-tighter uppercase mb-8">Customer Reviews</h2>
+            <ReviewSummary
+              reviews={reviews}
+              avgRating={product.avgRating || 0}
+              reviewsCount={product.reviewsCount || 0}
+            />
+          </section>
+
+          <section className="grid lg:grid-cols-3 gap-16">
+            <div className="lg:col-span-2">
+              <ReviewList reviews={reviews} productId={product._id} onRefetch={refetchReviews} />
+            </div>
+            <div className="bg-gray-50 p-8 rounded-3xl h-fit">
+              <ReviewForm
+                productId={product._id}
+                onSuccess={refetchReviews}
+                user={user}
+              />
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   )

@@ -115,6 +115,15 @@ export default function ProductCard({ product, featured }) {
 
       {/* PRODUCT IMAGE */}
       <Link to={`/products/${product._id}`} className="block relative aspect-[4/5] overflow-hidden bg-gray-50">
+        {/* SALE BADGE */}
+        {product.discount > 0 && (
+          <div className="absolute top-4 left-4 z-10">
+            <span className="bg-red-600 text-white text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 shadow-xl">
+              Sale -{product.discount}%
+            </span>
+          </div>
+        )}
+
         <img
           src={product.images?.[0]?.url}
           alt={product.title}
@@ -144,9 +153,7 @@ export default function ProductCard({ product, featured }) {
               {product.title}
             </h3>
           </Link>
-          <span className="text-sm font-black text-gray-900">
-            ₦{product?.price?.toLocaleString() ?? 0}
-          </span>
+          <PriceDisplay price={product.price} discount={product.discount} />
         </div>
 
         <div className="flex items-center gap-1.5 pt-1">
