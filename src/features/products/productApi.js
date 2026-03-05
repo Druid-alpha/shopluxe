@@ -266,4 +266,5 @@ export const {
   useRestoreAllProductsMutation,
   useHardDeleteProductMutation,
   useHardDeleteAllProductsMutation,
+  useToggleFeaturedReviewMutation,
 } = productApi

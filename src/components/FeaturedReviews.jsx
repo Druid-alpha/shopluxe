@@ -60,39 +60,39 @@ export default function FeaturedReviews() {
 
                 <Slider {...settings} className="featured-reviews-slider">
                     {data.reviews.map((review) => (
-                        <div key={review._id} className="px-4 pb-12">
-                            <div className="bg-white border border-gray-100 p-8 rounded-[2rem] h-full flex flex-col hover:border-black transition-colors duration-500 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 group">
+                        <div key={review._id} className="px-2 py-4">
+                            <div className="bg-white border border-gray-100 p-6 md:p-8 rounded-[2rem] h-full flex flex-col hover:border-black transition-all duration-500 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 group">
                                 <div className="mb-6 flex justify-between items-start">
-                                    <Quote className="text-gray-100 group-hover:text-black transition-colors duration-500 h-10 w-10 mt-[-10px]" />
+                                    <Quote className="text-gray-100 group-hover:text-black transition-colors duration-500 h-8 w-8 mt-[-10px]" />
                                     <div className="flex gap-0.5">
                                         {[...Array(5)].map((_, i) => (
                                             <Star
                                                 key={i}
-                                                size={12}
+                                                size={10}
                                                 className={i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-100'}
                                             />
                                         ))}
                                     </div>
                                 </div>
 
-                                <p className="text-gray-600 text-lg leading-relaxed mb-10 italic flex-1">
+                                <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-8 italic flex-1 line-clamp-4">
                                     "{review.body}"
                                 </p>
 
-                                <div className="flex items-center gap-4 mt-auto pt-6 border-t border-gray-50">
-                                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-xl flex-shrink-0 bg-gray-50 flex items-center justify-center">
+                                <div className="flex items-center gap-3 mt-auto pt-6 border-t border-gray-50 overflow-hidden">
+                                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-xl flex-shrink-0 bg-gray-50 flex items-center justify-center">
                                         {review.user?.avatar ? (
                                             <img src={review.user.avatar} className="w-full h-full object-cover" />
                                         ) : (
-                                            <User size={16} className="text-gray-300" />
+                                            <User size={14} className="text-gray-300" />
                                         )}
                                     </div>
-                                    <div>
-                                        <h4 className="text-xs font-black uppercase tracking-widest text-gray-900 mb-0.5">{review.user?.name}</h4>
-                                        <p className="text-[8px] font-black uppercase tracking-[.2em] text-gray-400">Verified Customer</p>
+                                    <div className="min-w-0">
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-0.5 truncate">{review.user?.name}</h4>
+                                        <p className="text-[7px] font-black uppercase tracking-[.2em] text-gray-400">Verified Customer</p>
                                     </div>
-                                    <div className="ml-auto">
-                                        <span className="text-[10px] font-black text-gray-300">PURCHASED: {review.product?.title}</span>
+                                    <div className="ml-auto flex-shrink-0">
+                                        <span className="text-[8px] font-black text-gray-300 uppercase tracking-tighter">PURCHASED: {review.product?.title?.substring(0, 15)}...</span>
                                     </div>
                                 </div>
                             </div>
@@ -103,7 +103,7 @@ export default function FeaturedReviews() {
 
             <style jsx="true">{`
         .featured-reviews-slider .slick-dots li button:before {
-          font-size: 10px;
+          font-size: 8px;
           color: #eee;
           opacity: 1;
         }
@@ -114,19 +114,10 @@ export default function FeaturedReviews() {
             bottom: -40px;
         }
         .slick-list {
-            overflow: visible;
-        }
-        .slick-track {
-            display: flex !important;
-        }
-        .slick-slide {
-            height: inherit !important;
-            display: flex !important;
-            justify-content: center;
+            margin: 0 -8px;
         }
         .slick-slide > div {
-            width: 100%;
-            display: flex;
+            padding: 0 8px;
         }
       `}</style>
         </section>
