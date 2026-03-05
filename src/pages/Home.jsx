@@ -249,10 +249,10 @@ export default function Home() {
           viewport={{ once: true, margin: "-100px" }}
           className="grid md:grid-cols-2 gap-12 items-center mb-24 overflow-hidden"
         >
-          <motion.div variants={slideInLeft} className="relative group rounded-2xl overflow-hidden shadow-2xl">
+          <motion.div variants={slideInLeft} className="relative group rounded-3xl overflow-hidden shadow-2xl max-h-[500px]">
             <img
               src={delivery}
-              className="w-full h-auto object-cover transform transition-transform duration-700 group-hover:scale-105"
+              className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105"
               alt="Fast Delivery"
             />
             <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500" />

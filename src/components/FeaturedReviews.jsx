@@ -58,7 +58,7 @@ export default function FeaturedReviews() {
                     <div className="h-1.5 w-24 bg-black mx-auto rounded-full" />
                 </div>
 
-                <Slider {...settings} className="featured-reviews-slider -mx-4">
+                <Slider {...settings} className="featured-reviews-slider">
                     {data.reviews.map((review) => (
                         <div key={review._id} className="px-4 pb-12">
                             <div className="bg-white border border-gray-100 p-8 rounded-[2rem] h-full flex flex-col hover:border-black transition-colors duration-500 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 group">
@@ -111,7 +111,22 @@ export default function FeaturedReviews() {
           color: #000;
         }
         .featured-reviews-slider .slick-dots {
-            bottom: -20px;
+            bottom: -40px;
+        }
+        .slick-list {
+            overflow: visible;
+        }
+        .slick-track {
+            display: flex !important;
+        }
+        .slick-slide {
+            height: inherit !important;
+            display: flex !important;
+            justify-content: center;
+        }
+        .slick-slide > div {
+            width: 100%;
+            display: flex;
         }
       `}</style>
         </section>
