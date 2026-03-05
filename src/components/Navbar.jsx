@@ -318,19 +318,19 @@ export default function Navbar() {
             <div className="p-8 mt-4 border-t border-gray-50">
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6">Connect with us</p>
               <div className="flex gap-4">
-                <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300">
+                <a href="https://www.facebook.com/share/1JM167YZNJ/?mibextid=wwXIfr" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300">
                   <Facebook size={18} />
                 </a>
                 <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-green-600 hover:bg-green-600 hover:text-white transition-all duration-300">
                   <MessageCircle size={18} />
                 </a>
-                <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-pink-600 hover:bg-pink-600 hover:text-white transition-all duration-300">
+                <a href="https://www.instagram.com/femzzyyyy" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-pink-600 hover:bg-pink-600 hover:text-white transition-all duration-300">
                   <Instagram size={18} />
                 </a>
-                <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-sky-500 hover:bg-sky-500 hover:text-white transition-all duration-300">
+                <a href="https://x.com/dreamboatey" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-sky-500 hover:bg-sky-500 hover:text-white transition-all duration-300">
                   <Twitter size={18} />
                 </a>
-                <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-black hover:bg-black hover:text-white transition-all duration-300">
+                <a href="" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-black hover:bg-black hover:text-white transition-all duration-300">
                   <Music2 size={18} />
                 </a>
               </div>

@@ -212,7 +212,7 @@ export default function Cart() {
                 onClick={() => navigate('/')}
                 className="text-sm text-gray-500 hover:text-black font-medium transition-colors"
               >
-                or Continue Shopping →
+                 Continue Shopping →
               </button>
             </div>
           </div>

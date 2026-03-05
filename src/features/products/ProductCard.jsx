@@ -56,6 +56,7 @@ export default function ProductCard({ product, featured }) {
 }))
 
       toast({ title: 'Added to cart (Guest)' })
+       navigate('/cart')
       return
     }
 

@@ -219,7 +219,7 @@ export default function Home() {
           <motion.div
             initial="hidden"
             whileInView="show"
-            viewport={{ once: true, margin: "-50px" }}
+            viewport={{ once: true, margin: "-48px" }}
             variants={staggerContainer}
             className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
           >

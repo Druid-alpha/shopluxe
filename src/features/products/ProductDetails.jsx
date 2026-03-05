@@ -122,6 +122,7 @@ export default function ProductDetails() {
 }))
 
       toast({ title: 'Added to cart (Guest)' })
+       navigate('/cart')
       return
     }
 
