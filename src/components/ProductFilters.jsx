@@ -1,4 +1,6 @@
-import { Checkbox } from './ui/checkbox'
+import * as React from 'react'
+import { Slider } from './ui/slider'
+import axios from '@/lib/axios'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
 export default function ProductFilters({
