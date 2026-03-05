@@ -1,51 +1,51 @@
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300 mt-20">
-      <div className="max-w-7xl mx-auto px-6 py-14 grid gap-10 sm:grid-cols-2 md:grid-cols-4">
+    <footer className="bg-slate-950 text-gray-400 mt-20 border-t border-white/5">
+      <div className="max-w-7xl mx-auto px-6 py-20 grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
 
         {/* BRAND */}
-        <div>
-          <h3 className="text-white text-xl font-bold mb-4">ShopLuxe</h3>
-          <p className="text-sm leading-relaxed">
-            Premium shopping experience for fashion, electronics & groceries.
+        <div className="space-y-6">
+          <h3 className="text-white text-2xl font-black tracking-tighter uppercase whitespace-nowrap">ShopLuxe <span className="text-gray-500">Global</span></h3>
+          <p className="text-xs leading-loose font-medium max-w-[200px]">
+            The definitive destination for high-end fashion, electronics, and daily essentials.
           </p>
         </div>
 
         {/* SHOP */}
-        <div>
-          <h4 className="text-white font-semibold mb-4">Shop</h4>
-          <ul className="space-y-3 text-sm">
-            <li><a className="hover:text-white" href="/products">All Products</a></li>
-            <li><a className="hover:text-white" href="/products?featured=true">Featured</a></li>
-            <li><a className="hover:text-white" href="/wishlist">Wishlist</a></li>
+        <div className="space-y-6">
+          <h4 className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Shop</h4>
+          <ul className="space-y-4 text-xs font-bold uppercase tracking-widest">
+            <li><a className="hover:text-white transition-colors" href="/products">Latest Arrivals</a></li>
+            <li><a className="hover:text-white transition-colors" href="/products?featured=true">Featured Items</a></li>
+            <li><a className="hover:text-white transition-colors" href="/wishlist">Your Wishlist</a></li>
           </ul>
         </div>
 
         {/* ACCOUNT */}
-        <div>
-          <h4 className="text-white font-semibold mb-4">Account</h4>
-          <ul className="space-y-3 text-sm">
-            <li><a className="hover:text-white" href="/login">Login</a></li>
-            <li><a className="hover:text-white" href="/register">Register</a></li>
-            <li><a className="hover:text-white" href="/profile">Profile</a></li>
+        <div className="space-y-6">
+          <h4 className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Account</h4>
+          <ul className="space-y-4 text-xs font-bold uppercase tracking-widest">
+            <li><a className="hover:text-white transition-colors" href="/profile">Dashboard</a></li>
+            <li><a className="hover:text-white transition-colors" href="/login">Sign In</a></li>
+            <li><a className="hover:text-white transition-colors" href="/register">Create Account</a></li>
           </ul>
         </div>
 
         {/* SUPPORT */}
-        <div>
-          <h4 className="text-white font-semibold mb-4">Support</h4>
-          <ul className="space-y-3 text-sm">
-            <li className="hover:text-white cursor-pointer">Help Center</li>
-            <li className="hover:text-white cursor-pointer">Privacy Policy</li>
-            <li className="hover:text-white cursor-pointer">Terms & Conditions</li>
+        <div className="space-y-6">
+          <h4 className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Support</h4>
+          <ul className="space-y-4 text-xs font-bold uppercase tracking-widest">
+            <li className="hover:text-white cursor-pointer transition-colors">Help Center</li>
+            <li className="hover:text-white cursor-pointer transition-colors">Privacy Policy</li>
+            <li className="hover:text-white cursor-pointer transition-colors">Terms of Service</li>
           </ul>
         </div>
 
       </div>
 
       {/* COPYRIGHT */}
-      <div className="border-t border-gray-700 py-4 text-center text-xs sm:text-sm">
-        © {new Date().getFullYear()} ShopLuxe. All rights reserved.
+      <div className="border-t border-white/5 py-8 text-center text-[10px] font-black uppercase tracking-[0.3em] text-gray-600">
+        © {new Date().getFullYear()} ShopLuxe Global. All Rights Reserved.
       </div>
     </footer>
   )

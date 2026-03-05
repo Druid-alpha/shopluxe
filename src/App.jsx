@@ -66,7 +66,7 @@ export default function App() {
             <Route
               path="/checkout"
               element={
-                <ProtectedRoute roles={['user']}>
+                <ProtectedRoute roles={['user', 'admin']}>
                   <PageTransition><Checkout /></PageTransition>
                 </ProtectedRoute>
               }
@@ -75,7 +75,7 @@ export default function App() {
             <Route
               path="/wishlist"
               element={
-                <ProtectedRoute roles={['user']}>
+                <ProtectedRoute roles={['user', 'admin']}>
                   <PageTransition><Wishlist /></PageTransition>
                 </ProtectedRoute>
               }
@@ -83,7 +83,7 @@ export default function App() {
             <Route
               path="/orders/:id"
               element={
-                <ProtectedRoute roles={['user']}>
+                <ProtectedRoute roles={['user', 'admin']}>
                   <PageTransition><OrderReceipt /></PageTransition>
                 </ProtectedRoute>
               }

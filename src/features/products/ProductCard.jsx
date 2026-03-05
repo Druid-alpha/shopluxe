@@ -44,16 +44,16 @@ export default function ProductCard({ product, featured }) {
     e.preventDefault()
     e.stopPropagation()
 
-   if (!user) {
-  dispatch(addGuestCart({
-    product: product._id,
-    qty: 1,
-    variant: null
-  }))
+    if (!user) {
+      dispatch(addGuestCart({
+        product: product._id,
+        qty: 1,
+        variant: null
+      }))
 
-  toast({ title: 'Added to cart (Guest)' })
-  return
-}
+      toast({ title: 'Added to cart (Guest)' })
+      return
+    }
 
     setIsAdding(true)
     try {
@@ -73,86 +73,89 @@ export default function ProductCard({ product, featured }) {
     }
   }
 
- const handleWishlist = async (e) => {
-  e.preventDefault()
-  e.stopPropagation()
+  const handleWishlist = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
 
-  if (!user) {
-    dispatch(toggleGuestWishlist(product._id))
-    toast({
-      title: 'Wishlist updated (Guest)'
-    })
-    return
-  }
+    if (!user) {
+      dispatch(toggleGuestWishlist(product._id))
+      toast({
+        title: 'Wishlist updated (Guest)'
+      })
+      return
+    }
 
-  try {
-    await toggleWishlist(product._id).unwrap()
-    toast({
-      title: isWishlisted
-        ? 'Removed from wishlist'
-        : 'Added to wishlist ❤️'
-    })
-  } catch {
-    toast({
-      title: 'Something went wrong',
-      variant: 'destructive'
-    })
+    try {
+      await toggleWishlist(product._id).unwrap()
+      toast({
+        title: isWishlisted
+          ? 'Removed from wishlist'
+          : 'Added to wishlist ❤️'
+      })
+    } catch {
+      toast({
+        title: 'Something went wrong',
+        variant: 'destructive'
+      })
+    }
   }
-}
 
   return (
-    <Card className={`relative ${featured ? 'border-yellow-500' : ''}`}>
-      <Heart
-        onClick={handleWishlist}
-        size={20}
-        className={`absolute top-1 right-3 cursor-pointer ${isWishlisted ? 'text-red-500 fill-red-500' : 'text-gray-400'
-          }`}
-      />
+    <div className="group relative bg-white border border-gray-100 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+      {/* WISHLIST BUTTON */}
+      <div className="absolute top-4 right-4 z-10">
+        <button
+          onClick={handleWishlist}
+          className={`p-2 rounded-full bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm transition-all duration-300 ${isWishlisted ? 'text-red-500' : 'text-gray-400 hover:text-black'
+            }`}
+        >
+          <Heart size={18} className={isWishlisted ? 'fill-current' : ''} />
+        </button>
+      </div>
 
-      {/* 🔗 LINK IMAGE + TITLE */}
-      <Link to={`/products/${product._id}`}>
-        <CardHeader>
-          <img
-            src={product.images?.[0]?.url}
-            alt={product.title}
-            className="w-full h-72 object-contain rounded"
-            onError={(e) => {
-              e.currentTarget.src = '/placeholder.png'
-            }}
-          />
+      {/* PRODUCT IMAGE */}
+      <Link to={`/products/${product._id}`} className="block relative aspect-[4/5] overflow-hidden bg-gray-50">
+        <img
+          src={product.images?.[0]?.url}
+          alt={product.title}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder.png'
+          }}
+        />
 
-        </CardHeader>
+        {/* QUICK ADD OVERLAY */}
+        <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+          <Button
+            onClick={handleAddToCart}
+            disabled={isOutOfStock || isAdding}
+            className="w-full bg-white/95 backdrop-blur-md text-black hover:bg-black hover:text-white border-0 shadow-lg text-xs font-bold uppercase tracking-wider h-11"
+          >
+            {isAdding ? 'Adding...' : (isOutOfStock ? 'Sold Out' : 'Quick Add')}
+          </Button>
+        </div>
       </Link>
 
-      <CardContent className="space-y-1">
-        <Link to={`/products/${product._id}`}>
-          <h3 className="font-semibold line-clamp-1 hover:underline">
-            {product.title}
-          </h3>
-        </Link>
-        <p className="font-medium">₦{product?.price ?? 0}</p>
-        <StarRating rating={product.avgRating} />
-        <span className="ml-2 text-gray-600 text-sm">
-          {product?.avgRating?.toFixed(1) ?? '0.0'}
-        </span>
+      {/* PRODUCT INFO */}
+      <div className="p-5 space-y-2">
+        <div className="flex justify-between items-start gap-2">
+          <Link to={`/products/${product._id}`} className="flex-1">
+            <h3 className="text-sm font-bold text-gray-900 line-clamp-1 group-hover:text-primary transition-colors">
+              {product.title}
+            </h3>
+          </Link>
+          <span className="text-sm font-black text-gray-900">
+            ₦{product?.price?.toLocaleString() ?? 0}
+          </span>
+        </div>
 
-      </CardContent>
-
-      <CardFooter>
-        <Button
-          onClick={handleAddToCart}
-          size="sm"
-          className="w-full me-2"
-          disabled={isOutOfStock || isAdding}
-        >
-          {isAdding ? 'Adding...' : (isOutOfStock ? 'Out of Stock' : 'Add to Cart')}
-        </Button>
-        <Link to={`/products/${product._id}`} className="w-full">
-          <Button variant="outline" size="sm" className="w-full">
-            View Details
-          </Button>
-        </Link>
-      </CardFooter>
-    </Card>
+        <div className="flex items-center gap-1.5 pt-1">
+          <StarRating rating={product.avgRating} size={14} />
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+            ({product?.avgRating?.toFixed(1) ?? '0.0'})
+          </span>
+        </div>
+      </div>
+    </div>
   )
 }

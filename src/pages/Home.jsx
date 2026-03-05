@@ -85,38 +85,43 @@ export default function Home() {
   return (
     <div className="w-full">
       {/* HERO SECTION */}
-      <section className="relative w-full overflow-hidden bg-black pb-10 mb-16">
-        <Slider {...sliderSettings} className="h-[40vh] min-h-[300px] md:h-[80vh] w-full">
+      <section className="relative w-full overflow-hidden bg-slate-950">
+        <Slider {...sliderSettings} className="h-[60vh] md:h-[90vh] w-full">
           {slides.map(slide => (
-            <div key={slide.id} className="relative h-[40vh] min-h-[300px] md:h-[80vh] w-full outline-none">
+            <div key={slide.id} className="relative h-[60vh] md:h-[90vh] w-full outline-none">
               <img
                 src={slide.image}
-                className="absolute inset-0 h-full w-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover transform scale-105"
                 alt={slide.title}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
 
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
+              <div className="absolute inset-0 flex flex-col items-start justify-center text-white p-8 md:p-24">
                 <motion.div
                   initial="hidden"
                   whileInView="show"
                   viewport={{ once: true }}
                   variants={staggerContainer}
-                  className="max-w-3xl"
+                  className="max-w-2xl"
                 >
-                  <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6 drop-shadow-2xl uppercase">
-                    {slide.title}
+                  <motion.span variants={fadeUp} className="text-xs md:text-sm font-black uppercase tracking-[0.3em] text-white/70 mb-4 block">
+                    Limited Edition
+                  </motion.span>
+                  <motion.h1 variants={fadeUp} className="text-5xl md:text-8xl font-black tracking-tighter mb-6 leading-none">
+                    {slide.title.split(' ').map((word, i) => (
+                      <span key={i} className={i === 1 ? 'text-gray-400 block' : 'block'}>{word}</span>
+                    ))}
                   </motion.h1>
-                  <motion.p variants={fadeUp} className="text-sm md:text-xl lg:text-2xl font-medium text-gray-300 mb-10 drop-shadow-lg max-w-2xl mx-auto leading-relaxed">
+                  <motion.p variants={fadeUp} className="text-sm md:text-lg text-gray-300 mb-10 max-w-lg leading-relaxed font-medium">
                     {slide.description}
                   </motion.p>
                   <motion.div variants={fadeUp}>
                     <Button
                       size="lg"
-                      className="bg-white text-black hover:bg-gray-100 text-base md:text-xl px-10 py-8 rounded-2xl font-bold transition-all hover:scale-105 active:scale-95 shadow-2xl"
+                      className="bg-white text-black hover:bg-black hover:text-white transition-all duration-500 rounded-none px-12 py-7 text-sm font-bold uppercase tracking-widest"
                       onClick={() => navigate(slide.link)}
                     >
-                      Explore Now <ArrowRight className="ml-2 h-6 w-6" />
+                      Shop Now
                     </Button>
                   </motion.div>
                 </motion.div>
@@ -135,26 +140,26 @@ export default function Home() {
           whileInView="show"
           viewport={{ once: true, margin: "-100px" }}
           variants={staggerContainer}
+          className="pb-10"
         >
-          <motion.div variants={fadeUp} className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Shop by Category</h2>
-            <div className="h-1 w-20 bg-black mx-auto mt-4 rounded-full"></div>
+          <motion.div variants={fadeUp} className="flex justify-between items-end mb-12 border-b pb-6">
+            <h2 className="text-2xl md:text-3xl font-black tracking-tighter uppercase">Categories</h2>
+            <Link to="/products" className="text-xs font-bold uppercase tracking-widest border-b-2 border-black pb-1 hover:text-gray-500 hover:border-gray-500 transition-all">View All</Link>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
             {[
-              { id: 'electronics', icon: Laptop2, label: 'Electronics', color: 'bg-blue-50 text-blue-600 border-blue-100 hover:border-blue-300' },
-              { id: 'clothing', icon: Shirt, label: 'Clothing', color: 'bg-rose-50 text-rose-600 border-rose-100 hover:border-rose-300' },
-              { id: 'groceries', icon: ShoppingBasket, label: 'Groceries', color: 'bg-green-50 text-green-600 border-green-100 hover:border-green-300' }
+              { id: 'electronics', icon: Laptop2, label: 'Electronics', color: 'bg-slate-50 border-slate-100' },
+              { id: 'clothing', icon: Shirt, label: 'Clothing', color: 'bg-slate-50 border-slate-100' },
+              { id: 'groceries', icon: ShoppingBasket, label: 'Groceries', color: 'bg-slate-50 border-slate-100' }
             ].map(cat => (
               <motion.div key={cat.id} variants={scaleIn}>
                 <div
                   onClick={() => navigate(`/products?category=${cat.id}`)}
-                  className={`group relative flex flex-col items-center justify-center p-10 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden ${cat.color} hover:shadow-lg hover:-translate-y-1`}
+                  className={`group relative flex flex-col items-center justify-center aspect-square rounded-full border-2 transition-all duration-500 cursor-pointer overflow-hidden ${cat.color} hover:bg-black hover:border-black`}
                 >
-                  <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
-                  <cat.icon className="h-16 w-16 mb-4 transition-transform group-hover:scale-110 duration-300" />
-                  <span className="text-xl font-semibold tracking-wide">{cat.label}</span>
+                  <cat.icon className="h-10 w-10 md:h-16 md:w-16 mb-2 transition-transform group-hover:scale-110 group-hover:filter group-hover:invert duration-500" />
+                  <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] group-hover:text-white transition-colors">{cat.label}</span>
                 </div>
               </motion.div>
             ))}

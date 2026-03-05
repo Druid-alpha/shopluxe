@@ -71,11 +71,11 @@ export default function Navbar() {
       )}
 
       <nav className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex items-center" style={{ fontFamily: '"Playfair Display", "Georgia", serif' }}>
-            <span className="text-2xl font-black tracking-tighter text-gray-900">Shop</span>
-            <span className="text-2xl font-light italic tracking-tight text-gray-400">Luxe</span>
-            <span className="text-gray-900 font-black text-2xl">.</span>
+        <Link to="/" className="flex items-center gap-2 group">
+          <div className="flex items-center">
+            <span className="text-xl md:text-3xl font-black tracking-tighter text-slate-950 uppercase border-b-4 border-black group-hover:bg-black group-hover:text-white transition-all duration-300">
+              ShopLuxe
+            </span>
           </div>
         </Link>
         <form
@@ -84,31 +84,31 @@ export default function Navbar() {
             const q = e.target.search.value
             if (q) navigate(`/products?search=${q}`)
           }}
-          className="relative hidden md:block flex-1 max-w-md mx-4"
+          className="relative hidden lg:block flex-1 max-w-sm mx-8"
         >
           <input
             name="search"
-            placeholder="Search products..."
-            className="border rounded-full px-4 py-1.5 text-sm w-full focus:outline-none"
+            placeholder="Find your aesthetic..."
+            className="border-2 border-gray-100 bg-gray-50 rounded-xl px-6 py-2.5 text-xs font-bold w-full focus:outline-none focus:border-black transition-all"
           />
         </form>
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-6">
-          <NavLink to="/products">Products</NavLink>
+        <div className="hidden md:flex items-center gap-8">
+          <NavLink to="/products" className={({ isActive }) => `text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:text-black ${isActive ? 'text-black border-b-2 border-black' : 'text-gray-400'}`}>Collections</NavLink>
 
-          <NavLink to="/wishlist" className="relative">
-            <Heart />
+          <NavLink to="/wishlist" className="relative text-gray-400 hover:text-black transition-colors">
+            <Heart size={20} />
             {wishlistCount > 0 && (
-              <span className="absolute -top-2 -right-2 text-xs bg-pink-500 text-white rounded-full px-1.5">
+              <span className="absolute -top-2 -right-2 text-[8px] font-black bg-black text-white rounded-full w-4 h-4 flex items-center justify-center">
                 {wishlistCount}
               </span>
             )}
           </NavLink>
 
-          <NavLink to="/cart" className="relative">
-            <ShoppingCart />
+          <NavLink to="/cart" className="relative text-gray-400 hover:text-black transition-colors">
+            <ShoppingCart size={20} />
             {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 text-xs bg-red-500 text-white rounded-full px-1.5">
+              <span className="absolute -top-2 -right-2 text-[8px] font-black bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center">
                 {cartCount}
               </span>
             )}

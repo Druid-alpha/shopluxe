@@ -30,10 +30,19 @@ export default function Cart() {
 
   if (!cart.length) {
     return (
-      <div className="p-12 text-center text-gray-500">
-        <p className="text-lg">Your cart is empty</p>
-        <Button className="mt-4" onClick={() => navigate('/')}>
-          Continue Shopping
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-8 p-12 text-center">
+        <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center border-2 border-dashed border-gray-200">
+          <ShoppingCart className="text-gray-300" size={32} />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black tracking-tighter uppercase">Your bag is empty</h2>
+          <p className="text-gray-400 text-sm font-medium">Add some items to start your collection.</p>
+        </div>
+        <Button
+          className="bg-black text-white hover:bg-slate-800 rounded-none px-12 py-7 text-xs font-black uppercase tracking-widest"
+          onClick={() => navigate('/')}
+        >
+          Return to Collections
         </Button>
       </div>
     );
@@ -93,57 +102,56 @@ export default function Cart() {
       <h1 className="text-3xl font-bold text-gray-900 mb-8 tracking-tight">Shopping Cart</h1>
 
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-        {/* Cart Items (Left 2/3) */}
-        <div className="lg:w-2/3 space-y-6">
-          <div className="space-y-4">
+        <div className="lg:w-2/3 space-y-12">
+          <div className="space-y-8">
             {cart.map(item => (
               <div
                 key={item.key}
-                className="flex flex-col sm:flex-row items-center sm:items-start gap-6 border-b border-gray-100 pb-6 mb-6 last:border-0"
+                className="flex flex-col sm:flex-row items-center sm:items-start gap-8 group"
               >
                 {/* Product Image */}
-                <div className="w-full sm:w-32 h-40 sm:h-32 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100 p-2">
+                <div className="w-full sm:w-40 aspect-[4/5] bg-gray-50 rounded-2xl overflow-hidden flex-shrink-0 border border-gray-100 p-4 transition-all group-hover:shadow-md">
                   <img
                     src={item.productImage || item.product?.images?.[0]?.url || 'https://via.placeholder.com/150'}
                     alt={item.title}
-                    className="w-full h-full object-contain mix-blend-multiply"
+                    className="w-full h-full object-contain mix-blend-multiply transition-transform group-hover:scale-105 duration-500"
                   />
                 </div>
 
                 {/* Product Details */}
-                <div className="flex-1 w-full space-y-2">
+                <div className="flex-1 w-full space-y-4 pt-2">
                   <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold text-lg text-gray-900">{item.title}</h3>
+                    <div className="space-y-1">
+                      <h3 className="font-black text-lg text-slate-900 tracking-tight uppercase leading-tight">{item.title}</h3>
                       {item.variant && (
-                        <p className="text-sm text-gray-500 mt-1 uppercase tracking-wide">
-                          Variant: <span className="font-medium text-gray-700">{item.variant}</span>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded inline-block">
+                          {item.variant}
                         </p>
                       )}
-
                     </div>
-                    <p className="font-bold text-lg text-gray-900">
-                      ₦{((item.price || 0) * (item.qty || 1)).toLocaleString()}
-                    </p>
+                    <div className="text-right">
+                      <p className="font-black text-lg text-slate-900">
+                        ₦{((item.price || 0) * (item.qty || 1)).toLocaleString()}
+                      </p>
+                      <p className="text-[10px] font-bold text-gray-300 tracking-widest uppercase">₦{(item.price || 0).toLocaleString()} /ea</p>
+                    </div>
                   </div>
 
-                  <p className="text-sm text-gray-500">₦{(item.price || 0).toLocaleString()} each</p>
-
                   {/* Quantity & Remove actions */}
-                  <div className="flex items-center justify-between pt-4">
-                    <div className="flex items-center border border-gray-300 rounded-md overflow-hidden bg-white shadow-sm">
+                  <div className="flex items-center justify-between pt-6">
+                    <div className="flex items-center bg-gray-50 rounded-xl px-2 border border-gray-100">
                       <button
-                        className="px-3 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-black transition flex items-center justify-center disabled:opacity-50"
+                        className="w-10 h-10 flex items-center justify-center font-bold text-gray-400 hover:text-black transition disabled:opacity-20"
                         onClick={() => changeQty(item, -1)}
                         disabled={updatingItems[item.key] || item.qty <= 1}
                       >
                         -
                       </button>
-                      <span className="px-4 py-1.5 text-center min-w-[3rem] text-sm font-medium border-x border-gray-200">
+                      <span className="w-12 text-center text-xs font-black tracking-widest">
                         {updatingItems[item.key] ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : item.qty}
                       </span>
                       <button
-                        className="px-3 py-1.5 text-gray-600 hover:bg-gray-50 hover:text-black transition flex items-center justify-center disabled:opacity-50"
+                        className="w-10 h-10 flex items-center justify-center font-bold text-gray-400 hover:text-black transition disabled:opacity-20"
                         onClick={() => changeQty(item, 1)}
                         disabled={updatingItems[item.key] || item.qty >= (item.variantStock ?? item.productStock ?? 0)}
                       >
@@ -152,10 +160,10 @@ export default function Cart() {
                     </div>
 
                     <button
-                      className="text-sm text-red-600 hover:text-red-800 font-medium flex items-center gap-1.5 px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                      className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-700 flex items-center gap-2 px-4 py-2 rounded-full hover:bg-red-50 transition-all active:scale-95"
                       onClick={() => removeItem(item)}
                     >
-                      <Trash size={16} /> <span className="hidden sm:inline">Remove</span>
+                      <Trash size={14} /> Remove
                     </button>
                   </div>
                 </div>

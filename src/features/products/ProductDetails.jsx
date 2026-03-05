@@ -180,70 +180,82 @@ export default function ProductDetails() {
 
   /* ================= RENDER ================= */
   return (
-    <div className="p-6 flex flex-col md:flex-row gap-6">
-      {/* IMAGES */}
-      <div className="md:w-1/2 space-y-4">
-        <img
-          src={getImageUrl(mainImage)}
-          alt={product.title}
-          className="w-full h-96 object-contain  rounded"
-        />
+    <div className="max-w-7xl mx-auto px-4 py-12 flex flex-col lg:flex-row gap-16">
+      {/* IMAGES COLUMN */}
+      <div className="lg:w-3/5 space-y-6">
+        <div className="aspect-square bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm group">
+          <img
+            src={getImageUrl(mainImage)}
+            alt={product.title}
+            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+          />
+        </div>
 
-        <div className="flex gap-2 flex-wrap">
+        <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
           {imageList.map((img, idx) => {
             const url = getImageUrl(img)
             if (!url) return null
 
             return (
-              <img
+              <div
                 key={idx}
-                src={url}
-                className="w-20 h-20 object-cover rounded cursor-pointer border"
+                className={`aspect-square rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${getImageUrl(mainImage) === url ? 'border-black' : 'border-transparent hover:border-gray-200'
+                  }`}
                 onClick={() => setMainImage(url)}
-              />
+              >
+                <img
+                  src={url}
+                  className="w-full h-full object-cover"
+                />
+              </div>
             )
           })}
         </div>
       </div>
 
-      {/* DETAILS */}
-      <div className="md:w-1/2 space-y-4">
-        <h1 className="text-2xl font-bold">{product.title}</h1>
+      {/* DETAILS COLUMN */}
+      <div className="lg:w-2/5 space-y-8">
+        <div className="space-y-4">
+          <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+            <span>{product.brand?.name || 'ShopLuxe Original'}</span>
+            <span>•</span>
+            <StarRating rating={product.avgRating} size={14} />
+          </div>
 
-        <div className="flex items-center gap-2">
-          <StarRating rating={product.avgRating} size={24} />
-          <span className="text-sm text-gray-600">
-            {product.avgRating?.toFixed(1) ?? '0.0'}
-          </span>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 leading-none">
+            {product.title}
+          </h1>
+
+          <div className="text-2xl font-black text-slate-900 pt-2">
+            ₦{currentPrice.toLocaleString()}
+          </div>
         </div>
 
-        <p className="text-gray-700 leading-relaxed text-sm md:text-base">{product.description}</p>
-
-        {/* PRICE DISPLAY */}
-        <div className="text-3xl font-bold my-4">
-          ₦{currentPrice.toLocaleString()}
-        </div>
+        <p className="text-gray-600 text-sm leading-relaxed max-w-md">
+          {product.description}
+        </p>
 
         {/* VARIANT SELECTOR */}
         {variants.length > 0 && (
-          <div className="space-y-3 mt-6">
-            <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-500 mb-2">Select Option</h3>
-            <div className="flex flex-wrap gap-3">
-              {/* Base Product Option */}
+          <div className="space-y-4 pt-6 border-t border-gray-100">
+            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-500">
+              <span>Select Option</span>
+              <span>{variants.length} Options available</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => {
                   setSelectedVariantIndex(-1)
                   setMainImage(product.images?.[0]?.url || '')
                 }}
-                className={`px-4 py-2 border rounded-md text-sm font-medium transition-all ${selectedVariantIndex === -1
-                    ? 'border-black bg-black text-white shadow-md'
-                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                className={`px-5 py-3 border-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedVariantIndex === -1
+                  ? 'border-black bg-black text-white shadow-xl scale-105'
+                  : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-gray-200'
                   }`}
               >
-                Default (Main)
+                Default
               </button>
 
-              {/* Variants */}
               {variants.map((v, idx) => (
                 <button
                   key={idx}
@@ -251,79 +263,72 @@ export default function ProductDetails() {
                     setSelectedVariantIndex(idx)
                     if (v.image?.url) setMainImage(v.image.url)
                   }}
-                  className={`px-4 py-2 border rounded-md text-sm font-medium transition-all ${selectedVariantIndex === idx
-                      ? 'border-black bg-black text-white shadow-md'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                  className={`px-5 py-3 border-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedVariantIndex === idx
+                    ? 'border-black bg-black text-white shadow-xl scale-105'
+                    : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-gray-200'
                     }`}
                 >
                   {v.options?.color?.name || v.options?.color || ''} {v.options?.size || ''}
-                  {!v.options?.color && !v.options?.size && (v.sku || `Variant ${idx + 1}`)}
+                  {!v.options?.color && !v.options?.size && (v.sku || `V${idx + 1}`)}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Missing Product Details from ProductForm */}
-        <div className="space-y-2 text-sm bg-gray-50 p-5 rounded-lg border mt-6">
-          <div className="grid grid-cols-2 gap-4">
-            {product.category?.name && <div><span className="text-gray-500">Category:</span> <span className="font-medium">{product.category.name}</span></div>}
-            {product.brand?.name && <div><span className="text-gray-500">Brand:</span> <span className="font-medium">{product.brand.name}</span></div>}
-            {product.clothingType && <div><span className="text-gray-500">Type:</span> <span className="font-medium">{product.clothingType}</span></div>}
-            {product.color?.name && <div><span className="text-gray-500">Color:</span> <span className="font-medium">{product.color.name}</span></div>}
-          </div>
-          {product.tags?.length > 0 && <div className="mt-2 text-gray-500">Tags: <span className="text-gray-800">{product.tags.join(', ')}</span></div>}
-
-          <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
-            <span className="font-semibold text-lg">Inventory Status:</span>
-            {currentStock > 0 ? (
-              <span className="text-green-600 font-bold bg-green-50 px-4 py-1.5 rounded-full border border-green-100 shadow-sm animate-in fade-in zoom-in duration-300">
-                {currentStock} UNITS AVAILABLE
+        {/* INVENTORY & INFO */}
+        <div className="space-y-4 pt-8 border-t border-gray-100">
+          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className={`w-2 h-2 rounded-full ${currentStock > 0 ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                {currentStock > 0 ? 'In Stock' : 'Out of Stock'}
               </span>
-            ) : (
-              <span className="text-red-500 font-bold bg-red-50 px-4 py-1.5 rounded-full border border-red-100 shadow-sm">
-                OUT OF STOCK
+            </div>
+            {currentStock > 0 && (
+              <span className="text-[10px] font-black text-slate-900 border-l border-slate-200 pl-4 uppercase tracking-widest">
+                {currentStock} units ready
               </span>
             )}
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 mt-8">
-          <div className="flex items-center border border-gray-200 rounded-lg bg-white h-12">
-            <button
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="px-4 h-full text-gray-500 hover:text-black transition-colors border-r disabled:opacity-30"
-              disabled={quantity <= 1}
-            >
-              -
-            </button>
-            <span className="px-6 font-semibold min-w-[3rem] text-center">{quantity}</span>
-            <button
-              onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
-              className="px-4 h-full text-gray-500 hover:text-black transition-colors border-l disabled:opacity-30"
-              disabled={quantity >= currentStock}
-            >
-              +
-            </button>
-          </div>
+        {/* PURCHASE ACTIONS */}
+        <div className="space-y-4 pt-4">
+          <div className="flex gap-4">
+            <div className="flex items-center bg-gray-100 rounded-xl px-2">
+              <button
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="w-10 h-10 flex items-center justify-center font-bold hover:text-primary transition-colors disabled:opacity-20"
+                disabled={quantity <= 1}
+              >
+                -
+              </button>
+              <span className="w-10 text-center font-black text-sm">{quantity}</span>
+              <button
+                onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
+                className="w-10 h-10 flex items-center justify-center font-bold hover:text-primary transition-colors disabled:opacity-20"
+                disabled={quantity >= currentStock}
+              >
+                +
+              </button>
+            </div>
 
-          <div className="flex-1 flex gap-3 min-w-[200px]">
             <Button
               onClick={handleAddToCart}
               disabled={currentStock < 1 || isAdding}
-              size="lg"
-              className={`flex-1 text-lg h-12 shadow-sm transition-all ${currentStock < 1 || isAdding ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white'}`}
+              className="flex-1 h-12 bg-black hover:bg-slate-800 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all active:scale-95"
             >
-              {isAdding ? 'Adding...' : (currentStock > 0 ? 'Add to Cart' : 'Out of Stock')}
+              {isAdding ? 'Adding to cart...' : (currentStock > 0 ? 'Add to Bag' : 'Sold Out')}
             </Button>
-            <Button
-              variant={isInWishlist ? 'destructive' : 'outline'}
+
+            <button
               onClick={handleWishlistToggle}
-              size="lg"
-              className="h-12 w-12 p-0 flex-shrink-0 rounded-xl"
+              className={`w-12 h-12 flex items-center justify-center rounded-xl border-2 transition-all ${isInWishlist ? 'bg-red-50 border-red-100 text-red-500' : 'bg-white border-gray-100 hover:border-gray-900 border-2'
+                }`}
             >
               <Heart size={20} className={isInWishlist ? "fill-current" : ""} />
-            </Button>
+            </button>
           </div>
         </div>
         <ReviewForm

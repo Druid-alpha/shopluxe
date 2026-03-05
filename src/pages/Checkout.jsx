@@ -78,7 +78,7 @@ export default function Checkout() {
     }
   }
 
-  const inputCls = "w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition-all placeholder:text-gray-400 bg-white"
+  const inputCls = "w-full border-2 border-gray-100 bg-gray-50 rounded-xl px-5 py-3.5 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-black transition-all placeholder:text-gray-300"
 
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-[calc(100vh-80px)]">
@@ -176,27 +176,27 @@ export default function Checkout() {
               </div>
             </div>
 
-            <div className="bg-blue-50 text-blue-800 text-sm p-4 rounded-lg flex items-start gap-3">
-              <ShieldCheck size={18} className="flex-shrink-0 mt-0.5 text-blue-600" />
-              <p>Your payment is processed securely by Paystack. We do not store your card details.</p>
+            <div className="bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] p-6 rounded-2xl flex items-start gap-4 shadow-xl">
+              <ShieldCheck size={24} className="flex-shrink-0 text-blue-400" />
+              <p className="leading-loose">Secure Encryption Enabled. Your transaction data is protected with industrial-grade protocols. We do not store sensitive payment information.</p>
             </div>
 
             <Button
               onClick={pay}
               disabled={loading || !isFormValid}
-              className={`w-full h-14 text-base mt-2 transition-all rounded-xl shadow-md font-bold flex items-center justify-center gap-2 ${isFormValid
-                  ? 'bg-black hover:bg-gray-800 text-white'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              className={`w-full h-16 text-xs mt-4 transition-all rounded-none font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 ${isFormValid
+                ? 'bg-black hover:bg-slate-800 text-white shadow-2xl scale-105 active:scale-100'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
             >
               {loading ? (
                 <>
                   <Loader2 size={20} className="animate-spin" />
-                  Processing...
+                  Authenticating...
                 </>
               ) : (
                 <>
-                  Confirm & Pay ₦{total.toLocaleString()}
+                  Finalize Payment • ₦{total.toLocaleString()}
                   <ChevronRight size={18} />
                 </>
               )}
