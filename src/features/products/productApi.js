@@ -15,6 +15,8 @@ export const productApi = api.injectEndpoints({
         color,
         minPrice,
         maxPrice,
+        availability,
+        sortBy,
       } = {}) => ({
         url: "/products",
         params: {
@@ -26,6 +28,8 @@ export const productApi = api.injectEndpoints({
           color,
           minPrice,
           maxPrice,
+          availability,
+          sortBy,
         },
       }),
       providesTags: ["Product"],

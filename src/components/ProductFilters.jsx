@@ -15,7 +15,9 @@ export default function ProductFilters({
   maxPrice,
   setMaxPrice,
   clothingType,
-  setClothingType
+  setClothingType,
+  availability,
+  setAvailability
 }) {
   const [range, setRange] = React.useState([minPrice, maxPrice])
   const [categories, setCategories] = React.useState([])
@@ -45,6 +47,7 @@ export default function ProductFilters({
 
   const selectedBrands = React.useMemo(() => brand ? brand.split(',').filter(Boolean) : [], [brand])
   const selectedColors = React.useMemo(() => color ? color.split(',').filter(Boolean) : [], [color])
+  const selectedAvailability = React.useMemo(() => availability ? availability.split(',').filter(Boolean) : [], [availability])
 
   // ---------------- Load filter options ----------------
   const loadFilters = async () => {
@@ -87,6 +90,13 @@ export default function ProductFilters({
     setColor(updated.join(','))
   }
 
+  const handleAvailabilityToggle = (val) => {
+    const updated = selectedAvailability.includes(val)
+      ? selectedAvailability.filter(a => a !== val)
+      : [...selectedAvailability, val]
+    setAvailability(updated.join(','))
+  }
+
   // ---------------- Price slider ----------------
   React.useEffect(() => setRange([minPrice, maxPrice]), [minPrice, maxPrice])
   const handlePriceChange = (values) => {
@@ -108,6 +118,19 @@ export default function ProductFilters({
 
   return (
     <div className={`space-y-2 ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+
+      {/* CLEAR ALL */}
+      {(category || brand || color || minPrice > 0 || maxPrice < 500000 || availability || clothingType) && (
+        <button
+          onClick={() => {
+            setCategory(null); setBrand(null); setColor(null);
+            setMinPrice(0); setMaxPrice(500000); setAvailability(null); setClothingType(null);
+          }}
+          className="w-full py-2 mb-4 text-[10px] font-black uppercase tracking-widest text-white bg-black hover:bg-zinc-800 transition-colors rounded-none"
+        >
+          Clear All Filters
+        </button>
+      )}
 
       {/* CATEGORIES */}
       <div className="border-b border-gray-100">
@@ -151,7 +174,7 @@ export default function ProductFilters({
                   onClick={() => setClothingType(t)}
                   className={`block w-full text-left text-xs font-bold uppercase tracking-widest hover:text-black transition-colors ${clothingType === t ? 'text-black' : 'text-gray-400'}`}
                 >
-                  {t}
+                  {t === 'bags' ? 'Bags & Accessories' : t[0].toUpperCase() + t.slice(1)}
                 </button>
               ))}
             </div>
@@ -205,6 +228,28 @@ export default function ProductFilters({
           )}
         </div>
       )}
+
+      {/* AVAILABILITY */}
+      <div className="border-b border-gray-100">
+        <SectionHeader title="Availability" section="availability" isOpen={openSections.availability} />
+        {openSections.availability && (
+          <div className="py-6 space-y-4">
+            {[
+              { label: 'In Stock', value: 'in_stock' },
+              { label: 'Out of Stock', value: 'out_of_stock' }
+            ].map(a => (
+              <div key={a.value} className="flex items-center gap-3 group cursor-pointer" onClick={() => handleAvailabilityToggle(a.value)}>
+                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${selectedAvailability.includes(a.value) ? 'bg-black border-black shadow-lg' : 'border-gray-200 bg-white group-hover:border-gray-400'}`}>
+                  {selectedAvailability.includes(a.value) && <div className="w-1.5 h-1.5 bg-white rounded-sm" />}
+                </div>
+                <span className={`text-xs font-bold uppercase tracking-widest transition-colors ${selectedAvailability.includes(a.value) ? 'text-black' : 'text-gray-400 group-hover:text-gray-600'}`}>
+                  {a.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* PRICE */}
       <div className="border-b border-gray-100">

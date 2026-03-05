@@ -21,6 +21,8 @@ export default function Products() {
   const [minPrice, setMinPrice] = React.useState(Number(searchParams.get('minPrice')) || 0)
   const [maxPrice, setMaxPrice] = React.useState(Number(searchParams.get('maxPrice')) || 5000000)
   const [clothingType, setClothingType] = React.useState(searchParams.get('clothingType') || '')
+  const [availability, setAvailability] = React.useState(searchParams.get('availability') || null)
+  const [sortBy, setSortBy] = React.useState(searchParams.get('sortBy') || 'newest')
   const [mobileFilters, setMobileFilters] = React.useState(false)
 
   // ---------------- Debounced search ----------------
@@ -44,7 +46,7 @@ export default function Products() {
   // ---------------- Reset page on ALL filter changes ----------------
   React.useEffect(() => {
     setPage(1)
-  }, [debouncedSearch, category, brand, color, clothingType, minPrice, maxPrice])
+  }, [debouncedSearch, category, brand, color, clothingType, minPrice, maxPrice, availability, sortBy])
 
   // ---------------- Update URL ----------------
   React.useEffect(() => {
@@ -57,9 +59,11 @@ export default function Products() {
       color: color || '',
       minPrice,
       maxPrice,
+      availability: availability || '',
+      sortBy,
     }
     setSearchParams(params)
-  }, [page, debouncedSearch, category, clothingType, brand, color, minPrice, maxPrice])
+  }, [page, debouncedSearch, category, clothingType, brand, color, minPrice, maxPrice, availability, sortBy])
 
   // ---------------- Mobile scroll lock ----------------
   React.useEffect(() => {
@@ -75,9 +79,11 @@ export default function Products() {
     category: category || undefined,
     brand: brand || undefined,
     color: color || undefined,
-    clothingType: clothingType || undefined, // ⚡ important for clothing
+    clothingType: clothingType || undefined,
     minPrice,
     maxPrice,
+    availability: availability || undefined,
+    sortBy,
   })
 
   const totalPages = data?.pages ?? 1
@@ -92,9 +98,23 @@ export default function Products() {
         </Button>
       </div>
 
-      <div className="flex justify-center lg:justify-start mb-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div className="w-full lg:w-72">
           <ProductSearch search={search} setSearch={setSearch} />
+        </div>
+
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Sort By:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="text-[10px] font-black uppercase tracking-widest border-0 border-b-2 border-black focus:ring-0 cursor-pointer bg-transparent py-1 pr-8"
+          >
+            <option value="newest">Latest Arrivals</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="rating">Highest Rated</option>
+          </select>
         </div>
       </div>
 
@@ -159,6 +179,8 @@ export default function Products() {
                         setColor(null)
                         setSearch('')
                         setClothingType('')
+                        setAvailability(null)
+                        setSortBy('newest')
                         setMinPrice(0)
                         setMaxPrice(5000000)
                       }}>Clear All Filters</Button>
