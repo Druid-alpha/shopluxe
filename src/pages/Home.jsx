@@ -190,7 +190,7 @@ export default function Home() {
             whileInView="show"
             viewport={{ once: true, margin: "-50px" }}
             variants={staggerContainer}
-            className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+            className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4"
           >
             {isLoading
               ? Array.from({ length: 4 }).map((_, idx) => (

@@ -135,7 +135,7 @@ export default function Products() {
         <div className="lg:col-span-3">
           <motion.div
             layout
-            className="grid gap-6 sm:grid-cols-2 md:grid-cols-3"
+            className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3"
           >
             <AnimatePresence mode="popLayout">
               {isLoading
