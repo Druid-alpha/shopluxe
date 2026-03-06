@@ -66,7 +66,7 @@ export default function Navbar() {
   ]
 
   return (
-    <header className="sticky top-0 z-50 bg-background/90 border-b border-border backdrop-blur">
+    <header className="sticky top-0 z-50 bg-white border-b ">
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-40 md:hidden"
@@ -77,7 +77,7 @@ export default function Navbar() {
       <nav className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
         <Link to="/" className="flex items-center gap-2 group">
           <div className="flex items-center">
-            <span className="text-xl md:text-3xl font-black tracking-tighter text-foreground uppercase border-b-4 border-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+            <span className="text-xl md:text-3xl font-black tracking-tighter text-slate-950 uppercase border-b-4 border-black group-hover:bg-black group-hover:text-white transition-all duration-300">
               ShopLuxe
             </span>
           </div>
@@ -93,7 +93,7 @@ export default function Navbar() {
           <input
             name="search"
             placeholder="Find your aesthetic..."
-            className="border-2 border-border bg-card rounded-xl px-6 py-2.5 text-xs font-bold w-full focus:outline-none focus:border-primary transition-all"
+            className="border-2 border-gray-100 bg-gray-50 rounded-xl px-6 py-2.5 text-xs font-bold w-full focus:outline-none focus:border-black transition-all"
           />
         </form>
         {/* Desktop Menu */}
@@ -184,7 +184,7 @@ export default function Navbar() {
         {/* Mobile toggle */}
         <div className="flex items-center md:hidden">
           <button
-            className="p-2 -mr-2 text-foreground"
+            className="p-2 -mr-2 text-slate-950"
             onClick={() => setMobileOpen(true)}
           >
             <Menu size={24} />
@@ -208,12 +208,12 @@ export default function Navbar() {
         {/* Drawer */}
         <div
           className={clsx(
-            'absolute inset-y-0 left-0 w-full max-w-[320px] bg-background shadow-2xl transform transition-transform duration-500 ease-out flex flex-col',
+            'absolute inset-y-0 left-0 w-full max-w-[320px] bg-white shadow-2xl transform transition-transform duration-500 ease-out flex flex-col',
             mobileOpen ? 'translate-x-0' : '-translate-x-full'
           )}
         >
           {/* Drawer Header */}
-          <div className="p-6 border-b border-border flex justify-between items-center bg-background sticky top-0 z-10">
+          <div className="p-6 border-b  flex justify-between items-center bg-white sticky top-0 z-10">
             <Link to="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-2">
               <span className="text-xl font-black tracking-tighter uppercase italic">ShopLuxe</span>
             </Link>
@@ -221,14 +221,14 @@ export default function Navbar() {
              
               <button
                 onClick={() => setMobileOpen(false)}
-                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors"
               >
-                <X size={24} className="text-foreground" />
+                <X size={24} className="text-gray-900" />
               </button>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto overscroll-contain bg-background">
+          <div className="flex-1 overflow-y-auto overscroll-contain bg-white">
             {/* Search Bar */}
             <div className="p-6">
               <form
@@ -389,3 +389,4 @@ export default function Navbar() {
     </header>
   )
 }
+

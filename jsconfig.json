@@ -5,5 +5,5 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src", "Register.jsx", "orderReceipt.jsx"]
+  "include": ["src", "Register.jsx", "orderReceipt.jsx", "src/features/products/ProductCard.jsx"]
 }
