@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react'
-import { useAppDispatch } from '@/app/hooks'
+import React from 'react'
 import {
   useGetAllOrdersQuery,
   useUpdateOrderStatusMutation,
@@ -7,7 +6,6 @@ import {
 } from '@/features/orders/orderApi'
 import { Loader2, RefreshCcw, Trash2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { productApi } from '@/features/products/productApi'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/CustomSelect"
 import {
@@ -22,7 +20,6 @@ import {
 } from "@/components/ui/AlertDialog"
 
 export default function AdminOrders() {
-  const dispatch = useAppDispatch()
   const { toast } = useToast()
 
   // Use RTK Query for fetching orders with polling
@@ -36,19 +33,10 @@ export default function AdminOrders() {
 
   const orders = data?.orders || []
 
-  const handleStatusUpdate = async (id, newValue, field = 'status') => {
+  const handleStatusUpdate = async (id, newValue) => {
     try {
-      const payload = { id }
-      if (field === 'status') payload.status = newValue
-      else payload.paymentStatus = newValue
-
-      await updateStatus(payload).unwrap()
-      toast({ title: 'Success', description: `Order ${field} updated to ${newValue}` })
-
-      // If we manually mark as paid, refresh products to show stock reduction
-      if (newValue === 'paid' && field === 'paymentStatus') {
-        dispatch(productApi.util.invalidateTags(['Product']))
-      }
+      await updateStatus({ id, status: newValue }).unwrap()
+      toast({ title: 'Success', description: `Order status updated to ${newValue}` })
     } catch (err) {
       toast({
         title: 'Error',
@@ -136,28 +124,21 @@ export default function AdminOrders() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-2">
-                      {/* Payment Status Dropdown */}
-                      <Select
-                        defaultValue={order.paymentStatus}
-                        onValueChange={(val) => handleStatusUpdate(order._id, val, 'paymentStatus')}
-                        disabled={isUpdating}
-                      >
-                        <SelectTrigger className={`h-8 w-28 text-[10px] font-bold uppercase rounded-lg border-none shadow-none text-center ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                          }`}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="paid">Paid</SelectItem>
-                          <SelectItem value="failed">Failed</SelectItem>
-                          <SelectItem value="refunded">Refunded</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <span className={`inline-flex items-center justify-center h-8 w-28 text-[10px] font-bold uppercase rounded-lg ${order.paymentStatus === 'paid'
+                        ? 'bg-green-100 text-green-700'
+                        : order.paymentStatus === 'failed'
+                          ? 'bg-red-100 text-red-700'
+                          : order.paymentStatus === 'refunded'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-amber-100 text-amber-700'
+                        }`}>
+                        {order.paymentStatus || 'pending'}
+                      </span>
 
                       {/* Operational Status Dropdown */}
                       <Select
                         defaultValue={order.status}
-                        onValueChange={(val) => handleStatusUpdate(order._id, val, 'status')}
+                        onValueChange={(val) => handleStatusUpdate(order._id, val)}
                         disabled={isUpdating}
                       >
                         <SelectTrigger className="h-8 w-32 text-[11px] font-bold uppercase rounded-lg border-gray-200">
