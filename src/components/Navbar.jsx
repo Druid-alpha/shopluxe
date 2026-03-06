@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import { Heart, LogOut, Menu, Shield, ShoppingCart, User, X, Laptop2, Shirt, ShoppingBasket, ArrowRight, Facebook, Instagram, Twitter, MessageCircle, Music2, Moon, Sun } from 'lucide-react'
+import { Heart, LogOut, Menu, Shield, ShoppingCart, User, X, Laptop2, Shirt, ShoppingBasket, ArrowRight, Facebook, Instagram, Twitter, MessageCircle, Music2 } from 'lucide-react'
 import { useGetWishlistQuery } from '@/features/wishlist/wishlistApi'
 
 export default function Navbar() {
@@ -25,20 +25,11 @@ export default function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = React.useState(false)
-  const [isDark, setIsDark] = React.useState(false)
+  
 
-  React.useEffect(() => {
-    setIsDark(document.documentElement.classList.contains('dark'))
-  }, [])
+  
 
-  const toggleTheme = () => {
-    const root = document.documentElement
-    const nextDark = !root.classList.contains('dark')
-    root.classList.toggle('dark', nextDark)
-    localStorage.setItem('theme', nextDark ? 'dark' : 'light')
-    setIsDark(nextDark)
-  }
-
+  
   // Wishlist count
   const { data: wishlistData } = useGetWishlistQuery(undefined, { skip: !user })
   const wishlistCount = wishlistData?.wishlist?.length || 0
@@ -127,15 +118,7 @@ export default function Navbar() {
             )}
           </NavLink>
 
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="h-9 w-9 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:border-primary transition-colors flex items-center justify-center"
-            aria-label="Toggle dark mode"
-            title="Toggle dark mode"
-          >
-            {isDark ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
+         
 
           {/* User menu */}
           {user ? (
@@ -235,14 +218,7 @@ export default function Navbar() {
               <span className="text-xl font-black tracking-tighter uppercase italic">ShopLuxe</span>
             </Link>
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className="w-10 h-10 rounded-full flex items-center justify-center border border-border bg-card text-muted-foreground hover:text-foreground hover:border-primary transition-colors"
-                aria-label="Toggle dark mode"
-              >
-                {isDark ? <Sun size={18} /> : <Moon size={18} />}
-              </button>
+             
               <button
                 onClick={() => setMobileOpen(false)}
                 className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
@@ -403,7 +379,7 @@ export default function Navbar() {
                   <Link to="/login">Login</Link>
                 </Button>
                 <Button className="rounded-xl font-black uppercase tracking-widest text-[9px] h-12 shadow-lg shadow-gray-200" asChild onClick={() => setMobileOpen(false)}>
-                  <Link to="/register">Join Luxee</Link>
+                  <Link to="/register">Join Luxe</Link>
                 </Button>
               </div>
             )}
