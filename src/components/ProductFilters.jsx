@@ -55,6 +55,8 @@ export default function ProductFilters({
     try {
       const params = { category: category || undefined }
       if (isClothing && clothingType) params.clothingType = clothingType
+      if (brand) params.brand = brand
+      if (color) params.color = color
 
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/products/filters`, { params })
 
@@ -71,7 +73,7 @@ export default function ProductFilters({
 
   React.useEffect(() => {
     loadFilters()
-  }, [category, clothingType])
+  }, [category, clothingType, brand, color])
 
   // ---------------- Toggles ----------------
   const toggleSection = (section) => setOpenSections(prev => ({ ...prev, [section]: !prev[section] }))

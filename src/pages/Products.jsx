@@ -172,7 +172,9 @@ export default function Products() {
                       animate={{ opacity: 1 }}
                       className="col-span-full py-20 text-center space-y-4"
                     >
-                      <p className="text-gray-400 text-lg font-medium">No products match your current filters.</p>
+                      <p className="text-gray-400 text-lg font-medium">
+                        {data?.message || 'No products found for the selected filters.'}
+                      </p>
                       <Button variant="outline" onClick={() => {
                         setCategory('')
                         setBrand(null)
