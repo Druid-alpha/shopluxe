@@ -186,9 +186,10 @@ export default function ProductDetails() {
 
   /* ================= RENDER ================= */
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12 flex flex-col lg:flex-row gap-16">
-      {/* IMAGES COLUMN */}
-      <div className="lg:w-3/5 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 py-12 space-y-20">
+      <div className="flex flex-col lg:flex-row gap-16">
+        {/* IMAGES COLUMN */}
+        <div className="lg:w-3/5 space-y-6">
         <div className="aspect-square bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm group">
           <img
             src={getImageUrl(mainImage)}
@@ -217,11 +218,11 @@ export default function ProductDetails() {
             )
           })}
         </div>
-      </div>
+        </div>
 
-      {/* DETAILS COLUMN */}
-      <div className="lg:w-2/5 space-y-8">
-        <div className="space-y-4">
+        {/* DETAILS COLUMN */}
+        <div className="lg:w-2/5 space-y-8">
+          <div className="space-y-4">
           <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
             <span>{product.brand?.name || 'ShopLuxe Original'}</span>
             <span>•</span>
@@ -240,131 +241,133 @@ export default function ProductDetails() {
               </div>
             )}
           </div>
-        </div>
+          </div>
 
-        <p className="text-gray-600 text-sm leading-relaxed max-w-md">
-          {product.description}
-        </p>
+          <p className="text-gray-600 text-sm leading-relaxed max-w-md">
+            {product.description}
+          </p>
 
         {/* VARIANT SELECTOR */}
-        {variants.length > 0 && (
-          <div className="space-y-4 pt-6 border-t border-gray-100">
-            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-500">
-              <span>Select Option</span>
-              <span>{variants.length} Options available</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => {
-                  setSelectedVariantIndex(-1)
-                  setMainImage(product.images?.[0]?.url || '')
-                }}
-                className={`px-5 py-3 border-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedVariantIndex === -1
-                  ? 'border-black bg-black text-white shadow-xl scale-105'
-                  : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-gray-200'
-                  }`}
-              >
-                Default
-              </button>
-
-              {variants.map((v, idx) => (
+          {variants.length > 0 && (
+            <div className="space-y-4 pt-6 border-t border-gray-100">
+              <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                <span>Select Option</span>
+                <span>{variants.length} Options available</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
                 <button
-                  key={idx}
                   onClick={() => {
-                    setSelectedVariantIndex(idx)
-                    if (v.image?.url) setMainImage(v.image.url)
+                    setSelectedVariantIndex(-1)
+                    setMainImage(product.images?.[0]?.url || '')
                   }}
-                  className={`px-5 py-3 border-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedVariantIndex === idx
+                  className={`px-5 py-3 border-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedVariantIndex === -1
                     ? 'border-black bg-black text-white shadow-xl scale-105'
                     : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-gray-200'
                     }`}
                 >
-                  {v.options?.color?.name || v.options?.color || ''} {v.options?.size || ''}
-                  {!v.options?.color && !v.options?.size && (v.sku || `V${idx + 1}`)}
+                  Default
                 </button>
-              ))}
+
+                {variants.map((v, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setSelectedVariantIndex(idx)
+                      if (v.image?.url) setMainImage(v.image.url)
+                    }}
+                    className={`px-5 py-3 border-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedVariantIndex === idx
+                      ? 'border-black bg-black text-white shadow-xl scale-105'
+                      : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-gray-200'
+                      }`}
+                  >
+                    {v.options?.color?.name || v.options?.color || ''} {v.options?.size || ''}
+                    {!v.options?.color && !v.options?.size && (v.sku || `V${idx + 1}`)}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* INVENTORY & INFO */}
-        <div className="space-y-4 pt-8 border-t border-gray-100">
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-            <div className="flex items-center gap-3">
-              <div className={`w-2 h-2 rounded-full ${currentStock > 0 ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                {currentStock > 0 ? 'In Stock' : 'Out of Stock'}
-              </span>
+          <div className="space-y-4 pt-8 border-t border-gray-100">
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className={`w-2 h-2 rounded-full ${currentStock > 0 ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  {currentStock > 0 ? 'In Stock' : 'Out of Stock'}
+                </span>
+              </div>
+              {currentStock > 0 && (
+                <span className="text-[10px] font-black text-slate-900 border-l border-slate-200 pl-4 uppercase tracking-widest">
+                  {currentStock} units ready
+                </span>
+              )}
             </div>
-            {currentStock > 0 && (
-              <span className="text-[10px] font-black text-slate-900 border-l border-slate-200 pl-4 uppercase tracking-widest">
-                {currentStock} units ready
-              </span>
-            )}
+          </div>
+
+          {/* PURCHASE ACTIONS */}
+          <div className="space-y-4 pt-4">
+            <div className="flex gap-4">
+              <div className="flex items-center bg-gray-100 rounded-xl px-2">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-10 h-10 flex items-center justify-center font-bold hover:text-primary transition-colors disabled:opacity-20"
+                  disabled={quantity <= 1}
+                >
+                  -
+                </button>
+                <span className="w-10 text-center font-black text-sm">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
+                  className="w-10 h-10 flex items-center justify-center font-bold hover:text-primary transition-colors disabled:opacity-20"
+                  disabled={quantity >= currentStock}
+                >
+                  +
+                </button>
+              </div>
+
+              <Button
+                onClick={handleAddToCart}
+                disabled={currentStock < 1 || isAdding}
+                className="flex-1 h-12 bg-black hover:bg-slate-800 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all active:scale-95"
+              >
+                {isAdding ? 'Adding to cart...' : (currentStock > 0 ? 'Add to Bag' : 'Sold Out')}
+              </Button>
+
+              <button
+                onClick={handleWishlistToggle}
+                className={`w-12 h-12 flex items-center justify-center rounded-xl border-2 transition-all ${isInWishlist ? 'bg-red-50 border-red-100 text-red-500' : 'bg-white border-gray-100 hover:border-gray-900 border-2'
+                  }`}
+              >
+                <Heart size={20} className={isInWishlist ? "fill-current" : ""} />
+              </button>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* PURCHASE ACTIONS */}
-        <div className="space-y-4 pt-4">
-          <div className="flex gap-4">
-            <div className="flex items-center bg-gray-100 rounded-xl px-2">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-10 h-10 flex items-center justify-center font-bold hover:text-primary transition-colors disabled:opacity-20"
-                disabled={quantity <= 1}
-              >
-                -
-              </button>
-              <span className="w-10 text-center font-black text-sm">{quantity}</span>
-              <button
-                onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
-                className="w-10 h-10 flex items-center justify-center font-bold hover:text-primary transition-colors disabled:opacity-20"
-                disabled={quantity >= currentStock}
-              >
-                +
-              </button>
-            </div>
+      <div className="pt-16 border-t border-gray-100 space-y-16">
+        <section>
+          <h2 className="text-2xl font-black tracking-tighter uppercase mb-8">Customer Reviews</h2>
+          <ReviewSummary
+            reviews={reviews}
+            avgRating={product.avgRating || 0}
+            reviewsCount={product.reviewsCount || 0}
+          />
+        </section>
 
-            <Button
-              onClick={handleAddToCart}
-              disabled={currentStock < 1 || isAdding}
-              className="flex-1 h-12 bg-black hover:bg-slate-800 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all active:scale-95"
-            >
-              {isAdding ? 'Adding to cart...' : (currentStock > 0 ? 'Add to Bag' : 'Sold Out')}
-            </Button>
-
-            <button
-              onClick={handleWishlistToggle}
-              className={`w-12 h-12 flex items-center justify-center rounded-xl border-2 transition-all ${isInWishlist ? 'bg-red-50 border-red-100 text-red-500' : 'bg-white border-gray-100 hover:border-gray-900 border-2'
-                }`}
-            >
-              <Heart size={20} className={isInWishlist ? "fill-current" : ""} />
-            </button>
+        <section className="grid lg:grid-cols-3 gap-10 xl:gap-16">
+          <div className="lg:col-span-2 min-w-0">
+            <ReviewList reviews={reviews} productId={product._id} onRefetch={refetchReviews} />
           </div>
-        </div>
-        <div className="pt-20 border-t border-gray-100 space-y-16">
-          <section>
-            <h2 className="text-2xl font-black tracking-tighter uppercase mb-8">Customer Reviews</h2>
-            <ReviewSummary
-              reviews={reviews}
-              avgRating={product.avgRating || 0}
-              reviewsCount={product.reviewsCount || 0}
+          <div className="bg-gray-50 p-8 rounded-3xl h-fit lg:sticky lg:top-24">
+            <ReviewForm
+              productId={product._id}
+              onSuccess={refetchReviews}
+              user={user}
             />
-          </section>
-
-          <section className="grid lg:grid-cols-3 gap-16">
-            <div className="lg:col-span-2">
-              <ReviewList reviews={reviews} productId={product._id} onRefetch={refetchReviews} />
-            </div>
-            <div className="bg-gray-50 p-8 rounded-3xl h-fit">
-              <ReviewForm
-                productId={product._id}
-                onSuccess={refetchReviews}
-                user={user}
-              />
-            </div>
-          </section>
-        </div>
+          </div>
+        </section>
       </div>
     </div>
   )
