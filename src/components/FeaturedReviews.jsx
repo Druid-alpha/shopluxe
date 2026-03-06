@@ -107,6 +107,9 @@ export default function FeaturedReviews() {
             </div>
 
             <style jsx="true">{`
+                .featured-reviews-slider {
+                    padding: 0 52px;
+                }
                 .featured-reviews-slider .slick-dots {
                     bottom: -50px;
                 }
@@ -146,12 +149,21 @@ export default function FeaturedReviews() {
                 .featured-reviews-slider .slick-next:hover:before {
                     color: white;
                 }
-                .featured-reviews-slider .slick-prev { left: -60px; }
-                .featured-reviews-slider .slick-next { right: -60px; }
+                .featured-reviews-slider .slick-prev { left: 8px; }
+                .featured-reviews-slider .slick-next { right: 8px; }
                 
                 @media (max-width: 1280px) {
-                    .featured-reviews-slider .slick-prev { left: -20px; }
-                    .featured-reviews-slider .slick-next { right: -20px; }
+                    .featured-reviews-slider {
+                        padding: 0 44px;
+                    }
+                    .featured-reviews-slider .slick-prev { left: 6px; }
+                    .featured-reviews-slider .slick-next { right: 6px; }
+                }
+
+                @media (max-width: 768px) {
+                    .featured-reviews-slider {
+                        padding: 0;
+                    }
                 }
             `}</style>
         </section>

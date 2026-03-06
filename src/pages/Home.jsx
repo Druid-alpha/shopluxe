@@ -45,7 +45,18 @@ const slideInRight = {
 
 export default function Home() {
   const navigate = useNavigate()
-  const { data, isLoading } = useGetFeaturedProductsQuery()
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+    refetch
+  } = useGetFeaturedProductsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true
+  })
+  const featuredProducts = data?.products || []
 
   const slides = [
     {
@@ -192,7 +203,7 @@ export default function Home() {
             variants={staggerContainer}
             className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4"
           >
-            {isLoading
+            {(isLoading || isFetching)
               ? Array.from({ length: 4 }).map((_, idx) => (
                 <div key={idx} className="animate-pulse border rounded-xl p-4 space-y-3">
                   <div className="h-48 bg-gray-200 rounded-lg w-full" />
@@ -200,13 +211,22 @@ export default function Home() {
                   <div className="h-4 bg-gray-200 rounded w-1/2" />
                 </div>
               ))
-              : data?.products?.map(product => (
+              : featuredProducts.map(product => (
                 <motion.div key={product._id} variants={fadeUp} className="h-full">
                   <ProductCard product={product} />
                 </motion.div>
               ))
             }
           </motion.div>
+          {!isLoading && !isFetching && isError && (
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-500 mb-3">Could not load featured products.</p>
+              <Button variant="outline" onClick={refetch}>Retry</Button>
+            </div>
+          )}
+          {!isLoading && !isFetching && !isError && featuredProducts.length === 0 && (
+            <p className="mt-6 text-center text-sm text-gray-500">No featured products available right now.</p>
+          )}
           <div className="mt-8 text-center md:hidden">
             <Button variant="outline" className="w-full" onClick={() => navigate('/products')}>
               View All Products
