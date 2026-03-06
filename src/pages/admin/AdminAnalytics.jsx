@@ -41,7 +41,7 @@ export default function AdminAnalytics() {
 
         setStats({
           users: usersData.users?.length || usersData.length || 0,
-          products: productsData.products?.length || productsData.length || 0,
+          products: productsData.total || productsData.products?.length || productsData.length || 0,
           orders: ordersList.length || 0,
           revenue: totalRevenue
         })
