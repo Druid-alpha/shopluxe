@@ -21,6 +21,7 @@ import {
 
 export default function AdminOrders() {
   const { toast } = useToast()
+  const orderStatusOptions = ['pending', 'processing', 'shipped', 'delivered']
 
   // Use RTK Query for fetching orders with polling
   const { data, isLoading, isError, isFetching, refetch } = useGetAllOrdersQuery(undefined, {
@@ -137,21 +138,19 @@ export default function AdminOrders() {
 
                       {/* Operational Status Dropdown */}
                       <Select
-                        defaultValue={order.status}
+                        value={orderStatusOptions.includes(order.status) ? order.status : undefined}
                         onValueChange={(val) => handleStatusUpdate(order._id, val)}
                         disabled={isUpdating}
                       >
                         <SelectTrigger className="h-8 w-32 text-[11px] font-bold uppercase rounded-lg border-gray-200">
-                          <SelectValue />
+                          <SelectValue placeholder={order.status || 'pending'} />
                         </SelectTrigger>
                         <SelectContent side="left">
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="paid">Paid</SelectItem>
-                          <SelectItem value="processing">Processing</SelectItem>
-                          <SelectItem value="shipped">Shipped</SelectItem>
-                          <SelectItem value="delivered">Delivered</SelectItem>
-                          <SelectItem value="failed">Failed</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                          {orderStatusOptions.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
