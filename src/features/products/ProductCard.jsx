@@ -2,12 +2,6 @@ import * as React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from '@/components/ui/card'
 import { Heart } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { addGuestCart } from '../cart/cartSlice'
@@ -135,7 +129,7 @@ export default function ProductCard({ product, featured }) {
         <img
           src={product.images?.[0]?.url}
           alt={product.title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          className="w-full h-full object-contain p-2 sm:p-3 transition-transform duration-700 group-hover:scale-105"
           onError={(e) => {
             e.currentTarget.src = '/placeholder.png'
           }}
@@ -154,19 +148,19 @@ export default function ProductCard({ product, featured }) {
       </Link>
 
       {/* PRODUCT INFO */}
-      <div className="p-5 space-y-2">
-        <div className="flex justify-between items-start gap-2">
-          <Link to={`/products/${product._id}`} className="flex-1">
-            <h3 className="text-sm font-bold text-gray-900 line-clamp-1 group-hover:text-primary transition-colors">
+      <div className="p-3 sm:p-5 space-y-2">
+        <div className="flex justify-between items-start gap-2 min-w-0">
+          <Link to={`/products/${product._id}`} className="flex-1 min-w-0">
+            <h3 className="text-xs sm:text-sm font-bold text-gray-900 line-clamp-2 break-words group-hover:text-primary transition-colors">
               {product.title}
             </h3>
           </Link>
-          <PriceDisplay price={product.price} discount={product.discount} />
+          <PriceDisplay price={product.price} discount={product.discount} className="shrink-0 text-right" />
         </div>
 
-        <div className="flex items-center gap-1.5 pt-1">
-          <StarRating rating={product.avgRating} size={14} />
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+        <div className="flex items-center gap-1 pt-1">
+          <StarRating rating={product.avgRating} size={12} />
+          <span className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
             ({product?.avgRating?.toFixed(1) ?? '0.0'})
           </span>
         </div>
