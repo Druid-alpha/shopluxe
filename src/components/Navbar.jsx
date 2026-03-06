@@ -370,7 +370,7 @@ export default function Navbar() {
                   <Link to="/login">Login</Link>
                 </Button>
                 <Button className="rounded-xl font-black uppercase tracking-widest text-[9px] h-12 shadow-lg shadow-gray-200" asChild onClick={() => setMobileOpen(false)}>
-                  <Link to="/register">Join Luxe</Link>
+                  <Link to="/register">Join Luxee</Link>
                 </Button>
               </div>
             )}
