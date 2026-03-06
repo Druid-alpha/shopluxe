@@ -35,6 +35,14 @@ import NotFound from './pages/NotFound'
 export default function App() {
   const location = useLocation()
 
+  React.useEffect(() => {
+    const root = document.documentElement
+    const savedTheme = localStorage.getItem('theme')
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const shouldUseDark = savedTheme ? savedTheme === 'dark' : prefersDark
+    root.classList.toggle('dark', shouldUseDark)
+  }, [])
+
   return (
     <>
       <ScrollToTop />
