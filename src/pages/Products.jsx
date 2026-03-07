@@ -6,7 +6,6 @@ import ProductCard from '@/features/products/ProductCard'
 import { Button } from '@/components/ui/button'
 import { useGetProductsQuery } from '@/features/products/productApi'
 import { SlidersHorizontal, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 
 export default function Products() {
@@ -73,7 +72,7 @@ export default function Products() {
   }, [mobileFilters])
 
   // ---------------- Fetch products ----------------
-  const { data, isLoading } = useGetProductsQuery({
+  const { data, isLoading, isFetching } = useGetProductsQuery({
     page,
     limit: 12,
     search: debouncedSearch || undefined,
@@ -135,73 +134,49 @@ export default function Products() {
 
         {/* Products */}
         <div className="lg:col-span-3">
-          <motion.div
-            layout
-            className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3"
-          >
-            <AnimatePresence mode="popLayout">
-              {isLoading
-                ? Array.from({ length: 12 }).map((_, idx) => (
-                  <motion.div
-                    key={`skeleton-${idx}`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="animate-pulse border rounded-lg p-4 space-y-3"
-                  >
-                    <div className="h-40 bg-gray-200 rounded" />
-                    <div className="h-4 bg-gray-200 rounded w-3/4" />
-                    <div className="h-4 bg-gray-200 rounded w-1/2" />
-                  </motion.div>
+          <div className={clsx("grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 transition-opacity duration-150", isFetching && !isLoading ? "opacity-70" : "opacity-100")}>
+            {(isLoading || isFetching)
+              ? Array.from({ length: 12 }).map((_, idx) => (
+                <div key={`skeleton-${idx}`} className="animate-pulse border rounded-lg p-4 space-y-3">
+                  <div className="h-40 bg-gray-200 rounded" />
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  <div className="h-4 bg-gray-200 rounded w-1/2" />
+                </div>
+              ))
+              : data?.products?.length > 0
+                ? data.products.map((product) => (
+                  <div key={product._id}>
+                    <ProductCard product={product} />
+                  </div>
                 ))
-                : data?.products?.length > 0
-                  ? data.products.map((product, index) => (
-                    <motion.div
-                      layout
-                      key={product._id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                    >
-                      <ProductCard product={product} />
-                    </motion.div>
-                  ))
-                  : (
-                    <motion.div
-                      key="no-products"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="col-span-full py-20 text-center space-y-4"
-                    >
-                      <p className="text-gray-400 text-lg font-medium">
-                        {data?.message || 'No products found for the selected filters.'}
-                      </p>
-                      <Button variant="outline" onClick={() => {
-                        setCategory('')
-                        setBrand(null)
-                        setColor(null)
-                        setSearch('')
-                        setClothingType('')
-                        setAvailability(null)
-                        setSortBy('newest')
-                        setMinPrice(0)
-                        setMaxPrice(MAX_PRICE)
-                      }}>Clear All Filters</Button>
-                    </motion.div>
-                  )
-              }
-            </AnimatePresence>
-          </motion.div>
+                : (
+                  <div className="col-span-full py-20 text-center space-y-4">
+                    <p className="text-gray-400 text-lg font-medium">
+                      {data?.message || 'No products found for the selected filters.'}
+                    </p>
+                    <Button variant="outline" onClick={() => {
+                      setCategory('')
+                      setBrand(null)
+                      setColor(null)
+                      setSearch('')
+                      setClothingType('')
+                      setAvailability(null)
+                      setSortBy('newest')
+                      setMinPrice(0)
+                      setMaxPrice(MAX_PRICE)
+                    }}>Clear All Filters</Button>
+                  </div>
+                )}
+          </div>
 
           {/* Pagination */}
           <div className="flex justify-center items-center gap-4 mt-10">
-            <Button disabled={page <= 1} onClick={() => {
+            <Button disabled={page <= 1 || isFetching} onClick={() => {
               setPage(p => Math.max(1, p - 1))
               window.scrollTo({ top: 0, behavior: 'smooth' })
             }}>Prev</Button>
             <span className="px-4 py-2 border rounded">Page {page} of {totalPages}</span>
-            <Button disabled={page >= totalPages} onClick={() => {
+            <Button disabled={page >= totalPages || isFetching} onClick={() => {
               setPage(p => Math.min(totalPages, p + 1))
               window.scrollTo({ top: 0, behavior: 'smooth' })
             }}>Next</Button>
