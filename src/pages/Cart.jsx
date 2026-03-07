@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { Button } from '@/components/ui/button';
-import { setCart } from '@/features/cart/cartSlice';
+import { removeGuestCartItem, setCart, updateGuestCartQty } from '@/features/cart/cartSlice';
 import * as cartApi from '@/features/cart/cartApi';
 import { Trash, Loader2, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -29,7 +29,7 @@ export default function Cart() {
       }
     };
     fetchCart();
-  }, [dispatch]);
+  }, [dispatch, user]);
 
   if (!cart.length) {
     return (
@@ -68,6 +68,11 @@ export default function Cart() {
     }
 
     setUpdatingItems(prev => ({ ...prev, [item.key]: true }))
+    if (!user) {
+      dispatch(updateGuestCartQty({ key: item.key, qty: newQty }))
+      setUpdatingItems(prev => ({ ...prev, [item.key]: false }))
+      return
+    }
 
     // Optimistic UI Update  
     const optimisticCart = cart.map(cartItem =>
@@ -83,7 +88,11 @@ export default function Cart() {
       console.error('Failed to update item:', err);
       // Revert to original cart on error
       dispatch(setCart(cart));
-      alert(err.response?.data?.message || 'Failed to update cart');
+      toast({
+        title: 'Failed to update cart',
+        description: err.response?.data?.message || 'Please try again',
+        variant: 'destructive'
+      });
     } finally {
       setUpdatingItems(prev => ({ ...prev, [item.key]: false }))
     }
@@ -91,12 +100,20 @@ export default function Cart() {
 
   /* ================= REMOVE ITEM ================= */
   const removeItem = async (item) => {
+    if (!user) {
+      dispatch(removeGuestCartItem(item.key))
+      return
+    }
     try {
       const data = await cartApi.removeCartItem(item.productId, item.variant);
       dispatch(setCart(data));
     } catch (err) {
       console.error('Failed to remove item:', err);
-      alert(err.response?.data?.message || 'Failed to remove item');
+      toast({
+        title: 'Failed to remove item',
+        description: err.response?.data?.message || 'Please try again',
+        variant: 'destructive'
+      });
     }
   };
 

@@ -33,6 +33,9 @@ export default function ProductCard({ product, featured }) {
     ? product.stock
     : (product.variants?.reduce((sum, v) => sum + (v?.stock || 0), 0) || 0)
   const isOutOfStock = totalStock < 1
+  const discountedPrice = product.discount > 0
+    ? Math.round((product.price || 0) * (1 - product.discount / 100))
+    : (product.price || 0)
 
   const user = useAppSelector((state) => state.auth.user)
   const handleAddToCart = async (e) => {
@@ -43,10 +46,14 @@ export default function ProductCard({ product, featured }) {
      dispatch(addGuestCart({
   productId: product._id,
   title: product.title,
-  price: product.price,
+  price: discountedPrice,
+  basePrice: product.price || 0,
+  discount: product.discount || 0,
   productImage: product.images?.[0]?.url,
   qty: 1,
-  variant: null
+  variant: null,
+  addedAt: new Date().toISOString(),
+  key: `${product._id}-default`
 }))
 
       toast({ title: 'Added to cart (Guest)' })

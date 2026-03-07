@@ -18,19 +18,29 @@ export const normalizeCart = (cart) => {
       const variantObj = product.variants?.find(v => v.sku === variantSku) || null;
       const productImage =
         variantObj?.image?.url || product.images?.[0]?.url || null
+      const basePrice = Number(variantObj?.price ?? product.price ?? 0)
+      const discount = Number(variantObj?.discount ?? product.discount ?? 0)
+      const finalPrice = discount > 0
+        ? Math.round(basePrice * (1 - discount / 100))
+        : basePrice
+      const addedAt = item.updatedAt || item.createdAt || item.addedAt || new Date().toISOString()
 
       return {
         key: `${product._id || product.id || Math.random()}-${variantSku || 'default'}`,
         productId: product._id || product.id,
         title: product.title || 'Product',
-        price: variantObj?.price || product.price || 0,
+        price: finalPrice,
+        basePrice,
+        discount,
         qty: item.qty,
         variant: variantSku,
         variantStock: variantObj?.stock,
         productStock: product.stock,
-        productImage
+        productImage,
+        addedAt
       };
-    });
+    })
+    .sort((a, b) => new Date(b.addedAt || 0) - new Date(a.addedAt || 0));
 };
 
 export const getCart = async () => {

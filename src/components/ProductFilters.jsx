@@ -20,6 +20,10 @@ export default function ProductFilters({
   setAvailability
 }) {
   const MAX_PRICE = 5000000
+  const normalizeClothingType = React.useCallback((type) => {
+    if (!type) return ''
+    return type === 'bags' ? 'bag' : type
+  }, [])
   const [range, setRange] = React.useState([minPrice, maxPrice])
   const [categories, setCategories] = React.useState([])
   const [brands, setBrands] = React.useState([])
@@ -65,14 +69,15 @@ export default function ProductFilters({
     setLoading(true)
     try {
       const params = { category: category || undefined }
-      if (isClothing && clothingType) params.clothingType = clothingType
+      if (isClothing && clothingType) params.clothingType = normalizeClothingType(clothingType)
 
       const res = await axios.get('/products/filters', { params })
 
       setCategories(res.data.categories || [])
       setBrands(res.data.brands || [])
       setColors(res.data.colors || [])
-      setClothingTypes(res.data.clothingTypes || [])
+      const normalizedTypes = [...new Set((res.data.clothingTypes || []).map((t) => normalizeClothingType(t)))]
+      setClothingTypes(normalizedTypes)
     } catch (err) {
       console.error('Failed to load filters', err)
     } finally {
@@ -82,7 +87,7 @@ export default function ProductFilters({
 
   React.useEffect(() => {
     loadFilters()
-  }, [category, clothingType])
+  }, [category, clothingType, normalizeClothingType])
 
   // ---------------- Toggles ----------------
   const toggleSection = (section) => setOpenSections(prev => ({ ...prev, [section]: !prev[section] }))
@@ -183,10 +188,10 @@ export default function ProductFilters({
               {clothingTypes.map(t => (
                 <button
                   key={t}
-                  onClick={() => setClothingType(t)}
-                  className={`block w-full text-left text-xs font-bold uppercase tracking-widest hover:text-black transition-colors ${clothingType === t ? 'text-black' : 'text-gray-400'}`}
+                  onClick={() => setClothingType(normalizeClothingType(t))}
+                  className={`block w-full text-left text-xs font-bold uppercase tracking-widest hover:text-black transition-colors ${normalizeClothingType(clothingType) === t ? 'text-black' : 'text-gray-400'}`}
                 >
-                  {t === 'bags' ? 'Bags' : t[0].toUpperCase() + t.slice(1)}
+                  {t === 'bag' ? 'Bags' : t[0].toUpperCase() + t.slice(1)}
                 </button>
               ))}
             </div>

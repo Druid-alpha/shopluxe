@@ -10,6 +10,11 @@ const cleanParams = (params = {}) =>
     )
   )
 
+const normalizeClothingType = (type) => {
+  if (!type) return undefined
+  return type === "bags" ? "bag" : type
+}
+
 export const productApi = api.injectEndpoints({
   endpoints: (builder) => ({
 
@@ -50,7 +55,7 @@ export const productApi = api.injectEndpoints({
           category,
           brand,
           color,
-          clothingType,
+          clothingType: normalizeClothingType(clothingType),
           minPrice,
           maxPrice,
           availability,
@@ -181,7 +186,7 @@ export const productApi = api.injectEndpoints({
           category,
           brand,
           color,
-          clothingType: clothingType === "all" ? null : clothingType,
+          clothingType: clothingType === "all" ? null : normalizeClothingType(clothingType),
           minPrice,
           maxPrice,
           availability,

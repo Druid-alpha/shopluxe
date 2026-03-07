@@ -101,6 +101,10 @@ export default function ProductDetails() {
 
   const currentStock = selectedVariant ? selectedVariant.stock : (product.stock ?? 0);
   const currentPrice = selectedVariant ? selectedVariant.price : (product.price ?? 0);
+  const currentDiscount = Number(selectedVariant?.discount ?? product.discount ?? 0)
+  const discountedCurrentPrice = currentDiscount > 0
+    ? Math.round((currentPrice || 0) * (1 - currentDiscount / 100))
+    : (currentPrice || 0)
 
   const handleAddToCart = async () => {
     if (!user) {
@@ -115,10 +119,14 @@ export default function ProductDetails() {
       dispatch(addGuestCart({
   productId: product._id,
   title: product.title,
-  price: currentPrice,
+  price: discountedCurrentPrice,
+  basePrice: currentPrice,
+  discount: currentDiscount,
   productImage: mainImage,
   qty: quantity,
-  variant: variantPayload?.sku || null
+  variant: variantPayload?.sku || null,
+  addedAt: new Date().toISOString(),
+  key: `${product._id}-${variantPayload?.sku || 'default'}`
 }))
 
       toast({ title: 'Added to cart (Guest)' })

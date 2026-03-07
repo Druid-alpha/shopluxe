@@ -6,6 +6,7 @@ import { clearCartBackend } from "@/features/cart/cartApi"
 import { useToast } from "@/hooks/use-toast"
 import { CheckCircle2, XCircle, Loader2, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Confetti from "react-confetti"
 
 export default function PaymentSuccess() {
   const [params] = useSearchParams()
@@ -18,6 +19,15 @@ export default function PaymentSuccess() {
   const token = reduxToken || localStorage.getItem('token') || sessionStorage.getItem('token')
   const [status, setStatus] = useState("verifying")
   const [errorMsg, setErrorMsg] = useState("")
+  const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight })
+
+  useEffect(() => {
+    const onResize = () => {
+      setViewport({ width: window.innerWidth, height: window.innerHeight })
+    }
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
+  }, [])
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -93,7 +103,15 @@ export default function PaymentSuccess() {
 
         {/* SUCCESS State */}
         {status === "success" && (
-          <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-10 text-center space-y-6">
+          <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-10 text-center space-y-6 relative overflow-hidden">
+            <Confetti
+              width={viewport.width}
+              height={viewport.height}
+              recycle={false}
+              numberOfPieces={420}
+              gravity={0.18}
+              className="pointer-events-none fixed inset-0 z-[60]"
+            />
             <div className="flex justify-center">
               <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center animate-scale-in">
                 <CheckCircle2 size={42} className="text-green-500" />

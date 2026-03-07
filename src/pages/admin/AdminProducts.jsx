@@ -28,6 +28,7 @@ export default function AdminProducts() {
     color: '',
     clothingType: '',
   })
+  const [searchInput, setSearchInput] = useState('')
   const [options, setOptions] = useState({
     categories: [],
     brands: [],
@@ -96,12 +97,25 @@ export default function AdminProducts() {
     loadFilters()
   }, [filters.category, filters.clothingType])
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters(prev => {
+        if (prev.search === searchInput) return prev
+        return { ...prev, search: searchInput }
+      })
+      setPage(1)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchInput])
+
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({ ...prev, [field]: value || '' }))
     setPage(1)
   }
 
   const resetFilters = () => {
+    setSearchInput('')
     setFilters({ search: '', category: '', brand: '', color: '', clothingType: '' })
     setPage(1)
   }
@@ -215,8 +229,8 @@ export default function AdminProducts() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           <input
             type="text"
-            value={filters.search}
-            onChange={(e) => handleFilterChange('search', e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search product title..."
             className="h-10 rounded-md border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
           />
@@ -238,7 +252,7 @@ export default function AdminProducts() {
               options={[
                 { value: 'clothes', label: 'Clothes' },
                 { value: 'shoes', label: 'Shoes' },
-                { value: 'bags', label: 'Bags' },
+                { value: 'bag', label: 'Bags' },
                 { value: 'eyeglass', label: 'Eyeglass' },
               ]}
               value={filters.clothingType ? { value: filters.clothingType, label: filters.clothingType } : null}

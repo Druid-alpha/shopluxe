@@ -15,8 +15,41 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import { Heart, LogOut, Menu, Shield, ShoppingCart, User, X, Laptop2, Shirt, ShoppingBasket, ArrowRight, Facebook, Instagram, Twitter, MessageCircle, Music2 } from 'lucide-react'
+import { Heart, LogOut, Menu, Shield, ShoppingCart, User, X, Laptop2, Shirt, ShoppingBasket, ArrowRight } from 'lucide-react'
 import { useGetWishlistQuery } from '@/features/wishlist/wishlistApi'
+
+const SOCIAL_LINKS = [
+  {
+    name: 'Facebook',
+    href: 'https://www.facebook.com/share/1JM167YZNJ/?mibextid=wwXIfr',
+    icon: 'https://cdn.simpleicons.org/facebook/1877F2',
+    hoverClass: 'hover:bg-blue-600',
+  },
+  {
+    name: 'WhatsApp',
+    href: '#',
+    icon: 'https://cdn.simpleicons.org/whatsapp/25D366',
+    hoverClass: 'hover:bg-green-600',
+  },
+  {
+    name: 'Instagram',
+    href: 'https://www.instagram.com/femzzyyyy',
+    icon: 'https://cdn.simpleicons.org/instagram/E4405F',
+    hoverClass: 'hover:bg-pink-600',
+  },
+  {
+    name: 'X',
+    href: 'https://x.com/dreamboatey',
+    icon: 'https://cdn.simpleicons.org/x/111111',
+    hoverClass: 'hover:bg-sky-500',
+  },
+  {
+    name: 'TikTok',
+    href: '#',
+    icon: 'https://cdn.simpleicons.org/tiktok/111111',
+    hoverClass: 'hover:bg-black',
+  },
+]
 
 export default function Navbar() {
   const { user } = useAppSelector((state) => state.auth)
@@ -175,11 +208,11 @@ export default function Navbar() {
 
           {/* Desktop Social Links */}
           <div className="hidden lg:flex items-center gap-3 pl-8 border-l border-gray-100 ml-4">
-            <a href="https://www.facebook.com/share/1JM167YZNJ/?mibextid=wwXIfr" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-600 transition-colors"><Facebook size={16} /></a>
-            <a href="#" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-green-600 transition-colors"><MessageCircle size={16} /></a>
-            <a href="https://www.instagram.com/femzzyyyy" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-pink-600 transition-colors"><Instagram size={16} /></a>
-            <a href="https://x.com/dreamboatey" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-sky-500 transition-colors"><Twitter size={16} /></a>
-            <a href="" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-black transition-colors"><Music2 size={16} /></a>
+            {SOCIAL_LINKS.map((social) => (
+              <a key={social.name} href={social.href} target="_blank" rel="noreferrer" className="opacity-70 hover:opacity-100 transition-opacity" aria-label={social.name}>
+                <img src={social.icon} alt={`${social.name} logo`} className="w-4 h-4" loading="lazy" />
+              </a>
+            ))}
           </div>
         </div>
 
@@ -329,21 +362,18 @@ export default function Navbar() {
             <div className="p-8 mt-4 border-t border-gray-50">
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6">Connect with us</p>
               <div className="flex gap-4">
-                <a href="https://www.facebook.com/share/1JM167YZNJ/?mibextid=wwXIfr" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300">
-                  <Facebook size={18} />
-                </a>
-                <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-green-600 hover:bg-green-600 hover:text-white transition-all duration-300">
-                  <MessageCircle size={18} />
-                </a>
-                <a href="https://www.instagram.com/femzzyyyy" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-pink-600 hover:bg-pink-600 hover:text-white transition-all duration-300">
-                  <Instagram size={18} />
-                </a>
-                <a href="https://x.com/dreamboatey" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-sky-500 hover:bg-sky-500 hover:text-white transition-all duration-300">
-                  <Twitter size={18} />
-                </a>
-                <a href="" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-black hover:bg-black hover:text-white transition-all duration-300">
-                  <Music2 size={18} />
-                </a>
+                {SOCIAL_LINKS.map((social) => (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    className={clsx("w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center transition-all duration-300", social.hoverClass)}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={social.name}
+                  >
+                    <img src={social.icon} alt={`${social.name} logo`} className="w-4 h-4" loading="lazy" />
+                  </a>
+                ))}
               </div>
               <p className="text-[8px] font-black uppercase tracking-widest text-gray-300 mt-8">© 2026 ShopLuxe. All rights reserved.</p>
             </div>

@@ -11,6 +11,10 @@ import clsx from 'clsx'
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams()
   const MAX_PRICE = 5000000
+  const normalizeClothingType = React.useCallback((type) => {
+    if (!type) return ''
+    return type === 'bags' ? 'bag' : type
+  }, [])
 
   const [page, setPage] = React.useState(Number(searchParams.get('page')) || 1)
   const [search, setSearch] = React.useState(searchParams.get('search') || '')
@@ -20,7 +24,7 @@ export default function Products() {
   const [color, setColor] = React.useState(searchParams.get('color') || null)
   const [minPrice, setMinPrice] = React.useState(Number(searchParams.get('minPrice')) || 0)
   const [maxPrice, setMaxPrice] = React.useState(Number(searchParams.get('maxPrice')) || MAX_PRICE)
-  const [clothingType, setClothingType] = React.useState(searchParams.get('clothingType') || '')
+  const [clothingType, setClothingType] = React.useState(normalizeClothingType(searchParams.get('clothingType') || ''))
   const [availability, setAvailability] = React.useState(searchParams.get('availability') || null)
   const [sortBy, setSortBy] = React.useState(searchParams.get('sortBy') || 'newest')
   const [mobileFilters, setMobileFilters] = React.useState(false)
@@ -54,7 +58,7 @@ export default function Products() {
       page: page.toString(),
       search: debouncedSearch || '',
       category: category || '',
-      clothingType: clothingType || '',
+      clothingType: normalizeClothingType(clothingType) || '',
       brand: brand || '',
       color: color || '',
       minPrice,
@@ -63,7 +67,7 @@ export default function Products() {
       sortBy,
     }
     setSearchParams(params)
-  }, [page, debouncedSearch, category, clothingType, brand, color, minPrice, maxPrice, availability, sortBy])
+  }, [page, debouncedSearch, category, clothingType, brand, color, minPrice, maxPrice, availability, sortBy, normalizeClothingType])
 
   // ---------------- Mobile scroll lock ----------------
   React.useEffect(() => {
@@ -79,7 +83,7 @@ export default function Products() {
     category: category || undefined,
     brand: brand || undefined,
     color: color || undefined,
-    clothingType: clothingType || undefined,
+    clothingType: normalizeClothingType(clothingType) || undefined,
     minPrice,
     maxPrice,
     availability: availability || undefined,
