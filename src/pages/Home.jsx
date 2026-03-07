@@ -45,7 +45,14 @@ const slideInRight = {
 
 export default function Home() {
   const navigate = useNavigate()
-  const [stableFeaturedProducts, setStableFeaturedProducts] = React.useState([])
+  const [stableFeaturedProducts, setStableFeaturedProducts] = React.useState(() => {
+    try {
+      const cached = JSON.parse(localStorage.getItem('homeFeaturedProducts') || '[]')
+      return Array.isArray(cached) ? cached : []
+    } catch {
+      return []
+    }
+  })
   const {
     data: featuredData,
     isLoading: isFeaturedLoading,
@@ -86,6 +93,7 @@ export default function Home() {
   React.useEffect(() => {
     if (featuredProducts.length > 0) {
       setStableFeaturedProducts(featuredProducts)
+      localStorage.setItem('homeFeaturedProducts', JSON.stringify(featuredProducts))
     }
   }, [featuredProducts])
 

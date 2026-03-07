@@ -68,10 +68,21 @@ export const productApi = api.injectEndpoints({
     }),
 
     getFeaturedProducts: builder.query({
-      query: () => ({
-        url: "/products/featured",
-        params: { limit: 12 },
-      }),
+      async queryFn(_arg, _api, _extraOptions, baseQuery) {
+        const request = {
+          url: "/products/featured",
+          params: { limit: 12 },
+        }
+
+        const first = await baseQuery(request)
+        if (!first.error) return { data: first.data }
+
+        // Lightweight retry for transient backend/network failures.
+        const second = await baseQuery(request)
+        if (!second.error) return { data: second.data }
+
+        return { error: second.error || first.error }
+      },
       providesTags: ["Product"],
     }),
 
