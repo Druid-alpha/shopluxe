@@ -186,7 +186,7 @@ export default function ProductDetails() {
 
   /* ================= RENDER ================= */
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12 space-y-20">
+    <div className="max-w-7xl mx-auto px-4 py-12 space-y-14 lg:space-y-12">
       <div className="flex flex-col lg:flex-row gap-12 xl:gap-16">
         {/* IMAGES COLUMN */}
         <div className="lg:w-1/2 xl:w-[52%] space-y-6">
@@ -346,9 +346,9 @@ export default function ProductDetails() {
         </div>
       </div>
 
-      <div className="pt-16 border-t border-gray-100 space-y-16">
+      <div className="pt-10 lg:pt-8 border-t border-gray-100 space-y-10 lg:space-y-8">
         <section>
-          <h2 className="text-2xl font-black tracking-tighter uppercase mb-8">Customer Reviews</h2>
+          <h2 className="text-2xl font-black tracking-tighter uppercase mb-5 lg:mb-4">Customer Reviews</h2>
           <ReviewSummary
             reviews={reviews}
             avgRating={product.avgRating || 0}
@@ -356,11 +356,11 @@ export default function ProductDetails() {
           />
         </section>
 
-        <section className="grid lg:grid-cols-3 gap-10 xl:gap-16">
+        <section className="grid lg:grid-cols-3 gap-8 xl:gap-10">
           <div className="lg:col-span-2 min-w-0">
             <ReviewList reviews={reviews} productId={product._id} onRefetch={refetchReviews} />
           </div>
-          <div className="bg-gray-50 p-8 rounded-3xl h-fit lg:sticky lg:top-24">
+          <div className="bg-gray-50 p-6 lg:p-7 rounded-3xl h-fit lg:sticky lg:top-24">
             <ReviewForm
               productId={product._id}
               onSuccess={refetchReviews}
