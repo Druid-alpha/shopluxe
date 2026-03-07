@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function Cart() {
   const cart = useAppSelector(state => state.cart.items);
   const user = useAppSelector(state => state.auth.user)
+  const sortedCart = [...cart].sort((a, b) => new Date(b.addedAt || 0) - new Date(a.addedAt || 0))
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -51,14 +52,15 @@ export default function Cart() {
     );
   }
 
-  const total = cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+  const total = sortedCart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
 
   /* ================= CHANGE QUANTITY ================= */
   const changeQty = async (item, delta) => {
     if (updatingItems[item.key]) return // Prevent multi-clicks
 
     const currentQty = Number(item.qty);
-    const availableStock = item.variantStock ?? item.productStock ?? 0;
+    const stockValue = item.variantStock ?? item.productStock
+    const availableStock = Number.isFinite(stockValue) ? Number(stockValue) : Number.POSITIVE_INFINITY
     const newQty = currentQty + Number(delta);
 
     if (newQty < 1) return;
@@ -124,7 +126,12 @@ export default function Cart() {
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
         <div className="lg:w-2/3 space-y-12">
           <div className="space-y-8">
-            {cart.map(item => (
+            {sortedCart.map(item => {
+              const stockValue = item.variantStock ?? item.productStock
+              const hasKnownStock = Number.isFinite(stockValue)
+              const maxStock = hasKnownStock ? Number(stockValue) : Number.POSITIVE_INFINITY
+
+              return (
               <div
                 key={item.key}
                 className="flex flex-col sm:flex-row items-center sm:items-start gap-8 group"
@@ -173,7 +180,7 @@ export default function Cart() {
                       <button
                         className="w-10 h-10 flex items-center justify-center font-bold text-gray-400 hover:text-black transition disabled:opacity-20"
                         onClick={() => changeQty(item, 1)}
-                        disabled={updatingItems[item.key] || item.qty >= (item.variantStock ?? item.productStock ?? 0)}
+                        disabled={updatingItems[item.key] || item.qty >= maxStock}
                       >
                         +
                       </button>
@@ -188,7 +195,7 @@ export default function Cart() {
                   </div>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
 
@@ -199,7 +206,7 @@ export default function Cart() {
 
             <div className="space-y-4 text-sm">
               <div className="flex justify-between text-gray-600">
-                <span>Subtotal ({cart.length} item{cart.length !== 1 ? 's' : ''})</span>
+                <span>Subtotal ({sortedCart.length} item{sortedCart.length !== 1 ? 's' : ''})</span>
                 <span className="font-medium text-gray-900">₦{total.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-gray-600">

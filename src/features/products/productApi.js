@@ -12,7 +12,7 @@ const cleanParams = (params = {}) =>
 
 const normalizeClothingType = (type) => {
   if (!type) return undefined
-  return type === "bags" ? "bag" : type
+  return type === "bag" ? "bags" : type
 }
 
 export const productApi = api.injectEndpoints({

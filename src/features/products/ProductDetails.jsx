@@ -123,8 +123,10 @@ export default function ProductDetails() {
   basePrice: currentPrice,
   discount: currentDiscount,
   productImage: mainImage,
+  productStock: product.stock ?? 0,
   qty: quantity,
   variant: variantPayload?.sku || null,
+  variantStock: selectedVariant?.stock,
   addedAt: new Date().toISOString(),
   key: `${product._id}-${variantPayload?.sku || 'default'}`
 }))

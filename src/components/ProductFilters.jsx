@@ -22,7 +22,7 @@ export default function ProductFilters({
   const MAX_PRICE = 5000000
   const normalizeClothingType = React.useCallback((type) => {
     if (!type) return ''
-    return type === 'bags' ? 'bag' : type
+    return type === 'bag' ? 'bags' : type
   }, [])
   const [range, setRange] = React.useState([minPrice, maxPrice])
   const [categories, setCategories] = React.useState([])
@@ -191,7 +191,7 @@ export default function ProductFilters({
                   onClick={() => setClothingType(normalizeClothingType(t))}
                   className={`block w-full text-left text-xs font-bold uppercase tracking-widest hover:text-black transition-colors ${normalizeClothingType(clothingType) === t ? 'text-black' : 'text-gray-400'}`}
                 >
-                  {t === 'bag' ? 'Bags' : t[0].toUpperCase() + t.slice(1)}
+                  {t === 'bags' ? 'Bags' : t[0].toUpperCase() + t.slice(1)}
                 </button>
               ))}
             </div>

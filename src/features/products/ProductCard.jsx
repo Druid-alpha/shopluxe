@@ -50,6 +50,7 @@ export default function ProductCard({ product, featured }) {
   basePrice: product.price || 0,
   discount: product.discount || 0,
   productImage: product.images?.[0]?.url,
+  productStock: totalStock,
   qty: 1,
   variant: null,
   addedAt: new Date().toISOString(),

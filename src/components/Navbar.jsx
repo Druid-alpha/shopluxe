@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import { Heart, LogOut, Menu, Shield, ShoppingCart, User, X, Laptop2, Shirt, ShoppingBasket, ArrowRight } from 'lucide-react'
+import { Heart, LogOut, Menu, Shield, ShoppingCart, User, X, ArrowRight } from 'lucide-react'
 import { useGetWishlistQuery } from '@/features/wishlist/wishlistApi'
 
 const SOCIAL_LINKS = [
@@ -299,9 +299,9 @@ export default function Navbar() {
                 <p className="px-4 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4">Shop by category</p>
 
                 {[
-                  { name: 'Electronics', path: '/products?category=electronics', icon: Laptop2, color: 'text-blue-500' },
-                  { name: 'Clothing', path: '/products?category=clothing', icon: Shirt, color: 'text-orange-500' },
-                  { name: 'Groceries', path: '/products?category=groceries', icon: ShoppingBasket, color: 'text-green-500' },
+                  { name: 'Electronics', path: '/products?category=electronics', iconSrc: '/icons/electronics.svg' },
+                  { name: 'Clothing', path: '/products?category=clothing', iconSrc: '/icons/clothing.svg' },
+                  { name: 'Groceries', path: '/products?category=groceries', iconSrc: '/icons/groceries.svg' },
                 ].map(cat => (
                   <Link
                     key={cat.name}
@@ -309,8 +309,8 @@ export default function Navbar() {
                     className="flex items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 transition-colors"
                     onClick={() => setMobileOpen(false)}
                   >
-                    <div className={clsx("w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center", cat.color)}>
-                      <cat.icon size={20} />
+                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center">
+                      <img src={cat.iconSrc} alt={`${cat.name} icon`} className="w-5 h-5" loading="lazy" />
                     </div>
                     <span className="text-sm font-black uppercase tracking-tight">{cat.name}</span>
                   </Link>

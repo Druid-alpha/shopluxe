@@ -252,7 +252,7 @@ export default function AdminProducts() {
               options={[
                 { value: 'clothes', label: 'Clothes' },
                 { value: 'shoes', label: 'Shoes' },
-                { value: 'bag', label: 'Bags' },
+                { value: 'bags', label: 'Bags' },
                 { value: 'eyeglass', label: 'Eyeglass' },
               ]}
               value={filters.clothingType ? { value: filters.clothingType, label: filters.clothingType } : null}

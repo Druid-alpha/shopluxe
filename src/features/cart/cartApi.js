@@ -23,7 +23,7 @@ export const normalizeCart = (cart) => {
       const finalPrice = discount > 0
         ? Math.round(basePrice * (1 - discount / 100))
         : basePrice
-      const addedAt = item.updatedAt || item.createdAt || item.addedAt || new Date().toISOString()
+      const addedAt = item.createdAt || item.addedAt || item.updatedAt || new Date().toISOString()
 
       return {
         key: `${product._id || product.id || Math.random()}-${variantSku || 'default'}`,

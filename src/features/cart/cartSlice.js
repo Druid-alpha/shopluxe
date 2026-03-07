@@ -10,10 +10,11 @@ const persistGuestCart = (items) => {
 const loadGuestCart = () => {
   try {
     const saved = JSON.parse(localStorage.getItem("guestCart")) || []
-    const normalized = saved.map((item) => ({
+    const seedTime = Date.now()
+    const normalized = saved.map((item, index) => ({
       ...item,
       key: item.key || `${item.productId}-${item.variant || "default"}`,
-      addedAt: item.addedAt || new Date().toISOString(),
+      addedAt: item.addedAt || new Date(seedTime + index).toISOString(),
     }))
     return sortNewestFirst(normalized)
   } catch {
@@ -32,7 +33,7 @@ const cartSlice = createSlice({
   reducers: {
 
     setCart: (state, action) => {
-      state.items = action.payload
+      state.items = sortNewestFirst(action.payload || [])
     },
 
     addGuestCart: (state, action) => {

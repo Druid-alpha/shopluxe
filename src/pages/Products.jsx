@@ -13,7 +13,7 @@ export default function Products() {
   const MAX_PRICE = 5000000
   const normalizeClothingType = React.useCallback((type) => {
     if (!type) return ''
-    return type === 'bags' ? 'bag' : type
+    return type === 'bag' ? 'bags' : type
   }, [])
 
   const [page, setPage] = React.useState(Number(searchParams.get('page')) || 1)
