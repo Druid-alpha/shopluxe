@@ -1,51 +1,78 @@
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { useToast } from '@/hooks/use-toast'
-import React, { useState } from 'react'
+import { useState } from "react"
+import { Link } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ForgotPassword() {
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState("")
+  const [isSending, setIsSending] = useState(false)
   const { toast } = useToast()
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!email) return
+
     try {
+      setIsSending(true)
       const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': "application/json" },
-        body: JSON.stringify({ email })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message)
-      toast({ title: 'Reset email sent' })
+      toast({
+        title: "Reset link sent",
+        description: "Check your email for password reset instructions.",
+      })
     } catch (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' })
+      toast({
+        title: "Request failed",
+        description: error.message || "Unable to send reset link",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSending(false)
     }
   }
+
   return (
-    <div className='min-h-screen flex items-center justify-center bg-gray-50 py-7 px-4 sm:px-6 lg:px-8'>
-      <div className='max-w-md w-full space-y-6 bg-white p-8 border border-gray-200 rounded-xl shadow-sm'>
-        <div>
-          <h1 className='text-3xl font-bold text-center text-gray-900 tracking-tight'>Reset your password</h1>
-          <p className="mt-2 text-center text-sm text-gray-600">Enter the email associated with your account</p>
+    <section className="min-h-[calc(100vh-130px)] bg-gradient-to-b from-white via-slate-50 to-slate-100 px-4 py-10 sm:px-6">
+      <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">Forgot your password?</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Enter your account email and we will send a secure reset link.
+          </p>
         </div>
-        <div className="space-y-4 mt-8">
+
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-800">Email address</label>
             <Input
-              placeholder='Enter your email'
+              type="email"
+              placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+              required
             />
           </div>
-          <Button
-            onClick={handleSubmit}
-            className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 transition-colors"
-          >
-            Send Reset Link
+
+          <Button type="submit" disabled={isSending} className="h-11 w-full text-sm font-bold">
+            {isSending ? "Sending..." : "Send reset link"}
           </Button>
+        </form>
+
+        <div className="mt-8 border-t border-slate-200 pt-6 text-center">
+          <p className="text-sm text-slate-600">
+            Remember your password?{" "}
+            <Link to="/login" className="font-semibold text-slate-900 hover:underline">
+              Back to login
+            </Link>
+          </p>
         </div>
       </div>
-    </div>
+    </section>
   )
 }

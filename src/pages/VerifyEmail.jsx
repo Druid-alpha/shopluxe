@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { useLocation, useNavigate, Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2 } from "lucide-react"
@@ -83,60 +83,62 @@ export default function VerifyOtp() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-9 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6 bg-white p-8 border border-gray-200 rounded-xl shadow-sm">
-        <div>
-          <h1 className="text-3xl font-bold text-center text-gray-900 tracking-tight">Verify email</h1>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            To continue, please enter the security code that was sent to <span className="font-semibold text-gray-900">{email}</span>.
+    <section className="min-h-[calc(100vh-130px)] bg-gradient-to-b from-white via-slate-50 to-slate-100 px-4 py-10 sm:px-6">
+      <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">Verify your email</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Enter the 6-digit code sent to <span className="font-semibold text-slate-900">{email}</span>.
           </p>
         </div>
 
-        <form onSubmit={handleVerify} className="space-y-5 mt-8">
+        <form onSubmit={handleVerify} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Security Code</label>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-800">Verification code</label>
             <Input
-              placeholder="Enter OTP"
+              placeholder="Enter code"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               required
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm text-center text-lg tracking-widest"
+              className="text-center text-lg tracking-[0.35em]"
               maxLength={6}
             />
           </div>
-          <Button
-            type="submit"
-            disabled={isVerifying}
-            className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 transition-colors"
-          >
-            {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+
+          <Button type="submit" disabled={isVerifying} className="h-11 w-full text-sm font-bold">
+            {isVerifying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Verify code
           </Button>
         </form>
 
-        <div className="pt-4 flex flex-col items-center justify-center border-t border-gray-200">
+        <div className="mt-6 border-t border-slate-200 pt-6 text-center">
           <button
             type="button"
             onClick={handleResend}
             disabled={!canResend || isResending || resendAttempts >= maxAttempts}
-            className="text-sm font-medium text-black hover:underline disabled:text-gray-400 disabled:no-underline"
+            className="text-sm font-semibold text-slate-900 hover:underline disabled:text-slate-400 disabled:no-underline"
           >
             {resendAttempts >= maxAttempts
               ? "Resend limit reached"
               : canResend
                 ? isResending
                   ? "Sending new code..."
-                  : "Resend security code"
+                  : "Resend code"
                 : `Wait ${countdown}s to resend`}
           </button>
 
           {resendAttempts > 0 && (
-            <p className="text-xs text-gray-500 mt-2">
-              Attempts: {resendAttempts}/{maxAttempts}
-            </p>
+            <p className="mt-2 text-xs text-slate-500">Attempts used: {resendAttempts}/{maxAttempts}</p>
           )}
+
+          <p className="mt-4 text-sm text-slate-600">
+            Wrong email?{" "}
+            <Link to="/register" className="font-semibold text-slate-900 hover:underline">
+              Register again
+            </Link>
+          </p>
         </div>
       </div>
-    </div>
+    </section>
   )
 }

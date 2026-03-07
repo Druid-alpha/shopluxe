@@ -6,9 +6,9 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 export default function ProductFilters({
   category,
   setCategory,
-  brand, // This should now be a string of comma-separated IDs
+  brand, 
   setBrand,
-  color, // This should now be a string of comma-separated IDs
+  color, 
   setColor,
   minPrice,
   setMinPrice,

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useState } from "react"
+import { useNavigate, Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2, Eye, EyeOff } from "lucide-react"
@@ -9,49 +9,35 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 
-const registerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(1, "Please confirm your password"),
-  avatar: z.any().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-})
+const registerSchema = z
+  .object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+    avatar: z.any().optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  })
 
 export default function Register() {
   const navigate = useNavigate()
   const { toast } = useToast()
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const {
     register,
     handleSubmit,
-    setValue,
-    formState: { errors }
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(registerSchema),
-    mode: "onBlur"
+    mode: "onBlur",
   })
 
   const [registerApi, { isLoading }] = useRegisterMutation()
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-
-  // Auto-hide password after 3 seconds
-  useEffect(() => {
-    if (showPassword) {
-      const timer = setTimeout(() => setShowPassword(false), 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [showPassword])
-
-  useEffect(() => {
-    if (showConfirmPassword) {
-      const timer = setTimeout(() => setShowConfirmPassword(false), 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [showConfirmPassword])
 
   const onSubmit = async (data) => {
     const formData = new FormData()
@@ -77,101 +63,99 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-[72vh] flex items-center justify-center bg-gray-50 py-3 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 border border-gray-200 rounded-xl shadow-sm">
-        <div>
-          <h1 className="text-3xl font-bold text-center text-gray-900 tracking-tight">Create Account</h1>
+    <section className="min-h-[calc(100vh-130px)] bg-gradient-to-b from-white via-slate-50 to-slate-100 px-4 py-10 sm:px-6">
+      <div className="mx-auto w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">Create your account</h1>
+          <p className="mt-2 text-sm text-slate-600">Join ShopLuxe to save favorites and manage orders easily.</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 mt-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Your name</label>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-800">Full name</label>
             <Input
               placeholder="First and last name"
               {...register("name")}
-              className={`appearance-none block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+              className={errors.name ? "border-red-500 focus-visible:ring-red-400" : ""}
             />
-            {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
+            {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-800">Email address</label>
             <Input
               type="email"
-              placeholder="Email address"
+              placeholder="you@example.com"
               {...register("email")}
-              className={`appearance-none block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+              className={errors.email ? "border-red-500 focus-visible:ring-red-400" : ""}
             />
-            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
+            {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-800">Password</label>
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
                 placeholder="At least 6 characters"
                 {...register("password")}
-                className={`appearance-none block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm pr-10 ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
+                className={`pr-10 ${errors.password ? "border-red-500 focus-visible:ring-red-400" : ""}`}
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-0 px-3 text-slate-500 hover:text-slate-700"
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
+            {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-800">Confirm password</label>
             <div className="relative">
               <Input
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm your password"
+                placeholder="Repeat password"
                 {...register("confirmPassword")}
-                className={`appearance-none block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm pr-10 ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'}`}
+                className={`pr-10 ${errors.confirmPassword ? "border-red-500 focus-visible:ring-red-400" : ""}`}
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-0 px-3 text-slate-500 hover:text-slate-700"
               >
-                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            {errors.confirmPassword && <p className="mt-1 text-xs text-red-500">{errors.confirmPassword.message}</p>}
+            {errors.confirmPassword && <p className="mt-1 text-xs text-red-600">{errors.confirmPassword.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Profile Avatar (Optional)</label>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-800">Profile image (optional)</label>
             <Input
               type="file"
               accept="image/*"
               {...register("avatar")}
-              className="appearance-none block w-full px-3 text-gray-500 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+              className="file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-700"
             />
           </div>
 
-          <Button
-            disabled={isLoading}
-            className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 transition-colors"
-          >
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Verify email"}
+          <Button disabled={isLoading} className="h-11 w-full text-sm font-bold">
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Create account"}
           </Button>
         </form>
 
-        <div className="mt-6 text-center text-sm">
-          <p className="text-gray-600">
-            Already have an account?{' '}
-            <a href="/login" className="font-medium text-black hover:underline">
+        <div className="mt-8 border-t border-slate-200 pt-6 text-center">
+          <p className="text-sm text-slate-600">
+            Already have an account?{" "}
+            <Link to="/login" className="font-semibold text-slate-900 hover:underline">
               Sign in
-            </a>
+            </Link>
           </p>
         </div>
       </div>
-    </div>
+    </section>
   )
 }
