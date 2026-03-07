@@ -187,10 +187,10 @@ export default function ProductDetails() {
   /* ================= RENDER ================= */
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 space-y-20">
-      <div className="flex flex-col lg:flex-row gap-16">
+      <div className="flex flex-col lg:flex-row gap-12 xl:gap-16">
         {/* IMAGES COLUMN */}
-        <div className="lg:w-3/5 space-y-6">
-        <div className="aspect-square bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm group">
+        <div className="lg:w-1/2 xl:w-[52%] space-y-6">
+        <div className="aspect-[4/5] max-h-[560px] bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm group">
           <img
             src={getImageUrl(mainImage)}
             alt={product.title}
@@ -221,7 +221,7 @@ export default function ProductDetails() {
         </div>
 
         {/* DETAILS COLUMN */}
-        <div className="lg:w-2/5 space-y-8">
+        <div className="lg:w-1/2 xl:w-[48%] space-y-8">
           <div className="space-y-4">
           <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
             <span>{product.brand?.name || 'ShopLuxe Original'}</span>

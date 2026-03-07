@@ -45,7 +45,7 @@ export default function App() {
       <ScrollToTop />
       <Navbar />
 
-      <main className="min-h-[80vh] p-4">
+      <main className="min-h-[80vh] bg-background p-4">
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<PageTransition><Home /></PageTransition>} />
