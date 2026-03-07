@@ -31,6 +31,9 @@ import OrderReceipt from '../orderReceipt'
 import Register from './pages/Register'
 import PaymentSuccess from './pages/PaymentSuccess'
 import NotFound from './pages/NotFound'
+import HelpCenter from './pages/HelpCenter'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsOfService from './pages/TermsOfService'
 
 export default function App() {
   const location = useLocation()
@@ -118,6 +121,9 @@ export default function App() {
               }
             />
             <Route path="/payment/success" element={<PaymentSuccess />} />
+            <Route path="/help-center" element={<PageTransition><HelpCenter /></PageTransition>} />
+            <Route path="/privacy-policy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+            <Route path="/terms-of-service" element={<PageTransition><TermsOfService /></PageTransition>} />
             <Route
               path="/admin/orders"
               element={
