@@ -22,6 +22,7 @@ export default function AdminProducts() {
   const [page, setPage] = useState(1)
   const [editingProduct, setEditingProduct] = useState(null)
   const [filters, setFilters] = useState({
+    search: '',
     category: '',
     brand: '',
     color: '',
@@ -39,6 +40,7 @@ export default function AdminProducts() {
     {
       page,
       limit: 10,
+      search: filters.search || undefined,
       category: filters.category || undefined,
       brand: filters.brand || undefined,
       color: filters.color || undefined,
@@ -71,6 +73,7 @@ export default function AdminProducts() {
         sizes: res.data.sizes || [],
       })
     } catch (err) {
+      console.error('Failed to load admin filters', err)
       toast({ title: 'Failed to load filters', variant: 'destructive' })
     }
   }
@@ -85,7 +88,7 @@ export default function AdminProducts() {
   }
 
   const resetFilters = () => {
-    setFilters({ category: '', brand: '', color: '', clothingType: '' })
+    setFilters({ search: '', category: '', brand: '', color: '', clothingType: '' })
     setPage(1)
   }
 
@@ -196,6 +199,14 @@ export default function AdminProducts() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <input
+            type="text"
+            value={filters.search}
+            onChange={(e) => handleFilterChange('search', e.target.value)}
+            placeholder="Search product title..."
+            className="h-10 rounded-md border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
+          />
+
           <Select
             className="text-sm"
             placeholder="Category"

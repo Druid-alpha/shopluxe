@@ -316,7 +316,7 @@ export default function ProductForm({ product, onClose, onSuccess }) {
   const isClothing = categories.find(c => c._id === category)?.name.toLowerCase() === 'clothing'
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-h-[85vh] overflow-y-auto px-4 py-2">
+    <form onSubmit={handleSubmit} className="space-y-6 px-4 py-2">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Column: Basic Info */}
         <div className="space-y-4">

@@ -146,35 +146,54 @@ export const productApi = api.injectEndpoints({
     /* ================= ADMIN ================= */
 
     getAdminProducts: builder.query({
-      query: ({
-        page = 1,
-        limit = 10,
-        search,
-        category,
-        brand,
-        color,
-        clothingType = null,
-        minPrice,
-        maxPrice,
-        availability,
-        sortBy
-      } = {}) => ({
-        url: "/products/admin",
-        params: {
+      async queryFn(
+        {
+          page = 1,
+          limit = 10,
+          search,
+          category,
+          brand,
+          color,
+          clothingType = null,
+          minPrice,
+          maxPrice,
+          availability,
+          sortBy,
+        } = {},
+        _api,
+        _extraOptions,
+        baseQuery
+      ) {
+        const params = {
           page,
           limit,
           search,
           category,
           brand,
           color,
-          clothingType: clothingType === 'all' ? null : clothingType,
+          clothingType: clothingType === "all" ? null : clothingType,
           minPrice,
           maxPrice,
           availability,
-          sortBy
-        },
-        credentials: "include",
-      }),
+          sortBy,
+        }
+
+        const primary = await baseQuery({
+          url: "/admin/products",
+          params,
+          credentials: "include",
+        })
+        if (!primary.error) return { data: primary.data }
+
+        const fallback = await baseQuery({
+          url: "/products/admin",
+          params,
+          credentials: "include",
+        })
+        if (!fallback.error) return { data: fallback.data }
+
+        return { error: primary.error || fallback.error }
+      },
       providesTags: ["Product"],
     }),
 

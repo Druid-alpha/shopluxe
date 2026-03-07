@@ -186,7 +186,7 @@ export default function ProductFilters({
                   onClick={() => setClothingType(t)}
                   className={`block w-full text-left text-xs font-bold uppercase tracking-widest hover:text-black transition-colors ${clothingType === t ? 'text-black' : 'text-gray-400'}`}
                 >
-                  {t === 'bags' ? 'Bags & Accessories' : t[0].toUpperCase() + t.slice(1)}
+                  {t === 'bags' ? 'Bags' : t[0].toUpperCase() + t.slice(1)}
                 </button>
               ))}
             </div>
