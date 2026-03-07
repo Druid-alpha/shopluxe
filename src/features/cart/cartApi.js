@@ -5,10 +5,11 @@ const API = `${import.meta.env.VITE_API_URL}/cart`
 // 🔥 Normalize cart for frontend
 export const normalizeCart = (cart) => {
   if (!cart || !Array.isArray(cart)) return [];
+  const seedTime = Date.now()
 
   return cart
     .filter(item => item.product && (typeof item.product === 'object')) // Safety: Filter out unpopulated/deleted products
-    .map((item) => {
+    .map((item, index) => {
       const product = item.product;
       const variantSku =
         typeof item.variant === 'string'
@@ -23,7 +24,8 @@ export const normalizeCart = (cart) => {
       const finalPrice = discount > 0
         ? Math.round(basePrice * (1 - discount / 100))
         : basePrice
-      const addedAt = item.createdAt || item.addedAt || item.updatedAt || new Date().toISOString()
+      const fallbackAddedAt = new Date(seedTime + index).toISOString()
+      const addedAt = item.addedAt || item.createdAt || item.updatedAt || fallbackAddedAt
 
       return {
         key: `${product._id || product.id || Math.random()}-${variantSku || 'default'}`,

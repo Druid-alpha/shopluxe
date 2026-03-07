@@ -4,7 +4,7 @@ import Slider from 'react-slick'
 import { ArrowRight, Truck, ShieldCheck, Clock } from 'lucide-react'
 import { motion } from 'framer-motion'
 
-import { useGetFeaturedProductsQuery } from '@/features/products/productApi'
+import { useGetFeaturedProductsQuery, useGetProductsQuery } from '@/features/products/productApi'
 import ProductCard from '@/features/products/ProductCard'
 import { Button } from '@/components/ui/button'
 import FeaturedReviews from '@/components/FeaturedReviews'
@@ -46,17 +46,50 @@ const slideInRight = {
 export default function Home() {
   const navigate = useNavigate()
   const {
-    data,
-    isLoading,
-    isFetching,
-    isError,
-    refetch
+    data: featuredData,
+    isLoading: isFeaturedLoading,
+    isFetching: isFeaturedFetching,
+    isError: isFeaturedError,
+    refetch: refetchFeatured
   } = useGetFeaturedProductsQuery(undefined, {
     refetchOnMountOrArgChange: true,
     refetchOnFocus: true,
     refetchOnReconnect: true
   })
-  const featuredProducts = data?.products || []
+
+  const shouldFetchFallback =
+    !isFeaturedLoading &&
+    !isFeaturedFetching &&
+    (isFeaturedError || (featuredData?.products || []).length === 0)
+
+  const {
+    data: fallbackData,
+    isLoading: isFallbackLoading,
+    isFetching: isFallbackFetching,
+    isError: isFallbackError,
+    refetch: refetchFallback
+  } = useGetProductsQuery(
+    { page: 1, limit: 12, sortBy: 'newest' },
+    {
+      skip: !shouldFetchFallback,
+      refetchOnMountOrArgChange: true,
+      refetchOnFocus: true,
+      refetchOnReconnect: true
+    }
+  )
+
+  const featuredProducts = (featuredData?.products || []).length > 0
+    ? (featuredData?.products || [])
+    : (fallbackData?.products || [])
+
+  const isLoading = isFeaturedLoading || (shouldFetchFallback && isFallbackLoading)
+  const isFetching = isFeaturedFetching || (shouldFetchFallback && isFallbackFetching)
+  const isError = shouldFetchFallback ? isFallbackError : false
+
+  const handleRefetch = () => {
+    refetchFeatured()
+    if (shouldFetchFallback) refetchFallback()
+  }
 
   const slides = [
     {
@@ -221,7 +254,7 @@ export default function Home() {
           {!isLoading && !isFetching && isError && (
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-500 mb-3">Could not load featured products.</p>
-              <Button variant="outline" onClick={refetch}>Retry</Button>
+              <Button variant="outline" onClick={handleRefetch}>Retry</Button>
             </div>
           )}
           {!isLoading && !isFetching && !isError && featuredProducts.length === 0 && (
