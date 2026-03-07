@@ -35,7 +35,7 @@ export default function AdminProducts() {
   })
 
   /* ================= ADMIN QUERY ================= */
-  const { data, isLoading, refetch } = useGetAdminProductsQuery(
+  const { data, isLoading, isFetching, isError, error, refetch } = useGetAdminProductsQuery(
     {
       page,
       limit: 10,
@@ -46,7 +46,8 @@ export default function AdminProducts() {
     },
     { refetchOnMountOrArgChange: true }
   )
-  const totalPages = data?.pages || 1
+  const products = data?.products || data?.data?.products || data?.items || []
+  const totalPages = data?.pages || data?.data?.pages || 1
 
   /* ================= ADMIN MUTATIONS ================= */
   const [deleteProduct] = useDeleteProductMutation()
@@ -57,15 +58,12 @@ export default function AdminProducts() {
   /* ================= FILTER OPTIONS ================= */
   const loadFilters = async () => {
     try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/products/filters`,
-        {
-          params: {
-            category: filters.category,
-            clothingType: filters.clothingType,
-          },
-        }
-      )
+      const res = await axios.get('/products/filters', {
+        params: {
+          category: filters.category,
+          clothingType: filters.clothingType,
+        },
+      })
       setOptions({
         categories: res.data.categories || [],
         brands: res.data.brands || [],
@@ -172,7 +170,14 @@ export default function AdminProducts() {
     }
   }
 
-  if (isLoading) return <p>Loading products...</p>
+  if (isLoading || isFetching) return <p>Loading products...</p>
+  if (isError) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        Failed to load products: {error?.data?.message || 'Please check admin auth/session and API route.'}
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -254,7 +259,7 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {data?.products?.map((p) => (
+              {products.map((p) => (
                 <tr key={p._id} className={`hover:bg-gray-50/50 transition-colors ${p.isDeleted ? 'opacity-50' : ''}`}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
@@ -353,7 +358,7 @@ export default function AdminProducts() {
             </tbody>
           </table>
         </div>
-        {(!data?.products || data.products.length === 0) && (
+        {products.length === 0 && (
           <div className="p-12 text-center text-gray-500 italic">No products matched your filters.</div>
         )}
       </div>

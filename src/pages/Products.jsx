@@ -11,6 +11,7 @@ import clsx from 'clsx'
 
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const MAX_PRICE = 5000000
 
   const [page, setPage] = React.useState(Number(searchParams.get('page')) || 1)
   const [search, setSearch] = React.useState(searchParams.get('search') || '')
@@ -19,7 +20,7 @@ export default function Products() {
   const [brand, setBrand] = React.useState(searchParams.get('brand') || null)
   const [color, setColor] = React.useState(searchParams.get('color') || null)
   const [minPrice, setMinPrice] = React.useState(Number(searchParams.get('minPrice')) || 0)
-  const [maxPrice, setMaxPrice] = React.useState(Number(searchParams.get('maxPrice')) || 5000000)
+  const [maxPrice, setMaxPrice] = React.useState(Number(searchParams.get('maxPrice')) || MAX_PRICE)
   const [clothingType, setClothingType] = React.useState(searchParams.get('clothingType') || '')
   const [availability, setAvailability] = React.useState(searchParams.get('availability') || null)
   const [sortBy, setSortBy] = React.useState(searchParams.get('sortBy') || 'newest')
@@ -128,6 +129,7 @@ export default function Products() {
             minPrice={minPrice} setMinPrice={setMinPrice}
             maxPrice={maxPrice} setMaxPrice={setMaxPrice}
             clothingType={clothingType} setClothingType={setClothingType}
+            availability={availability} setAvailability={setAvailability}
           />
         </aside>
 
@@ -184,7 +186,7 @@ export default function Products() {
                         setAvailability(null)
                         setSortBy('newest')
                         setMinPrice(0)
-                        setMaxPrice(5000000)
+                        setMaxPrice(MAX_PRICE)
                       }}>Clear All Filters</Button>
                     </motion.div>
                   )
@@ -224,6 +226,7 @@ export default function Products() {
             minPrice={minPrice} setMinPrice={setMinPrice}
             maxPrice={maxPrice} setMaxPrice={setMaxPrice}
             clothingType={clothingType} setClothingType={setClothingType}
+            availability={availability} setAvailability={setAvailability}
           />
         </div>
       </div>

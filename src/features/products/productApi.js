@@ -13,11 +13,25 @@ export const productApi = api.injectEndpoints({
         category,
         brand,
         color,
+        clothingType,
         minPrice,
         maxPrice,
         availability,
         sortBy,
-      } = {}) => ({
+      } = {}) => {
+        const values = typeof availability === "string"
+          ? availability.split(",").map((v) => v.trim()).filter(Boolean)
+          : []
+        const inStock =
+          values.length === 1
+            ? values[0] === "in_stock"
+              ? true
+              : values[0] === "out_of_stock"
+                ? false
+                : undefined
+            : undefined
+
+        return {
         url: "/products",
         params: {
           page,
@@ -26,12 +40,15 @@ export const productApi = api.injectEndpoints({
           category,
           brand,
           color,
+          clothingType,
           minPrice,
           maxPrice,
           availability,
+          inStock,
           sortBy,
         },
-      }),
+      }
+      },
       providesTags: ["Product"],
     }),
 

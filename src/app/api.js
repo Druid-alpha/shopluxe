@@ -1,12 +1,16 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+﻿import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { logout, setUser, setToken } from '@/features/auth/authSlice'
+
+const apiBaseUrl =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? '/api' : 'https://shoplux-be.vercel.app/api')
 
 // Base query (cookies included)
 const baseQuery = fetchBaseQuery({
-  baseUrl: import.meta.env.VITE_API_URL,
-  credentials: 'include', // ✅ sends accessToken via cookie
+  baseUrl: apiBaseUrl,
+  credentials: 'include',
   prepareHeaders: (headers, { getState }) => {
-    const token = getState().auth.token
+    const token = getState().auth.token || localStorage.getItem('token')
     if (token) {
       headers.set('authorization', `Bearer ${token}`)
     }
@@ -38,7 +42,6 @@ const baseQueryWithRefresh = async (args, api, extraOptions) => {
 
   return result
 }
-
 
 export const api = createApi({
   reducerPath: 'api',

@@ -19,6 +19,7 @@ export default function ProductFilters({
   availability,
   setAvailability
 }) {
+  const MAX_PRICE = 5000000
   const [range, setRange] = React.useState([minPrice, maxPrice])
   const [categories, setCategories] = React.useState([])
   const [brands, setBrands] = React.useState([])
@@ -30,6 +31,7 @@ export default function ProductFilters({
     types: true,
     brands: true,
     colors: true,
+    availability: true,
     price: true
   })
 
@@ -45,9 +47,18 @@ export default function ProductFilters({
   )
   const isClothing = selectedCategoryObj?.name?.toLowerCase() === 'clothing'
 
-  const selectedBrands = React.useMemo(() => brand ? brand.split(',').filter(Boolean) : [], [brand])
-  const selectedColors = React.useMemo(() => color ? color.split(',').filter(Boolean) : [], [color])
-  const selectedAvailability = React.useMemo(() => availability ? availability.split(',').filter(Boolean) : [], [availability])
+  const selectedBrands = React.useMemo(
+    () => (brand ? brand.split(',').map(v => v.trim()).filter(Boolean) : []),
+    [brand]
+  )
+  const selectedColors = React.useMemo(
+    () => (color ? color.split(',').map(v => v.trim()).filter(Boolean) : []),
+    [color]
+  )
+  const selectedAvailability = React.useMemo(
+    () => (availability ? availability.split(',').map(v => v.trim()).filter(Boolean) : []),
+    [availability]
+  )
 
   // ---------------- Load filter options ----------------
   const loadFilters = async () => {
@@ -55,10 +66,8 @@ export default function ProductFilters({
     try {
       const params = { category: category || undefined }
       if (isClothing && clothingType) params.clothingType = clothingType
-      if (brand) params.brand = brand
-      if (color) params.color = color
 
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/products/filters`, { params })
+      const res = await axios.get('/products/filters', { params })
 
       setCategories(res.data.categories || [])
       setBrands(res.data.brands || [])
@@ -73,15 +82,16 @@ export default function ProductFilters({
 
   React.useEffect(() => {
     loadFilters()
-  }, [category, clothingType, brand, color])
+  }, [category, clothingType])
 
   // ---------------- Toggles ----------------
   const toggleSection = (section) => setOpenSections(prev => ({ ...prev, [section]: !prev[section] }))
 
   const handleBrandToggle = (id) => {
-    const updated = selectedBrands.includes(id)
-      ? selectedBrands.filter(b => b !== id)
-      : [...selectedBrands, id]
+    const brandId = String(id)
+    const updated = selectedBrands.includes(brandId)
+      ? selectedBrands.filter(b => b !== brandId)
+      : [...selectedBrands, brandId]
     setBrand(updated.join(','))
   }
 
@@ -122,11 +132,11 @@ export default function ProductFilters({
     <div className={`space-y-2 ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
 
       {/* CLEAR ALL */}
-      {(category || brand || color || minPrice > 0 || maxPrice < 500000 || availability || clothingType) && (
+      {(category || brand || color || minPrice > 0 || maxPrice < MAX_PRICE || availability || clothingType) && (
         <button
           onClick={() => {
             setCategory(null); setBrand(null); setColor(null);
-            setMinPrice(0); setMaxPrice(500000); setAvailability(null); setClothingType(null);
+            setMinPrice(0); setMaxPrice(MAX_PRICE); setAvailability(null); setClothingType(null);
           }}
           className="w-full py-2 mb-4 text-[10px] font-black uppercase tracking-widest text-white bg-black hover:bg-zinc-800 transition-colors rounded-none"
         >
@@ -192,10 +202,10 @@ export default function ProductFilters({
             <div className="py-6 space-y-4">
               {brands.map(b => (
                 <div key={b._id} className="flex items-center gap-3 group cursor-pointer" onClick={() => handleBrandToggle(b._id)}>
-                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${selectedBrands.includes(b._id) ? 'bg-black border-black shadow-lg' : 'border-gray-200 bg-white group-hover:border-gray-400'}`}>
-                    {selectedBrands.includes(b._id) && <div className="w-1.5 h-1.5 bg-white rounded-sm" />}
+                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${selectedBrands.includes(String(b._id)) ? 'bg-black border-black shadow-lg' : 'border-gray-200 bg-white group-hover:border-gray-400'}`}>
+                    {selectedBrands.includes(String(b._id)) && <div className="w-1.5 h-1.5 bg-white rounded-sm" />}
                   </div>
-                  <span className={`text-xs font-bold uppercase tracking-widest transition-colors ${selectedBrands.includes(b._id) ? 'text-black' : 'text-gray-400 group-hover:text-gray-600'}`}>
+                  <span className={`text-xs font-bold uppercase tracking-widest transition-colors ${selectedBrands.includes(String(b._id)) ? 'text-black' : 'text-gray-400 group-hover:text-gray-600'}`}>
                     {b.name}
                   </span>
                 </div>
@@ -258,7 +268,7 @@ export default function ProductFilters({
         <SectionHeader title="Price Range" section="price" isOpen={openSections.price} />
         {openSections.price && (
           <div className="py-10 px-2 space-y-6">
-            <Slider value={range} onValueChange={handlePriceChange} min={0} max={500000} step={100} />
+            <Slider value={range} onValueChange={handlePriceChange} min={0} max={MAX_PRICE} step={100} />
             <div className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
               <div className="text-center">
                 <span className="block text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1">Min</span>
