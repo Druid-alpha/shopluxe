@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export default function Footer() {
   return (
     <footer className="bg-slate-950 text-gray-400 mt-20 border-t border-white/5">
@@ -15,9 +17,9 @@ export default function Footer() {
         <div className="space-y-6">
           <h4 className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Shop</h4>
           <ul className="space-y-4 text-xs font-bold uppercase tracking-widest">
-            <li><a className="hover:text-white transition-colors" href="/products">Latest Arrivals</a></li>
-            <li><a className="hover:text-white transition-colors" href="/products?featured=true">Featured Items</a></li>
-            <li><a className="hover:text-white transition-colors" href="/wishlist">Your Wishlist</a></li>
+            <li><Link className="hover:text-white transition-colors" to="/products">Latest Arrivals</Link></li>
+            <li><Link className="hover:text-white transition-colors" to="/products?featured=true">Featured Items</Link></li>
+            <li><Link className="hover:text-white transition-colors" to="/wishlist">Your Wishlist</Link></li>
           </ul>
         </div>
 
@@ -25,9 +27,9 @@ export default function Footer() {
         <div className="space-y-6">
           <h4 className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Account</h4>
           <ul className="space-y-4 text-xs font-bold uppercase tracking-widest">
-            <li><a className="hover:text-white transition-colors" href="/profile">Dashboard</a></li>
-            <li><a className="hover:text-white transition-colors" href="/login">Sign In</a></li>
-            <li><a className="hover:text-white transition-colors" href="/register">Create Account</a></li>
+            <li><Link className="hover:text-white transition-colors" to="/profile">Dashboard</Link></li>
+            <li><Link className="hover:text-white transition-colors" to="/login">Sign In</Link></li>
+            <li><Link className="hover:text-white transition-colors" to="/register">Create Account</Link></li>
           </ul>
         </div>
 
@@ -35,9 +37,9 @@ export default function Footer() {
         <div className="space-y-6">
           <h4 className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Support</h4>
           <ul className="space-y-4 text-xs font-bold uppercase tracking-widest">
-            <li><a className="hover:text-white transition-colors" href="/help-center">Help Center</a></li>
-            <li><a className="hover:text-white transition-colors" href="/privacy-policy">Privacy Policy</a></li>
-            <li><a className="hover:text-white transition-colors" href="/terms-of-service">Terms of Service</a></li>
+            <li><Link className="hover:text-white transition-colors" to="/help-center">Help Center</Link></li>
+            <li><Link className="hover:text-white transition-colors" to="/privacy-policy">Privacy Policy</Link></li>
+            <li><Link className="hover:text-white transition-colors" to="/terms-of-service">Terms of Service</Link></li>
           </ul>
         </div>
 
