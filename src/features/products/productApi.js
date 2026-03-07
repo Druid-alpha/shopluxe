@@ -1,5 +1,15 @@
 import { api } from "@/app/api"
 
+const cleanParams = (params = {}) =>
+  Object.fromEntries(
+    Object.entries(params).filter(
+      ([, value]) =>
+        value !== undefined &&
+        value !== null &&
+        !(typeof value === "string" && value.trim() === "")
+    )
+  )
+
 export const productApi = api.injectEndpoints({
   endpoints: (builder) => ({
 
@@ -33,7 +43,7 @@ export const productApi = api.injectEndpoints({
 
         return {
         url: "/products",
-        params: {
+        params: cleanParams({
           page,
           limit,
           search,
@@ -46,7 +56,7 @@ export const productApi = api.injectEndpoints({
           availability,
           inStock,
           sortBy,
-        },
+        }),
       }
       },
       providesTags: ["Product"],
@@ -164,7 +174,7 @@ export const productApi = api.injectEndpoints({
         _extraOptions,
         baseQuery
       ) {
-        const params = {
+        const params = cleanParams({
           page,
           limit,
           search,
@@ -176,7 +186,7 @@ export const productApi = api.injectEndpoints({
           maxPrice,
           availability,
           sortBy,
-        }
+        })
 
         const primary = await baseQuery({
           url: "/admin/products",

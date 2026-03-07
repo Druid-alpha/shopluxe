@@ -48,8 +48,22 @@ export default function AdminProducts() {
     },
     { refetchOnMountOrArgChange: true }
   )
-  const products = data?.products || data?.data?.products || data?.items || []
-  const totalPages = data?.pages || data?.data?.pages || 1
+  const products =
+    data?.products?.docs ||
+    data?.data?.products?.docs ||
+    data?.products ||
+    data?.data?.products ||
+    data?.items ||
+    data?.results ||
+    []
+  const totalPages =
+    data?.pages ||
+    data?.totalPages ||
+    data?.products?.totalPages ||
+    data?.data?.pages ||
+    data?.data?.totalPages ||
+    data?.data?.products?.totalPages ||
+    1
 
   /* ================= ADMIN MUTATIONS ================= */
   const [deleteProduct] = useDeleteProductMutation()
