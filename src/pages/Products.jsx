@@ -29,6 +29,32 @@ export default function Products() {
   const [sortBy, setSortBy] = React.useState(searchParams.get('sortBy') || 'newest')
   const [mobileFilters, setMobileFilters] = React.useState(false)
 
+  // Keep local state in sync when URL params change externally (e.g. navbar/home category links).
+  React.useEffect(() => {
+    const nextPage = Number(searchParams.get('page')) || 1
+    const nextSearch = searchParams.get('search') || ''
+    const nextCategory = searchParams.get('category') || ''
+    const nextBrand = searchParams.get('brand') || null
+    const nextColor = searchParams.get('color') || null
+    const nextMinPrice = Number(searchParams.get('minPrice')) || 0
+    const nextMaxPrice = Number(searchParams.get('maxPrice')) || MAX_PRICE
+    const nextClothingType = normalizeClothingType(searchParams.get('clothingType') || '')
+    const nextAvailability = searchParams.get('availability') || null
+    const nextSortBy = searchParams.get('sortBy') || 'newest'
+
+    setPage((prev) => (prev === nextPage ? prev : nextPage))
+    setSearch((prev) => (prev === nextSearch ? prev : nextSearch))
+    setDebouncedSearch((prev) => (prev === nextSearch ? prev : nextSearch))
+    setCategory((prev) => (prev === nextCategory ? prev : nextCategory))
+    setBrand((prev) => (prev === nextBrand ? prev : nextBrand))
+    setColor((prev) => (prev === nextColor ? prev : nextColor))
+    setMinPrice((prev) => (prev === nextMinPrice ? prev : nextMinPrice))
+    setMaxPrice((prev) => (prev === nextMaxPrice ? prev : nextMaxPrice))
+    setClothingType((prev) => (prev === nextClothingType ? prev : nextClothingType))
+    setAvailability((prev) => (prev === nextAvailability ? prev : nextAvailability))
+    setSortBy((prev) => (prev === nextSortBy ? prev : nextSortBy))
+  }, [searchParams, normalizeClothingType])
+
   // ---------------- Debounced search ----------------
   React.useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 500)
@@ -67,7 +93,7 @@ export default function Products() {
       sortBy,
     }
     setSearchParams(params)
-  }, [page, debouncedSearch, category, clothingType, brand, color, minPrice, maxPrice, availability, sortBy, normalizeClothingType])
+  }, [page, debouncedSearch, category, clothingType, brand, color, minPrice, maxPrice, availability, sortBy, normalizeClothingType, setSearchParams])
 
   // ---------------- Mobile scroll lock ----------------
   React.useEffect(() => {

@@ -15,9 +15,7 @@ import {
 import PriceDisplay from '@/components/PriceDisplay'
 import StarRating from './StarRating'
 
-export default function ProductCard({ product, featured }) {
-  if (!product) return null
-
+export default function ProductCard({ product }) {
   const dispatch = useAppDispatch()
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -27,20 +25,37 @@ export default function ProductCard({ product, featured }) {
   const [toggleWishlist] = useToggleWishlistMutation()
   const wishlist = data?.wishlist || []
 
-  const isWishlisted = wishlist.some((p) => p?._id === product._id)
+  const isWishlisted = wishlist.some((p) => p?._id === product?._id)
 
-  const totalStock = (product.stock > 0)
+  const totalStock = (product?.stock > 0)
     ? product.stock
-    : (product.variants?.reduce((sum, v) => sum + (v?.stock || 0), 0) || 0)
+    : (product?.variants?.reduce((sum, v) => sum + (v?.stock || 0), 0) || 0)
   const isOutOfStock = totalStock < 1
-  const discountedPrice = product.discount > 0
-    ? Math.round((product.price || 0) * (1 - product.discount / 100))
-    : (product.price || 0)
+  const discountedPrice = product?.discount > 0
+    ? Math.round((product?.price || 0) * (1 - product.discount / 100))
+    : (product?.price || 0)
+  const primaryImageUrl = React.useMemo(() => {
+    const candidates = [
+      product.images?.[0]?.url,
+      ...(product.images || []).map((img) => img?.url),
+      product.image?.url,
+      product.image,
+      product.thumbnail,
+      ...(product.variants || []).map((variant) => variant?.image?.url),
+    ]
+    return candidates.find((value) => typeof value === 'string' && value.trim().length > 0) || '/placeholder.png'
+  }, [product])
+  const [imageSrc, setImageSrc] = React.useState(primaryImageUrl)
+
+  React.useEffect(() => {
+    setImageSrc(primaryImageUrl)
+  }, [primaryImageUrl, product?._id])
 
   const user = useAppSelector((state) => state.auth.user)
   const handleAddToCart = async (e) => {
     e.preventDefault()
     e.stopPropagation()
+    if (!product) return
 
     if (!user) {
      dispatch(addGuestCart({
@@ -49,7 +64,7 @@ export default function ProductCard({ product, featured }) {
   price: discountedPrice,
   basePrice: product.price || 0,
   discount: product.discount || 0,
-  productImage: product.images?.[0]?.url,
+  productImage: primaryImageUrl,
   productStock: totalStock,
   qty: 1,
   variant: null,
@@ -83,6 +98,7 @@ export default function ProductCard({ product, featured }) {
   const handleWishlist = async (e) => {
     e.preventDefault()
     e.stopPropagation()
+    if (!product) return
 
     if (!user) {
       dispatch(toggleGuestWishlist(product._id))
@@ -106,6 +122,8 @@ export default function ProductCard({ product, featured }) {
       })
     }
   }
+
+  if (!product) return null
 
   return (
     <div className="group relative bg-white border border-gray-100 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -135,11 +153,11 @@ export default function ProductCard({ product, featured }) {
         )}
 
         <img
-          src={product.images?.[0]?.url}
+          src={imageSrc}
           alt={product.title}
           className="w-full h-full object-contain p-2 sm:p-3 transition-transform duration-700 group-hover:scale-105"
-          onError={(e) => {
-            e.currentTarget.src = '/placeholder.png'
+          onError={() => {
+            if (imageSrc !== '/placeholder.png') setImageSrc('/placeholder.png')
           }}
         />
 

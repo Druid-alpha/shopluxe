@@ -72,15 +72,12 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       setMobileOpen(false)
-      // Immediate local clear for mobile responsiveness
-      localStorage.removeItem('user')
-      localStorage.removeItem('token')
-      dispatch(logoutAndReset())
-
       await logoutApi().unwrap()
     } catch (err) {
       console.error('Logout error:', err)
     } finally {
+      // Always clear local auth state after attempting server logout.
+      dispatch(logoutAndReset())
       navigate('/login')
       // Force reload to ensure all states are wiped
       setTimeout(() => window.location.reload(), 100)

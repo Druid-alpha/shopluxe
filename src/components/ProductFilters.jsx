@@ -20,6 +20,17 @@ export default function ProductFilters({
   setAvailability
 }) {
   const MAX_PRICE = 5000000
+  const isObjectId = React.useCallback((value) => /^[a-fA-F0-9]{24}$/.test(String(value || '')), [])
+  const normalizeCategoryLabel = React.useCallback((value) => {
+    const cleaned = String(value || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]/g, '')
+    if (!cleaned) return ''
+    if (cleaned.endsWith('ies')) return `${cleaned.slice(0, -3)}y`
+    if (cleaned.endsWith('s')) return cleaned.slice(0, -1)
+    return cleaned
+  }, [])
   const normalizeClothingType = React.useCallback((type) => {
     if (!type) return ''
     return type === 'bag' ? 'bags' : type
@@ -65,10 +76,10 @@ export default function ProductFilters({
   )
 
   // ---------------- Load filter options ----------------
-  const loadFilters = async () => {
+  const loadFilters = React.useCallback(async () => {
     setLoading(true)
     try {
-      const params = { category: category || undefined }
+      const params = { category: isObjectId(category) ? category : undefined }
       if (isClothing && clothingType) params.clothingType = normalizeClothingType(clothingType)
 
       const res = await axios.get('/products/filters', { params })
@@ -83,11 +94,18 @@ export default function ProductFilters({
     } finally {
       setLoading(false)
     }
-  }
+  }, [category, clothingType, isClothing, isObjectId, normalizeClothingType])
 
   React.useEffect(() => {
     loadFilters()
-  }, [category, clothingType, normalizeClothingType])
+  }, [loadFilters])
+
+  React.useEffect(() => {
+    if (!category || isObjectId(category) || categories.length === 0) return
+    const incoming = normalizeCategoryLabel(category)
+    const match = categories.find((c) => normalizeCategoryLabel(c?.name) === incoming)
+    if (match?._id) setCategory(String(match._id))
+  }, [category, categories, isObjectId, normalizeCategoryLabel, setCategory])
 
   // ---------------- Toggles ----------------
   const toggleSection = (section) => setOpenSections(prev => ({ ...prev, [section]: !prev[section] }))
@@ -140,7 +158,7 @@ export default function ProductFilters({
       {(category || brand || color || minPrice > 0 || maxPrice < MAX_PRICE || availability || clothingType) && (
         <button
           onClick={() => {
-            setCategory(null); setBrand(null); setColor(null);
+            setCategory(''); setBrand(null); setColor(null);
             setMinPrice(0); setMaxPrice(MAX_PRICE); setAvailability(null); setClothingType(null);
           }}
           className="w-full py-2 mb-4 text-[10px] font-black uppercase tracking-widest text-white bg-black hover:bg-zinc-800 transition-colors rounded-none"
@@ -155,7 +173,7 @@ export default function ProductFilters({
         {openSections.categories && (
           <div className="py-6 space-y-3">
             <button
-              onClick={() => { setCategory(null); setClothingType(null); setBrand(null); setColor(null) }}
+              onClick={() => { setCategory(''); setClothingType(null); setBrand(null); setColor(null) }}
               className={`block w-full text-left text-xs font-bold uppercase tracking-widest hover:text-black transition-colors ${!category ? 'text-black' : 'text-gray-400'}`}
             >
               All Categories
@@ -163,8 +181,8 @@ export default function ProductFilters({
             {categories.map(c => (
               <button
                 key={c._id}
-                onClick={() => { setCategory(c._id); setClothingType(null); setBrand(null); setColor(null) }}
-                className={`block w-full text-left text-xs font-bold uppercase tracking-widest hover:text-black transition-colors ${category === c._id ? 'text-black' : 'text-gray-400'}`}
+                onClick={() => { setCategory(String(c._id)); setClothingType(null); setBrand(null); setColor(null) }}
+                className={`block w-full text-left text-xs font-bold uppercase tracking-widest hover:text-black transition-colors ${String(selectedCategoryObj?._id || '') === String(c._id) ? 'text-black' : 'text-gray-400'}`}
               >
                 {c.name}
               </button>
