@@ -1,7 +1,7 @@
 import React from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import Slider from 'react-slick'
-import { Laptop2, Shirt, ShoppingBasket, ArrowRight, Truck, ShieldCheck, Clock } from 'lucide-react'
+import { ArrowRight, Truck, ShieldCheck, Clock } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 import { useGetFeaturedProductsQuery } from '@/features/products/productApi'
@@ -161,16 +161,16 @@ export default function Home() {
 
           <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-2 md:gap-8 max-w-4xl mx-auto">
             {[
-              { id: 'electronics', icon: Laptop2, label: 'Electronics', color: 'bg-blue-50/50 border-blue-100/50 text-blue-600' },
-              { id: 'clothing', icon: Shirt, label: 'Clothing', color: 'bg-orange-50/50 border-orange-100/50 text-orange-600' },
-              { id: 'groceries', icon: ShoppingBasket, label: 'Groceries', color: 'bg-green-50/50 border-green-100/50 text-green-600' }
+              { id: 'electronics', iconSrc: '/icons/electronics.svg', label: 'Electronics' },
+              { id: 'clothing', iconSrc: '/icons/clothing.svg', label: 'Clothing' },
+              { id: 'groceries', iconSrc: '/icons/groceries.svg', label: 'Groceries' }
             ].map(cat => (
               <motion.div key={cat.id} variants={scaleIn} className="flex flex-col items-center">
                 <div
                   onClick={() => navigate(`/products?category=${cat.id}`)}
-                  className={`group relative flex items-center justify-center w-full aspect-square rounded-full border transition-all duration-500 cursor-pointer overflow-hidden ${cat.color} hover:bg-black hover:border-black hover:text-white shadow-sm hover:shadow-xl`}
+                  className="group relative flex items-center justify-center w-full aspect-square rounded-full border transition-all duration-500 cursor-pointer overflow-hidden bg-gray-50 border-gray-100 hover:bg-black hover:border-black shadow-sm hover:shadow-xl"
                 >
-                  <cat.icon className="h-6 w-6 md:h-12 md:w-12 transition-transform group-hover:scale-110 duration-500" />
+                  <img src={cat.iconSrc} alt={`${cat.label} icon`} className="h-6 w-6 md:h-12 md:w-12 transition-transform group-hover:scale-110 duration-500" loading="lazy" />
                 </div>
                 <span className="mt-4 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">{cat.label}</span>
               </motion.div>
