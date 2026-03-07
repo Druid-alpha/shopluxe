@@ -174,10 +174,12 @@ export default function Navbar() {
           )}
 
           {/* Desktop Social Links */}
-          <div className="hidden xl:flex items-center gap-3 pl-8 border-l border-gray-100 ml-4">
-            <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors"><Facebook size={16} /></a>
-            <a href="#" className="text-gray-400 hover:text-pink-600 transition-colors"><Instagram size={16} /></a>
-            <a href="#" className="text-gray-400 hover:text-green-600 transition-colors"><MessageCircle size={16} /></a>
+          <div className="hidden lg:flex items-center gap-3 pl-8 border-l border-gray-100 ml-4">
+            <a href="https://www.facebook.com/share/1JM167YZNJ/?mibextid=wwXIfr" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-600 transition-colors"><Facebook size={16} /></a>
+            <a href="#" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-green-600 transition-colors"><MessageCircle size={16} /></a>
+            <a href="https://www.instagram.com/femzzyyyy" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-pink-600 transition-colors"><Instagram size={16} /></a>
+            <a href="https://x.com/dreamboatey" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-sky-500 transition-colors"><Twitter size={16} /></a>
+            <a href="" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-black transition-colors"><Music2 size={16} /></a>
           </div>
         </div>
 
