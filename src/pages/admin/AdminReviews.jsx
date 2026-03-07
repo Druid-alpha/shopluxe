@@ -5,6 +5,16 @@ import {
     useToggleFeaturedReviewMutation
 } from '@/features/products/productApi'
 import { Button } from '@/components/ui/button'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/AlertDialog'
 import { useToast } from '@/hooks/use-toast'
 import { Trash2, Star, User, Package, MessageSquare, Home } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -12,6 +22,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 export default function AdminReviews() {
     const { toast } = useToast()
     const [page, setPage] = useState(1)
+    const [reviewToDelete, setReviewToDelete] = useState(null)
     const { data, isLoading, refetch } = useGetAdminReviewsQuery(page)
     const [deleteReview] = useDeleteReviewMutation()
     const [toggleFeatured] = useToggleFeaturedReviewMutation()
@@ -26,13 +37,15 @@ export default function AdminReviews() {
         }
     }
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this review?')) return
+    const handleDelete = async () => {
+        if (!reviewToDelete) return
         try {
-            await deleteReview(id).unwrap()
+            await deleteReview(reviewToDelete).unwrap()
+            setReviewToDelete(null)
             toast({ title: 'Review deleted successfully' })
             refetch()
         } catch (err) {
+            setReviewToDelete(null)
             toast({
                 title: 'Error',
                 description: err?.data?.message || 'Delete failed',
@@ -118,7 +131,7 @@ export default function AdminReviews() {
                                                     <Home size={16} />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(review._id)}
+                                                    onClick={() => setReviewToDelete(review._id)}
                                                     className="p-3 rounded-xl bg-red-50 text-red-400 hover:bg-red-600 hover:text-white transition-all transform group-hover:scale-110"
                                                 >
                                                     <Trash2 size={16} />
@@ -180,6 +193,23 @@ export default function AdminReviews() {
                     </Button>
                 </div>
             )}
+
+            <AlertDialog open={!!reviewToDelete} onOpenChange={(open) => !open && setReviewToDelete(null)}>
+                <AlertDialogContent className="rounded-2xl">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete this review?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. The review will be permanently removed.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="rounded-xl bg-red-600 hover:bg-red-700 text-white">
+                            Delete Review
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

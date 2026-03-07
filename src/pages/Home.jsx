@@ -45,6 +45,7 @@ const slideInRight = {
 
 export default function Home() {
   const navigate = useNavigate()
+  const [stableFeaturedProducts, setStableFeaturedProducts] = React.useState([])
   const {
     data: featuredData,
     isLoading: isFeaturedLoading,
@@ -81,6 +82,17 @@ export default function Home() {
   const featuredProducts = (featuredData?.products || []).length > 0
     ? (featuredData?.products || [])
     : (fallbackData?.products || [])
+
+  React.useEffect(() => {
+    if (featuredProducts.length > 0) {
+      setStableFeaturedProducts(featuredProducts)
+    }
+  }, [featuredProducts])
+
+  const displayedFeaturedProducts =
+    featuredProducts.length > 0
+      ? featuredProducts
+      : stableFeaturedProducts
 
   const isLoading = isFeaturedLoading || (shouldFetchFallback && isFallbackLoading)
   const isFetching = isFeaturedFetching || (shouldFetchFallback && isFallbackFetching)
@@ -244,7 +256,7 @@ export default function Home() {
                   <div className="h-4 bg-gray-200 rounded w-1/2" />
                 </div>
               ))
-              : featuredProducts.map(product => (
+              : displayedFeaturedProducts.map(product => (
                 <motion.div key={product._id} variants={fadeUp} className="h-full">
                   <ProductCard product={product} />
                 </motion.div>
@@ -257,7 +269,7 @@ export default function Home() {
               <Button variant="outline" onClick={handleRefetch}>Retry</Button>
             </div>
           )}
-          {!isLoading && !isFetching && !isError && featuredProducts.length === 0 && (
+          {!isLoading && !isFetching && !isError && displayedFeaturedProducts.length === 0 && (
             <p className="mt-6 text-center text-sm text-gray-500">No featured products available right now.</p>
           )}
           <div className="mt-8 text-center md:hidden">
