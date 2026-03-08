@@ -60,7 +60,6 @@ export default function AdminUsers() {
       ...user,
       lastSignedIn: user.lastSignedIn || user.lastLogin || user.lastSeen || null,
       dateJoined: user.createdAt || user.joinedAt || null,
-      isOnline: Boolean(user.isOnline),
     })),
     [users]
   )
@@ -136,7 +135,6 @@ export default function AdminUsers() {
               <th className="px-6 py-4 font-medium uppercase tracking-wider">User</th>
               <th className="px-6 py-4 font-medium uppercase tracking-wider">Email</th>
               <th className="px-6 py-4 font-medium uppercase tracking-wider">Last Signed In</th>
-              <th className="px-6 py-4 font-medium uppercase tracking-wider">Status</th>
               <th className="px-6 py-4 font-medium uppercase tracking-wider">Date Joined</th>
               <th className="px-6 py-4 font-medium uppercase tracking-wider">Role</th>
               <th className="px-6 py-4 font-medium uppercase tracking-wider text-right">Actions</th>
@@ -155,11 +153,6 @@ export default function AdminUsers() {
                 </td>
                 <td className="px-6 py-4 text-gray-600 text-sm">{user.email}</td>
                 <td className="px-6 py-4 text-gray-600 text-sm">{formatDate(user.lastSignedIn)}</td>
-                <td className="px-6 py-4">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.isOnline ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                    {user.isOnline ? 'Online' : 'Offline'}
-                  </span>
-                </td>
                 <td className="px-6 py-4 text-gray-600 text-sm">{formatDate(user.dateJoined)}</td>
                 <td className="px-6 py-4">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'

@@ -5,6 +5,7 @@ import ProductSearch from '@/components/ProductSearch'
 import ProductCard from '@/features/products/ProductCard'
 import { Button } from '@/components/ui/button'
 import { useGetProductsQuery } from '@/features/products/productApi'
+import axios from '@/lib/axios'
 import { SlidersHorizontal, X } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -14,6 +15,17 @@ export default function Products() {
   const normalizeClothingType = React.useCallback((type) => {
     if (!type) return ''
     return type === 'bag' ? 'bags' : type
+  }, [])
+  const isObjectId = React.useCallback((value) => /^[a-fA-F0-9]{24}$/.test(String(value || '')), [])
+  const normalizeCategoryLabel = React.useCallback((value) => {
+    const cleaned = String(value || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]/g, '')
+    if (!cleaned) return ''
+    if (cleaned.endsWith('ies')) return `${cleaned.slice(0, -3)}y`
+    if (cleaned.endsWith('s')) return cleaned.slice(0, -1)
+    return cleaned
   }, [])
 
   const [page, setPage] = React.useState(Number(searchParams.get('page')) || 1)
@@ -28,6 +40,7 @@ export default function Products() {
   const [availability, setAvailability] = React.useState(searchParams.get('availability') || null)
   const [sortBy, setSortBy] = React.useState(searchParams.get('sortBy') || 'newest')
   const [mobileFilters, setMobileFilters] = React.useState(false)
+  const [isResolvingCategory, setIsResolvingCategory] = React.useState(false)
 
   // Keep local state in sync when URL params change externally (e.g. navbar/home category links).
   React.useEffect(() => {
@@ -54,6 +67,34 @@ export default function Products() {
     setAvailability((prev) => (prev === nextAvailability ? prev : nextAvailability))
     setSortBy((prev) => (prev === nextSortBy ? prev : nextSortBy))
   }, [searchParams, normalizeClothingType])
+
+  React.useEffect(() => {
+    let cancelled = false
+
+    const resolveCategory = async () => {
+      if (!category || isObjectId(category)) {
+        setIsResolvingCategory(false)
+        return
+      }
+
+      setIsResolvingCategory(true)
+      try {
+        const res = await axios.get('/products/filters')
+        const categories = res?.data?.categories || []
+        const incoming = normalizeCategoryLabel(category)
+        const match = categories.find((c) => normalizeCategoryLabel(c?.name) === incoming)
+        if (!cancelled) {
+          if (match?._id) setCategory(String(match._id))
+          setIsResolvingCategory(false)
+        }
+      } catch {
+        if (!cancelled) setIsResolvingCategory(false)
+      }
+    }
+
+    resolveCategory()
+    return () => { cancelled = true }
+  }, [category, isObjectId, normalizeCategoryLabel])
 
   // ---------------- Debounced search ----------------
   React.useEffect(() => {
@@ -114,7 +155,7 @@ export default function Products() {
     maxPrice,
     availability: availability || undefined,
     sortBy,
-  })
+  }, { skip: isResolvingCategory })
 
   const totalPages = data?.pages ?? 1
 
@@ -164,8 +205,8 @@ export default function Products() {
 
         {/* Products */}
         <div className="lg:col-span-3">
-          <div className={clsx("grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 transition-opacity duration-150", isFetching && !isLoading ? "opacity-70" : "opacity-100")}>
-            {(isLoading || isFetching)
+          <div className={clsx("grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 transition-opacity duration-150", (isFetching || isResolvingCategory) && !isLoading ? "opacity-70" : "opacity-100")}>
+            {(isResolvingCategory || isLoading || isFetching)
               ? Array.from({ length: 12 }).map((_, idx) => (
                 <div key={`skeleton-${idx}`} className="animate-pulse border rounded-lg p-4 space-y-3">
                   <div className="h-40 bg-gray-200 rounded" />
