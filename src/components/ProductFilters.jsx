@@ -35,7 +35,6 @@ export default function ProductFilters({
     if (!type) return ''
     return type === 'bag' ? 'bags' : type
   }, [])
-  const [range, setRange] = React.useState([minPrice, maxPrice])
   const [categories, setCategories] = React.useState([])
   const [brands, setBrands] = React.useState([])
   const [colors, setColors] = React.useState([])
@@ -115,29 +114,31 @@ export default function ProductFilters({
     const updated = selectedBrands.includes(brandId)
       ? selectedBrands.filter(b => b !== brandId)
       : [...selectedBrands, brandId]
-    setBrand(updated.join(','))
+    const nextBrand = updated.length ? updated.join(',') : null
+    if (nextBrand !== brand) setBrand(nextBrand)
   }
 
   const handleColorToggle = (id) => {
     const updated = selectedColors.includes(id)
       ? selectedColors.filter(c => c !== id)
       : [...selectedColors, id]
-    setColor(updated.join(','))
+    const nextColor = updated.length ? updated.join(',') : null
+    if (nextColor !== color) setColor(nextColor)
   }
 
   const handleAvailabilityToggle = (val) => {
     const updated = selectedAvailability.includes(val)
       ? selectedAvailability.filter(a => a !== val)
       : [...selectedAvailability, val]
-    setAvailability(updated.join(','))
+    const nextAvailability = updated.length ? updated.join(',') : null
+    if (nextAvailability !== availability) setAvailability(nextAvailability)
   }
 
   // ---------------- Price slider ----------------
-  React.useEffect(() => setRange([minPrice, maxPrice]), [minPrice, maxPrice])
   const handlePriceChange = (values) => {
-    setRange(values)
-    setMinPrice(values[0])
-    setMaxPrice(values[1])
+    const [nextMin, nextMax] = values
+    if (nextMin !== minPrice) setMinPrice(nextMin)
+    if (nextMax !== maxPrice) setMaxPrice(nextMax)
   }
 
   // ---------------- Render Helpers ----------------
@@ -291,16 +292,16 @@ export default function ProductFilters({
         <SectionHeader title="Price Range" section="price" isOpen={openSections.price} />
         {openSections.price && (
           <div className="py-10 px-2 space-y-6">
-            <Slider value={range} onValueChange={handlePriceChange} min={0} max={MAX_PRICE} step={100} />
+            <Slider value={[minPrice, maxPrice]} onValueChange={handlePriceChange} min={0} max={MAX_PRICE} step={100} />
             <div className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
               <div className="text-center">
                 <span className="block text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1">Min</span>
-                <span className="text-[10px] font-black text-slate-900">₦{range[0].toLocaleString()}</span>
+                <span className="text-[10px] font-black text-slate-900">₦{minPrice.toLocaleString()}</span>
               </div>
               <div className="h-4 w-px bg-gray-200" />
               <div className="text-center">
                 <span className="block text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1">Max</span>
-                <span className="text-[10px] font-black text-slate-900">₦{range[1].toLocaleString()}</span>
+                <span className="text-[10px] font-black text-slate-900">₦{maxPrice.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -310,3 +311,4 @@ export default function ProductFilters({
     </div>
   )
 }
+

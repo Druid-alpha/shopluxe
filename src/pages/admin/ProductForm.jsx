@@ -11,7 +11,7 @@ import {
   useUpdateProductMutation
 } from '@/features/products/productApi'
 
-export default function ProductForm({ product, onClose, onSuccess }) {
+export default function ProductForm({ product, onClose, onSuccess, closeOnSuccess = true }) {
   const { toast } = useToast()
 
   // ---------------- MAIN PRODUCT STATE ----------------
@@ -299,7 +299,7 @@ export default function ProductForm({ product, onClose, onSuccess }) {
 
       toast({ title: 'Product saved successfully' })
       onSuccess?.()
-      onClose()
+      if (closeOnSuccess) onClose?.()
     } catch (err) {
       console.error('PRODUCT FORM ERROR:', err)
       toast({
@@ -478,24 +478,38 @@ export default function ProductForm({ product, onClose, onSuccess }) {
                   <Input type="number" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} className="rounded-xl border-white bg-white text-[10px]" />
                 </div>
 
-                <div className="flex gap-2 items-center md:col-span-2">
-                  <div className="flex-1">
+                <div className="md:col-span-2 space-y-2">
+                  <div>
                     <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Stock</label>
                     <Input type="number" value={v.stock} onChange={e => updateVariant(idx, 'stock', e.target.value)} className="rounded-xl border-white bg-white text-[10px]" />
                   </div>
+                  <div className="flex items-center gap-3">
+                    <label className="relative flex-1 h-20 rounded-xl overflow-hidden border-2 border-dashed border-gray-200 bg-white cursor-pointer hover:border-black transition-colors">
+                      {v.imageUrl ? (
+                        <img src={v.imageUrl} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                          <span className="text-lg leading-none">+</span>
+                          <span className="text-[9px] font-black uppercase tracking-widest">Upload Photo</span>
+                        </div>
+                      )}
+                      {v.imageUrl && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/55 text-white text-[8px] font-black uppercase tracking-widest text-center py-1">
+                          Change Photo
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={e => handleVariantFile(idx, e.target.files[0])}
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                      />
+                    </label>
 
-                  <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-white bg-white">
-                    {v.imageUrl ? (
-                      <img src={v.imageUrl} className="w-full h-full object-cover" />
-                    ) : (
-                      <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer text-[10px] text-gray-300">+</label>
-                    )}
-                    <input type="file" onChange={e => handleVariantFile(idx, e.target.files[0])} className="absolute inset-0 opacity-0 cursor-pointer" />
+                    <button type="button" onClick={() => removeVariant(idx)} className="p-2 text-red-300 hover:text-red-600 transition-colors shrink-0">
+                      <Trash2 size={16} />
+                    </button>
                   </div>
-
-                  <button type="button" onClick={() => removeVariant(idx)} className="p-2 text-red-300 hover:text-red-600 transition-colors">
-                    <Trash2 size={16} />
-                  </button>
                 </div>
               </div>
             ))}

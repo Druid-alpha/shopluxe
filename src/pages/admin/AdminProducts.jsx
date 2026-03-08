@@ -201,7 +201,7 @@ export default function AdminProducts() {
     }
   }
 
-  if (isLoading || isFetching) return <p>Loading products...</p>
+  if (isLoading && !data) return <p>Loading products...</p>
   if (isError) {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
@@ -212,6 +212,9 @@ export default function AdminProducts() {
 
   return (
     <div className="space-y-4">
+      {isFetching && (
+        <div className="text-xs text-gray-500 font-medium">Refreshing products...</div>
+      )}
       {/* FILTERS & ACTIONS */}
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -414,7 +417,12 @@ export default function AdminProducts() {
       {/* MODAL */}
       {editingProduct && (
         <Modal title={editingProduct._id ? 'Edit Product' : 'Create Product'} onClose={() => setEditingProduct(null)}>
-          <ProductForm product={editingProduct._id ? editingProduct : null} onClose={() => setEditingProduct(null)} onSuccess={() => setEditingProduct(null)} />
+          <ProductForm
+            product={editingProduct._id ? editingProduct : null}
+            onClose={() => setEditingProduct(null)}
+            onSuccess={() => refetch()}
+            closeOnSuccess={false}
+          />
         </Modal>
       )}
     </div>
