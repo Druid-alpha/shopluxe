@@ -57,27 +57,38 @@ export default function OrderReceipt() {
         link.click()
         link.remove()
         window.URL.revokeObjectURL(objectUrl)
+        return true
       } catch (e) {
-        const link = document.createElement('a')
-        link.href = url
-        link.download = filename
-        link.target = '_blank'
-        link.rel = 'noopener noreferrer'
-        document.body.appendChild(link)
-        link.click()
-        link.remove()
+        return false
       }
     }
 
     if (order?.invoiceUrl) {
-      await downloadFromUrl(order.invoiceUrl)
+      const downloaded = await downloadFromUrl(order.invoiceUrl)
+      if (!downloaded) {
+        try {
+          const refreshed = await generateInvoice(order._id).unwrap()
+          if (refreshed?.invoiceUrl) {
+            const retried = await downloadFromUrl(refreshed.invoiceUrl)
+            if (retried) {
+              refetch()
+              return
+            }
+          }
+        } catch (err) {
+          console.error('Invoice refresh failed:', err)
+        }
+        html2pdf().set(opt).from(receiptRef.current).save()
+      }
     } else {
       try {
         const generated = await generateInvoice(order._id).unwrap()
         if (generated?.invoiceUrl) {
-          await downloadFromUrl(generated.invoiceUrl)
-          refetch()
-          return
+          const downloaded = await downloadFromUrl(generated.invoiceUrl)
+          if (downloaded) {
+            refetch()
+            return
+          }
         }
       } catch (err) {
         console.error('Official invoice generation failed:', err)
