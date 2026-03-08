@@ -37,10 +37,6 @@ Build status checked on March 9, 2026:
 
 ## Frontend Runtime Configuration
 
-Environment variables used by frontend code:
-- `VITE_API_URL`
-- `VITE_PAYSTACK_PUBLICKEY`
-
 Frontend API base behavior in `src/app/api.js`:
 - Uses `VITE_API_URL` when set.
 - If not set:
@@ -110,32 +106,6 @@ Main backend route groups mounted under `/api`:
 
 Paystack webhook endpoint:
 - `POST /api/payments/paystack/webhook`
-
-## Backend Environment Variable Names
-
-Environment variable names referenced by backend code:
-- `MONGO_URI`
-- `PORT`
-- `CLIENT_URL`
-- `NODE_ENV`
-- `ADMIN_EMAIL`
-- `ADMIN_PASSWORD`
-- `ACCESS_TOKEN_SECRET`
-- `REFRESH_TOKEN_SECRET`
-- `JWT_ACCESS_EXPIRES`
-- `JWT_REFRESH_EXPIRES`
-- `PAYSTACK_SECRET_KEY`
-- `SMTP_USER`
-- `SMTP_PASS`
-- `APP_NAME`
-- `CLOUDINARY_CLOUD_NAME`
-- `CLOUDINARY_API_KEY`
-- `CLOUDINARY_API_SECRET`
-- `INVOICE_CLEANUP_ENABLED`
-- `INVOICE_RETENTION_DAYS`
-- `INVOICE_CLEANUP_INTERVAL_HOURS`
-
-No `.env` values are included in this README.
 
 ## Local Development (Frontend + Backend)
 
