@@ -24,6 +24,14 @@ export const orderApi = api.injectEndpoints({
             query: (id) => `/orders/${id}`,
             providesTags: (result, error, id) => [{ type: 'Order', id }]
         }),
+        generateOrderInvoice: builder.mutation({
+            query: (id) => ({
+                url: `/orders/${id}/invoice`,
+                method: 'POST',
+                credentials: 'include'
+            }),
+            invalidatesTags: (result, error, id) => [{ type: 'Order', id }]
+        }),
         updateOrderStatus: builder.mutation({
             query: ({ id, ...body }) => ({
                 url: `/orders/${id}/status`,
@@ -47,6 +55,7 @@ export const orderApi = api.injectEndpoints({
 export const {
     useCreateOrderMutation,
     useGetOrderQuery,
+    useGenerateOrderInvoiceMutation,
     useGetMyOrdersQuery,
     useGetAllOrdersQuery,
     useUpdateOrderStatusMutation,

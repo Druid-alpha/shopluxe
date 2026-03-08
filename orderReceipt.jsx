@@ -6,7 +6,7 @@ import html2pdf from 'html2pdf.js'
 import { useAppDispatch } from '@/app/hooks'
 import { logout } from '@/features/auth/authSlice'
 import { productApi } from '@/features/products/productApi'
-import { useGetOrderQuery } from '@/features/orders/orderApi'
+import { useGenerateOrderInvoiceMutation, useGetOrderQuery } from '@/features/orders/orderApi'
 
 export default function OrderReceipt() {
   const { id } = useParams()
@@ -15,6 +15,7 @@ export default function OrderReceipt() {
   const receiptRef = React.useRef(null)
 
   const { data, isLoading, error: queryError, refetch } = useGetOrderQuery(id)
+  const [generateInvoice, { isLoading: isGeneratingInvoice }] = useGenerateOrderInvoiceMutation()
   const order = data?.order
 
   // Poll while payment is still pending
@@ -53,6 +54,24 @@ export default function OrderReceipt() {
       link.click()
       link.remove()
     } else {
+      try {
+        const generated = await generateInvoice(order._id).unwrap()
+        if (generated?.invoiceUrl) {
+          const link = document.createElement('a')
+          link.href = generated.invoiceUrl
+          link.download = opt.filename.endsWith('.pdf') ? opt.filename : `${opt.filename}.pdf`
+          link.target = '_blank'
+          link.rel = 'noopener noreferrer'
+          document.body.appendChild(link)
+          link.click()
+          link.remove()
+          refetch()
+          return
+        }
+      } catch (err) {
+        console.error('Official invoice generation failed:', err)
+      }
+
       html2pdf().set(opt).from(receiptRef.current).save()
     }
   }
@@ -117,10 +136,15 @@ export default function OrderReceipt() {
           <div className="flex gap-3 w-full md:w-auto">
             <Button
               onClick={downloadPDF}
+              disabled={isGeneratingInvoice}
               className="flex-1 bg-black text-white hover:bg-gray-800 h-10 md:h-12 rounded-lg text-xs md:text-sm font-bold shadow-lg transition-all active:scale-95"
             >
               <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-              {order.invoiceUrl ? 'Download Official Invoice' : 'Generate & Download PDF'}
+              {isGeneratingInvoice
+                ? 'Generating Invoice...'
+                : order.invoiceUrl
+                  ? 'Download Official Invoice'
+                  : 'Generate & Download PDF'}
             </Button>
           </div>
         </div>
