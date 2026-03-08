@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Select from 'react-select'
 import axios from '@/lib/axios'
 import { Button } from '@/components/ui/button'
@@ -35,6 +35,7 @@ export default function AdminProducts() {
     colors: [],
     sizes: [],
   })
+  const filterOptionsCacheRef = useRef(new Map())
 
   /* ================= ADMIN QUERY ================= */
   const { data, isLoading, isFetching, isError, error, refetch } = useGetAdminProductsQuery(
@@ -75,18 +76,27 @@ export default function AdminProducts() {
   /* ================= FILTER OPTIONS ================= */
   const loadFilters = async () => {
     try {
+      const cacheKey = `${filters.category || 'all'}|${filters.clothingType || 'all'}`
+      const cached = filterOptionsCacheRef.current.get(cacheKey)
+      if (cached) {
+        setOptions(cached)
+        return
+      }
+
       const res = await axios.get('/products/filters', {
         params: {
           category: filters.category,
           clothingType: filters.clothingType,
         },
       })
-      setOptions({
+      const nextOptions = {
         categories: res.data.categories || [],
         brands: res.data.brands || [],
         colors: res.data.colors || [],
         sizes: res.data.sizes || [],
-      })
+      }
+      filterOptionsCacheRef.current.set(cacheKey, nextOptions)
+      setOptions(nextOptions)
     } catch (err) {
       console.error('Failed to load admin filters', err)
       toast({ title: 'Failed to load filters', variant: 'destructive' })
