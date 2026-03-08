@@ -105,36 +105,41 @@ export default function Products() {
   // ---------------- Reset dependent filters ----------------
   React.useEffect(() => {
     // Reset clothingType and brand if category changes
-    setClothingType('')
-    setBrand(null)
+    setClothingType((prev) => (prev === '' ? prev : ''))
+    setBrand((prev) => (prev === null ? prev : null))
   }, [category])
 
   React.useEffect(() => {
     // Reset brand if clothingType changes
-    setBrand(null)
+    setBrand((prev) => (prev === null ? prev : null))
   }, [clothingType])
 
   // ---------------- Reset page on ALL filter changes ----------------
   React.useEffect(() => {
-    setPage(1)
+    setPage((prev) => (prev === 1 ? prev : 1))
   }, [debouncedSearch, category, brand, color, clothingType, minPrice, maxPrice, availability, sortBy])
 
   // ---------------- Update URL ----------------
   React.useEffect(() => {
-    const params = {
+    const next = new URLSearchParams({
       page: page.toString(),
       search: debouncedSearch || '',
       category: category || '',
       clothingType: normalizeClothingType(clothingType) || '',
       brand: brand || '',
       color: color || '',
-      minPrice,
-      maxPrice,
+      minPrice: String(minPrice),
+      maxPrice: String(maxPrice),
       availability: availability || '',
       sortBy,
+    })
+
+    const current = searchParams.toString()
+    const target = next.toString()
+    if (current !== target) {
+      setSearchParams(next, { replace: true })
     }
-    setSearchParams(params)
-  }, [page, debouncedSearch, category, clothingType, brand, color, minPrice, maxPrice, availability, sortBy, normalizeClothingType, setSearchParams])
+  }, [page, debouncedSearch, category, clothingType, brand, color, minPrice, maxPrice, availability, sortBy, normalizeClothingType, searchParams, setSearchParams])
 
   // ---------------- Mobile scroll lock ----------------
   React.useEffect(() => {
