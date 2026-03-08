@@ -1,251 +1,165 @@
-# ShopLuxe Frontend
+# ShopLuxe Frontend (myapp)
 
-Modern ecommerce frontend built with React + Vite, powered by Redux Toolkit, RTK Query, Tailwind CSS, and Paystack checkout.
+React + Vite ecommerce client for ShopLuxe. This app is designed to run with the ShopLuxe backend in the sibling folder `../shop-luxe-BE`.
 
-## Overview
+## Repository Scope
 
-This repository contains the client application for ShopLuxe. It supports:
+This repository (`myapp`) is the frontend only.
 
-- Customer browsing, filtering, and searching products
-- Product detail pages with variant selection and reviews
-- Cart and wishlist flows (guest + authenticated behavior)
-- Authentication with OTP email verification and password reset
-- Checkout and payment redirect flow via Paystack
-- Order receipt and order tracking screens
-- Admin dashboard for product, user, order, review, and analytics management
+Backend location used by this frontend:
+- `../shop-luxe-BE`
 
 ## Tech Stack
 
-- React 19
-- Vite 7
-- React Router DOM 7
+- React 19 + Vite 7
+- React Router 7
 - Redux Toolkit + RTK Query
-- Tailwind CSS + Radix UI primitives
-- React Hook Form + Zod validation
-- Framer Motion animations
-- Axios + Fetch (mixed usage)
+- Tailwind CSS + Radix UI
+- React Hook Form + Zod
+- Framer Motion
+- Axios + fetch (mixed usage)
 
-## Project Structure
+## Frontend Scripts
 
-```text
-myapp/
-|- src/
-|  |- app/
-|  |  |- api.js              # RTK Query base API + token refresh logic
-|  |  |- store.js            # Redux store
-|  |- components/            # Shared UI + layout components
-|  |- features/
-|  |  |- auth/               # auth slice + RTK Query auth endpoints
-|  |  |- cart/               # cart slice + API helpers
-|  |  |- orders/             # order endpoints
-|  |  |- products/           # products, reviews, product details
-|  |  |- wishlist/           # wishlist API + slice (guest state)
-|  |- pages/
-|  |  |- admin/              # admin dashboard modules
-|  |  |- *.jsx               # route-level pages
-|  |- App.jsx                # route definitions + app shell
-|  |- main.jsx               # app bootstrap
-|- orderReceipt.jsx          # order receipt view (currently outside src)
-|- vercel.json               # SPA rewrite rules
-|- vite.config.js            # Vite + alias config
-```
-
-## Routing Map
-
-### Public Routes
-
-- `/` -> Home
-- `/products` -> Product catalog with filters/search/sort
-- `/products/:id` -> Product details + variants + reviews
-- `/cart` -> Cart page
-- `/register` -> Registration
-- `/verify-email` -> OTP verification
-- `/login` -> Login
-- `/forgot-password` -> Request password reset
-- `/reset-password/:token` -> Set new password
-- `/payment/success` -> Post-payment verification callback
-
-### Protected User/Admin Routes
-
-- `/profile` -> Authenticated profile page
-- `/checkout` -> Shipping + payment initialization
-- `/wishlist` -> Authenticated wishlist
-- `/orders/:id` -> Order receipt
-
-### Admin-only Routes
-
-- `/admin` -> Admin dashboard (tabbed: products/users/orders/reviews/analytics)
-- `/admin/products` -> Product manager
-- `/admin/users` -> User manager
-- `/admin/orders` -> Order manager
-
-### Fallback
-
-- `*` -> Not Found page
-
-## State Management
-
-Redux store currently wires:
-
-- `auth` slice (user + token persistence)
-- `cart` slice (guest cart persistence)
-- `api` reducer (RTK Query cache)
-
-RTK Query base API in `src/app/api.js`:
-
-- Uses `VITE_API_URL`
-- Sends cookies (`credentials: 'include'`)
-- Injects `Authorization: Bearer <token>` when token exists
-- Automatically attempts `/auth/refresh` on `401`
-
-## API Features Exposed in Frontend
-
-### Auth
-
-- Register (`/auth/register`)
-- Verify OTP (`/auth/verify-otp`)
-- Resend OTP (`/auth/resend-otp`)
-- Login/Logout (`/auth/login`, `/auth/logout`)
-- Refresh token (`/auth/refresh`)
-- Profile (`/users/me`)
-
-### Products and Reviews
-
-- Product list, product detail, featured products
-- Admin product CRUD, soft delete, restore, hard delete
-- Review list/add/update/delete
-- Review helpful voting
-- Admin review moderation + featured toggling
-
-### Cart / Wishlist / Orders
-
-- Cart fetch/add/update/remove/clear/sync
-- Wishlist get/toggle
-- Order create/list/detail/update status/delete
-
-## Environment Variables
-
-Create a `.env` file in project root:
-
-```env
-VITE_API_URL=https://your-backend-domain/api
-VITE_PAYSTACK_PUBLICKEY=pk_test_xxxxxxxxxxxxxxxxxxxxx
-```
-
-Notes:
-
-- `VITE_API_URL` must point to the backend API base URL.
-- Backend must allow credentials (cookies) and CORS for this frontend origin.
-- Paystack initialization and verification depend on backend endpoints.
-
-## Local Development
-
-### Prerequisites
-
-- Node.js 20+ recommended
-- npm 10+ recommended
-
-### Install
+From `myapp/`:
 
 ```bash
 npm install
-```
-
-### Run Dev Server
-
-```bash
 npm run dev
-```
-
-Default Vite URL is usually `http://localhost:5173`.
-
-### Build Production Bundle
-
-```bash
 npm run build
-```
-
-### Preview Production Build
-
-```bash
 npm run preview
-```
-
-### Lint
-
-```bash
 npm run lint
 ```
 
-## Authentication and Session Behavior
+Build status checked on March 9, 2026:
+- `npm run build` completes successfully.
+- Bundle warning exists for large JS chunk size.
 
-- Access token is stored in Redux + localStorage.
-- Backend session/refresh flows use cookies (`withCredentials`/`credentials: include`).
-- `ProtectedRoute` blocks unauthorized users and enforces role-based access.
-- On login, guest cart items are synced to backend cart when available.
+## Frontend Runtime Configuration
 
-## Checkout and Payment Flow
+Environment variables used by frontend code:
+- `VITE_API_URL`
+- `VITE_PAYSTACK_PUBLICKEY`
 
-1. User fills shipping details on `/checkout`.
-2. Frontend creates order via `POST /orders`.
-3. Frontend initializes Paystack via `POST /payments/paystack/init`.
-4. User is redirected to Paystack hosted checkout.
-5. Paystack redirects back to `/payment/success?reference=...`.
-6. Frontend verifies payment with `GET /payments/verify/:reference`.
-7. Cart is cleared and user is redirected to order receipt.
+Frontend API base behavior in `src/app/api.js`:
+- Uses `VITE_API_URL` when set.
+- If not set:
+  - Dev fallback: `/api`
+  - Production fallback: `https://shoplux-be.vercel.app/api`
 
-## Admin Dashboard Capabilities
+Note: some modules call `import.meta.env.VITE_API_URL` directly (not fallback-aware), so setting `VITE_API_URL` is strongly recommended.
 
-- Product inventory management, filtering, creation/editing, feature toggles
-- Soft delete + restore + permanent delete operations
-- User role updates (promote/demote), user deletion
-- Order monitoring with polling and status/payment updates
-- Review moderation and featured review curation
-- Quick analytics cards (users, products, orders, revenue)
+## Frontend Routes (App.jsx)
 
-## UI/UX Notes
+Public routes:
+- `/`
+- `/products`
+- `/products/:id`
+- `/cart`
+- `/register`
+- `/login`
+- `/forgot-password`
+- `/verify-email`
+- `/reset-password/:token`
+- `/payment/success`
+- `/help-center`
+- `/privacy-policy`
+- `/terms-of-service`
 
-- Tailwind-based design system with reusable `src/components/ui/*`
-- Radix UI primitives for dialogs, dropdowns, tabs, etc.
-- Framer Motion page and section transitions
-- React Slick used in homepage hero carousel
+Protected user/admin routes:
+- `/profile`
+- `/checkout`
+- `/wishlist`
+- `/orders/:id`
 
-## Deployment
+Admin-only routes:
+- `/admin`
+- `/admin/products`
+- `/admin/users`
+- `/admin/orders`
 
-### Vercel
+Fallback:
+- `*` -> Not Found
 
-`vercel.json` includes SPA rewrites so direct route navigation works:
+## Backend Integration (`shop-luxe-BE`)
 
+The frontend expects backend endpoints under `/api/*`.
+
+Backend scripts (from `shop-luxe-BE/package.json`):
+
+```bash
+npm install
+npm run dev
+npm start
+```
+
+Backend entry points:
+- `index.js` (local server mode)
+- `api/index.js` (Vercel serverless handler)
+
+Main backend route groups mounted under `/api`:
+- `/auth`
+- `/users`
+- `/products`
+- `/reviews`
+- `/cart`
+- `/orders`
+- `/wishlist`
+- `/admin`
+- `/payments`
+
+Paystack webhook endpoint:
+- `POST /api/payments/paystack/webhook`
+
+## Backend Environment Variable Names
+
+Environment variable names referenced by backend code:
+- `MONGO_URI`
+- `PORT`
+- `CLIENT_URL`
+- `NODE_ENV`
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+- `ACCESS_TOKEN_SECRET`
+- `REFRESH_TOKEN_SECRET`
+- `JWT_ACCESS_EXPIRES`
+- `JWT_REFRESH_EXPIRES`
+- `PAYSTACK_SECRET_KEY`
+- `SMTP_USER`
+- `SMTP_PASS`
+- `APP_NAME`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `INVOICE_CLEANUP_ENABLED`
+- `INVOICE_RETENTION_DAYS`
+- `INVOICE_CLEANUP_INTERVAL_HOURS`
+
+No `.env` values are included in this README.
+
+## Local Development (Frontend + Backend)
+
+1. Start backend from `../shop-luxe-BE`.
+2. Start frontend from `myapp`.
+3. Ensure frontend `VITE_API_URL` points to backend `/api` base.
+4. Ensure backend `CLIENT_URL` matches frontend origin for CORS/cookies.
+
+## Deployment Notes
+
+Frontend `vercel.json` rewrites:
 - `/api/(.*)` -> `/api/$1`
 - all other routes -> `/index.html`
 
-### General Static Hosting
+Backend `vercel.json` uses:
+- `api/index.js` as serverless function
+- rewrite `/api/(.*)` -> `/api/index.js`
 
-- Build with `npm run build`
-- Serve the `dist/` folder
-- Ensure fallback to `index.html` for client-side routes
+## Current Implementation Notes
 
-## Known Implementation Notes
-
-- `orderReceipt.jsx` is currently located at project root and imported in `src/App.jsx`.
-- `wishlistSlice` exists but is not currently wired into `src/app/store.js` reducer map.
-- Project currently uses both RTK Query and direct `fetch`/`axios` in different modules.
-
-## Suggested Improvements
-
-- Move `orderReceipt.jsx` into `src/pages/` for consistency.
-- Standardize all API calls onto RTK Query (or a single API client style).
-- Re-enable/wire wishlist reducer if guest wishlist state should be globally tracked.
-- Add unit/integration tests (Vitest + React Testing Library).
-- Add CI checks for lint/build/test.
-
-## Scripts
-
-- `npm run dev` -> start Vite dev server
-- `npm run build` -> production build
-- `npm run preview` -> preview built app
-- `npm run lint` -> run ESLint
+- `orderReceipt.jsx` is still at project root and imported as `../orderReceipt` from `src/App.jsx`.
+- Redux store currently wires `auth`, `cart`, and RTK Query API reducers; wishlist reducer is not wired.
+- API usage style is mixed (RTK Query + axios + fetch).
 
 ## License
 
-No license file is currently included in this repository. Add one if open-source distribution is intended.
+No license file is currently present.
