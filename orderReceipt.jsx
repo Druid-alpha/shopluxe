@@ -43,28 +43,39 @@ export default function OrderReceipt() {
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
+    const downloadFromUrl = async (url) => {
+      const filename = opt.filename.endsWith('.pdf') ? opt.filename : `${opt.filename}.pdf`
+      try {
+        const response = await fetch(url, { credentials: 'omit' })
+        if (!response.ok) throw new Error('Invoice fetch failed')
+        const blob = await response.blob()
+        const objectUrl = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = objectUrl
+        link.download = filename
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        window.URL.revokeObjectURL(objectUrl)
+      } catch (e) {
+        const link = document.createElement('a')
+        link.href = url
+        link.download = filename
+        link.target = '_blank'
+        link.rel = 'noopener noreferrer'
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+      }
+    }
+
     if (order?.invoiceUrl) {
-      // Start download immediately using the hosted invoice URL.
-      const link = document.createElement('a')
-      link.href = order.invoiceUrl
-      link.download = opt.filename.endsWith('.pdf') ? opt.filename : `${opt.filename}.pdf`
-      link.target = '_blank'
-      link.rel = 'noopener noreferrer'
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
+      await downloadFromUrl(order.invoiceUrl)
     } else {
       try {
         const generated = await generateInvoice(order._id).unwrap()
         if (generated?.invoiceUrl) {
-          const link = document.createElement('a')
-          link.href = generated.invoiceUrl
-          link.download = opt.filename.endsWith('.pdf') ? opt.filename : `${opt.filename}.pdf`
-          link.target = '_blank'
-          link.rel = 'noopener noreferrer'
-          document.body.appendChild(link)
-          link.click()
-          link.remove()
+          await downloadFromUrl(generated.invoiceUrl)
           refetch()
           return
         }
