@@ -45,10 +45,21 @@ const slideInRight = {
 
 export default function Home() {
   const navigate = useNavigate()
+  const hasProductImage = React.useCallback((product) => {
+    const candidates = [
+      product?.images?.[0]?.url,
+      ...(product?.images || []).map((img) => img?.url),
+      product?.image?.url,
+      product?.image,
+      product?.thumbnail,
+      ...(product?.variants || []).map((variant) => variant?.image?.url),
+    ]
+    return candidates.some((value) => typeof value === 'string' && value.trim().length > 0)
+  }, [])
   const [stableFeaturedProducts, setStableFeaturedProducts] = React.useState(() => {
     try {
       const cached = JSON.parse(localStorage.getItem('homeFeaturedProducts') || '[]')
-      return Array.isArray(cached) ? cached : []
+      return Array.isArray(cached) ? cached.filter(hasProductImage) : []
     } catch {
       return []
     }
@@ -91,15 +102,16 @@ export default function Home() {
     : (fallbackData?.products || [])
 
   React.useEffect(() => {
-    if (featuredProducts.length > 0) {
-      setStableFeaturedProducts(featuredProducts)
-      localStorage.setItem('homeFeaturedProducts', JSON.stringify(featuredProducts))
+    const withImages = featuredProducts.filter(hasProductImage)
+    if (withImages.length > 0) {
+      setStableFeaturedProducts(withImages)
+      localStorage.setItem('homeFeaturedProducts', JSON.stringify(withImages))
     }
-  }, [featuredProducts])
+  }, [featuredProducts, hasProductImage])
 
   const displayedFeaturedProducts =
     featuredProducts.length > 0
-      ? featuredProducts
+      ? featuredProducts.filter(hasProductImage)
       : stableFeaturedProducts
 
   const isLoading = isFeaturedLoading || (shouldFetchFallback && isFallbackLoading)
