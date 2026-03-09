@@ -33,7 +33,13 @@ export default function AdminProducts() {
     categories: [],
     brands: [],
     colors: [],
-    sizes: [],
+    sizeOptions: [],
+    sizeOptionsByClothingType: {
+      clothes: [],
+      shoes: [],
+      bags: [],
+      eyeglass: [],
+    },
   })
   const filterOptionsCacheRef = useRef(new Map())
 
@@ -93,7 +99,13 @@ export default function AdminProducts() {
         categories: res.data.categories || [],
         brands: res.data.brands || [],
         colors: res.data.colors || [],
-        sizes: res.data.sizes || [],
+        sizeOptions: res.data.sizeOptions || [],
+        sizeOptionsByClothingType: res.data.sizeOptionsByClothingType || {
+          clothes: [],
+          shoes: [],
+          bags: [],
+          eyeglass: [],
+        },
       }
       filterOptionsCacheRef.current.set(cacheKey, nextOptions)
       setOptions(nextOptions)

@@ -37,7 +37,12 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const [categories, setCategories] = useState([])
   const [brands, setBrands] = useState([])
   const [colors, setColors] = useState([])
-  const [sizes, setSizes] = useState([])
+  const [sizeOptionsByClothingType, setSizeOptionsByClothingType] = useState({
+    clothes: [],
+    shoes: [],
+    bags: [],
+    eyeglass: []
+  })
   const clothingTypes = ['clothes', 'shoes', 'bags', 'eyeglass']
 
   // ---------------- ERRORS ----------------
@@ -64,10 +69,8 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   }
 
   const getSizesForType = type => {
-    if (type === 'shoes') return ['6', '7', '8', '9', '10', '11']
-    if (type === 'clothes') return ['XS', 'S', 'M', 'L', 'XL']
-    if (type === 'bag' || type === 'eyeglass') return ['Standard']
-    return []
+    const normalizedType = type === 'bag' ? 'bags' : type
+    return sizeOptionsByClothingType[normalizedType] || []
   }
 
   /* =====================================================
@@ -122,7 +125,14 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       .then(res => {
         setCategories(res.data.categories || [])
         setColors(res.data.colors || [])
-        setSizes(res.data.sizes || [])
+        setSizeOptionsByClothingType(
+          res.data.sizeOptionsByClothingType || {
+            clothes: [],
+            shoes: [],
+            bags: [],
+            eyeglass: []
+          }
+        )
       })
       .catch(console.error)
   }, [])
@@ -142,6 +152,14 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       .get(`${import.meta.env.VITE_API_URL}/products/filters?category=${category}`)
       .then(res => {
         setBrands(res.data.brands || [])
+        setSizeOptionsByClothingType(
+          res.data.sizeOptionsByClothingType || {
+            clothes: [],
+            shoes: [],
+            bags: [],
+            eyeglass: []
+          }
+        )
         const stillValid = res.data.brands?.some(b => b._id === brand)
         if (!stillValid) setBrand('')
         const isClothingCategory = categories.find(c => c._id === category)?.name.toLowerCase() === 'clothing'
