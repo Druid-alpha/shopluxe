@@ -5,8 +5,14 @@ import { motion } from 'framer-motion'
 import Slider from 'react-slick'
 
 export default function FeaturedReviews() {
-    const { data, isLoading } = useGetFeaturedReviewsQuery()
-    const featuredReviews = data?.reviews || []
+    const { data, isLoading } = useGetFeaturedReviewsQuery(undefined, {
+        refetchOnMountOrArgChange: true,
+        refetchOnFocus: true,
+        refetchOnReconnect: true,
+    })
+    const featuredReviews = (data?.reviews || []).filter(
+        (review) => review?.isFeatured === true
+    )
 
     const settings = {
         dots: true,
