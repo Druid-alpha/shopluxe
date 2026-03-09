@@ -143,10 +143,10 @@ export default function ProductCard({ product }) {
         {/* SALE BADGE */}
         {product.discount > 0 && (
           <div className="absolute top-4 left-4 z-10 flex flex-col gap-1">
-            <span className="bg-black text-white text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 shadow-xl rounded-sm">
+            <span className="bg-slate-600 text-white text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 shadow-md rounded-sm">
               Sale
             </span>
-            <span className="bg-red-600 text-white text-[10px] font-black uppercase tracking-[0.1em] px-2 py-1 shadow-lg rounded-sm text-center">
+            <span className="bg-rose-400 text-white text-[10px] font-black uppercase tracking-[0.1em] px-2 py-1 shadow-lg rounded-sm text-center">
               -{product.discount}%
             </span>
           </div>

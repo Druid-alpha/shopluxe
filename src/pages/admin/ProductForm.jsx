@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast'
 import { Trash2 } from 'lucide-react'
 import axios from '@/lib/axios'
 import {
+  useGetProductQuery,
   useCreateProductMutation,
   useUpdateProductMutation
 } from '@/features/products/productApi'
@@ -45,6 +46,10 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   // ---------------- RTK QUERY MUTATIONS ----------------
   const [createProduct] = useCreateProductMutation()
   const [updateProduct] = useUpdateProductMutation()
+  const { data: fullProductData, isFetching: isFetchingProduct } = useGetProductQuery(product?._id, {
+    skip: !product?._id
+  })
+  const editableProduct = fullProductData?.product || product
 
   /* =====================================================
      HELPERS
@@ -69,26 +74,27 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
      INITIALIZE PRODUCT (EDIT MODE)
   ===================================================== */
   useEffect(() => {
-    if (!product) return
+    if (!editableProduct) return
 
-    setTitle(product.title || '')
-    setDescription(product.description || '')
-    setPrice(product.price || 0)
-    setStock(product.stock || 0)
-    setCategory(product.category?._id || '')
-    setBrand(product.brand?._id || '')
-    setColor(product.color?._id || product.color || '')
-    setTags(product.tags?.join(', ') || '')
-    setClothingType(product.clothingType || '')
-    setDiscount(product.discount || 0)
+    setTitle(editableProduct.title || '')
+    setDescription(editableProduct.description || '')
+    setPrice(editableProduct.price || 0)
+    setStock(editableProduct.stock || 0)
+    setCategory(editableProduct.category?._id || '')
+    setBrand(editableProduct.brand?._id || '')
+    setColor(editableProduct.color?._id || editableProduct.color || '')
+    setTags(editableProduct.tags?.join(', ') || '')
+    setClothingType(editableProduct.clothingType || '')
+    setDiscount(editableProduct.discount || 0)
 
     // MAIN IMAGES (EXISTING)
-    setExistingImages(product.images || [])
+    setExistingImages(editableProduct.images || [])
     setImagePreviews([]) // Clear new uploads previews
+    setImages([])
 
     // VARIANTS
     const normalizedVariants =
-      product.variants?.map(v => ({
+      editableProduct.variants?.map(v => ({
         _id: v._id, // ✅ ADD THIS LINE
         sku: v.sku || generateSKU(),
         type: v.type || 'clothes',
@@ -97,6 +103,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
           size: v.options?.size || ''
         },
         price: v.price || 0,
+        discount: v.discount || 0,
         stock: v.stock || 0,
         image: v.image,
         imageFile: null,
@@ -104,7 +111,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       })) || []
 
     setVariants(normalizedVariants)
-  }, [product])
+  }, [editableProduct?._id, fullProductData])
 
   /* =====================================================
      FETCH FILTER OPTIONS
@@ -154,6 +161,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         type: clothingType || '',
         options: { color: '', size: '' },
         price: 0,
+        discount: 0,
         stock: 0,
         image: null,
         imageFile: null,
@@ -270,6 +278,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
           size: v.options.size || undefined,
         },
         price: Number(v.price),
+        discount: Number(v.discount || 0),
         stock: Number(v.stock),
         image: v.imageFile ? null : v.image
       }))
@@ -314,6 +323,10 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
      UI
   ===================================================== */
   const isClothing = categories.find(c => c._id === category)?.name.toLowerCase() === 'clothing'
+
+  if (product?._id && isFetchingProduct && !fullProductData?.product) {
+    return <div className="py-10 text-center text-sm text-gray-500">Loading product details...</div>
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 px-4 py-2">
@@ -478,6 +491,11 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                   <Input type="number" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} className="rounded-xl border-white bg-white text-[10px]" />
                 </div>
 
+                <div>
+                  <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Discount (%)</label>
+                  <Input type="number" value={v.discount || 0} onChange={e => updateVariant(idx, 'discount', e.target.value)} className="rounded-xl border-white bg-white text-[10px]" />
+                </div>
+
                 <div className="md:col-span-2 space-y-2">
                   <div>
                     <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Stock</label>
@@ -486,7 +504,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                   <div className="flex items-center gap-3">
                     <label className="relative flex-1 h-20 rounded-xl overflow-hidden border-2 border-dashed border-gray-200 bg-white cursor-pointer hover:border-black transition-colors">
                       {v.imageUrl ? (
-                        <img src={v.imageUrl} className="w-full h-full object-cover" />
+                        <img src={v.imageUrl} className="w-full h-full object-contain p-1" />
                       ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
                           <span className="text-lg leading-none">+</span>

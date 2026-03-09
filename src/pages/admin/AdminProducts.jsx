@@ -431,7 +431,7 @@ export default function AdminProducts() {
             product={editingProduct._id ? editingProduct : null}
             onClose={() => setEditingProduct(null)}
             onSuccess={() => refetch()}
-            closeOnSuccess={false}
+            closeOnSuccess
           />
         </Modal>
       )}

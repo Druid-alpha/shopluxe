@@ -3,8 +3,16 @@ import { Button } from '@/components/ui/button'
 import { useAddReviewMutation } from './productApi'
 import { useToast } from '@/hooks/use-toast'
 
+const ratingLabels = {
+  1: 'Poor',
+  2: 'Fair',
+  3: 'Good',
+  4: 'Very Good',
+  5: 'Excellent',
+}
+
 export default function ReviewForm({ productId, onSuccess, user }) {
-  const [rating, setRating] = useState(5)
+  const [rating, setRating] = useState(0)
   const [hover, setHover] = useState(0)
   const [title, setTitle] = useState('')
   const [comment, setComment] = useState('')
@@ -15,11 +23,12 @@ export default function ReviewForm({ productId, onSuccess, user }) {
     e.preventDefault()
     if (!user) return toast({ title: 'Login to submit review', variant: 'destructive' })
     if (!productId) return toast({ title: 'Product ID missing', variant: 'destructive' })
+    if (!rating) return toast({ title: 'Please select a rating', variant: 'destructive' })
 
     try {
       await addReview({ productId, rating, title, comment }).unwrap()
       toast({ title: 'Review added' })
-      setRating(5)
+      setRating(0)
       setHover(0)
       setTitle('')
       setComment('')
@@ -32,6 +41,10 @@ export default function ReviewForm({ productId, onSuccess, user }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-3 mt-6">
       <h3 className="font-semibold">Leave a review</h3>
+      <p className="text-xs text-gray-500">Rating and review text are required.</p>
+      <p className="text-[11px] text-gray-500">
+        Share fit, quality, delivery speed, and whether you would buy again.
+      </p>
 
       <div className="flex items-center gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
@@ -45,7 +58,9 @@ export default function ReviewForm({ productId, onSuccess, user }) {
             ★
           </span>
         ))}
-        <span className="ml-2 text-sm text-gray-600">{rating} / 5</span>
+        <span className="ml-2 text-sm text-gray-600">
+          {rating ? `${ratingLabels[rating]} (${rating} / 5)` : 'Tap to rate'}
+        </span>
       </div>
 
       <input
@@ -54,18 +69,18 @@ export default function ReviewForm({ productId, onSuccess, user }) {
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Review Title (e.g. Amazing product!)"
         className="w-full border rounded-xl p-3 text-xs font-black uppercase tracking-widest placeholder:text-gray-300 focus:outline-none focus:border-black transition-all"
-        required
       />
 
       <textarea
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        placeholder="Write your review..."
+        placeholder="Write your review (at least 10 characters)..."
         className="w-full border rounded-xl p-4 text-sm font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all min-h-[120px]"
         required
+        minLength={10}
       />
 
-      <Button type="submit" disabled={isLoading || !user}>
+      <Button type="submit" disabled={isLoading || !user || !rating || !comment.trim() || comment.trim().length < 10}>
         {isLoading ? 'Submitting...' : 'Submit Review'}
       </Button>
     </form>

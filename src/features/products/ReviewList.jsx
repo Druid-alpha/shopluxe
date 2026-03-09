@@ -16,7 +16,7 @@ export default function ReviewList({ reviews = [], productId, onRefetch }) {
   const [updateReview] = useUpdateReviewMutation()
   const [deleteReview] = useDeleteReviewMutation()
   const [toggleHelpful] = useToggleHelpfulMutation()
-  const [sort, setSort] = useState('newest')
+  const [sort, setSort] = useState('helpful')
 
   const handleEdit = (r) => {
     setEditingId(r._id)
@@ -62,12 +62,19 @@ export default function ReviewList({ reviews = [], productId, onRefetch }) {
   }
 
   const sortedReviews = [...reviews].sort((a, b) => {
+    if (sort === 'helpful') return (b.helpful || 0) - (a.helpful || 0) || (new Date(b.createdAt) - new Date(a.createdAt))
     if (sort === 'highest') return b.rating - a.rating
     if (sort === 'lowest') return a.rating - b.rating
     return new Date(b.createdAt) - new Date(a.createdAt)
   })
 
-  if (!reviews.length) return <p>No reviews yet.</p>
+  if (!reviews.length) {
+    return (
+      <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-6 text-sm text-gray-500">
+        No reviews yet. Be the first to share your experience.
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-12">
@@ -79,6 +86,7 @@ export default function ReviewList({ reviews = [], productId, onRefetch }) {
             onChange={(e) => setSort(e.target.value)}
             className="appearance-none bg-white border border-gray-100 rounded-xl px-6 py-3 pr-12 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-black transition-all cursor-pointer shadow-sm"
           >
+            <option value="helpful">Most Helpful</option>
             <option value="newest">Newest First</option>
             <option value="highest">Highest Rating</option>
             <option value="lowest">Lowest Rating</option>

@@ -36,7 +36,13 @@ export default function ProductDetails() {
   const { data, isLoading, refetch } = useGetProductQuery(id)
   const product = data?.product
 
-  const { data: reviewsData, refetch: refetchReviews } =
+  const {
+    data: reviewsData,
+    refetch: refetchReviews,
+    isLoading: isReviewsLoading,
+    isError: isReviewsError,
+    error: reviewsError
+  } =
     useGetReviewsQuery(id)
   React.useEffect(() => {
     const timer = setInterval(() => {
@@ -244,10 +250,10 @@ export default function ProductDetails() {
           </h1>
 
           <div className="flex items-center justify-between pt-2">
-            <PriceDisplay price={product.price} discount={product.discount} className="text-4xl" />
-            {product.discount > 0 && (
+            <PriceDisplay price={currentPrice} discount={currentDiscount} className="text-4xl" />
+            {currentDiscount > 0 && (
               <div className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-red-100 shadow-sm animate-pulse">
-                Sale -{product.discount}%
+                Sale -{currentDiscount}%
               </div>
             )}
           </div>
@@ -359,16 +365,36 @@ export default function ProductDetails() {
       <div className="pt-10 lg:pt-8 border-t border-gray-100 space-y-10 lg:space-y-8">
         <section>
           <h2 className="text-2xl font-black tracking-tighter uppercase mb-5 lg:mb-4">Customer Reviews</h2>
-          <ReviewSummary
-            reviews={reviews}
-            avgRating={product.avgRating || 0}
-            reviewsCount={product.reviewsCount || 0}
-          />
+          {isReviewsLoading ? (
+            <div className="grid md:grid-cols-2 gap-12 py-10 border-y border-gray-100 animate-pulse">
+              <div className="h-32 bg-gray-100 rounded-2xl" />
+              <div className="h-32 bg-gray-100 rounded-2xl" />
+            </div>
+          ) : isReviewsError ? (
+            <div className="py-8 px-5 rounded-2xl border border-red-100 bg-red-50 text-sm text-red-700 flex items-center justify-between gap-4">
+              <span>{reviewsError?.data?.message || 'Failed to load reviews.'}</span>
+              <Button variant="outline" className="rounded-xl border-red-200" onClick={refetchReviews}>Retry</Button>
+            </div>
+          ) : (
+            <ReviewSummary
+              reviews={reviews}
+              avgRating={product.avgRating || 0}
+              reviewsCount={product.reviewsCount || 0}
+            />
+          )}
         </section>
 
         <section className="grid lg:grid-cols-3 gap-8 xl:gap-10">
           <div className="lg:col-span-2 min-w-0">
-            <ReviewList reviews={reviews} productId={product._id} onRefetch={refetchReviews} />
+            {isReviewsLoading ? (
+              <div className="space-y-4 animate-pulse">
+                <div className="h-20 bg-gray-100 rounded-2xl" />
+                <div className="h-20 bg-gray-100 rounded-2xl" />
+                <div className="h-20 bg-gray-100 rounded-2xl" />
+              </div>
+            ) : !isReviewsError ? (
+              <ReviewList reviews={reviews} productId={product._id} onRefetch={refetchReviews} />
+            ) : null}
           </div>
           <div className="bg-gray-50 p-6 lg:p-7 rounded-3xl h-fit lg:sticky lg:top-24">
             <ReviewForm
