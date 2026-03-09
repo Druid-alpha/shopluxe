@@ -14,6 +14,12 @@ import {
 
 export default function ProductForm({ product, onClose, onSuccess, closeOnSuccess = true }) {
   const { toast } = useToast()
+  const DEFAULT_SIZE_OPTIONS_BY_TYPE = {
+    clothes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    shoes: ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46'],
+    bags: ['Small', 'Medium', 'Large'],
+    eyeglass: ['One Size']
+  }
 
   // ---------------- MAIN PRODUCT STATE ----------------
   const [title, setTitle] = useState('')
@@ -38,10 +44,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const [brands, setBrands] = useState([])
   const [colors, setColors] = useState([])
   const [sizeOptionsByClothingType, setSizeOptionsByClothingType] = useState({
-    clothes: [],
-    shoes: [],
-    bags: [],
-    eyeglass: []
+    ...DEFAULT_SIZE_OPTIONS_BY_TYPE
   })
   const clothingTypes = ['clothes', 'shoes', 'bags', 'eyeglass']
 
@@ -126,17 +129,12 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   ===================================================== */
   useEffect(() => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/products/filters`)
+      .get('/products/filters')
       .then(res => {
         setCategories(res.data.categories || [])
         setColors(res.data.colors || [])
         setSizeOptionsByClothingType(
-          res.data.sizeOptionsByClothingType || {
-            clothes: [],
-            shoes: [],
-            bags: [],
-            eyeglass: []
-          }
+          res.data.sizeOptionsByClothingType || DEFAULT_SIZE_OPTIONS_BY_TYPE
         )
       })
       .catch(console.error)
@@ -154,16 +152,11 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     }
 
     axios
-      .get(`${import.meta.env.VITE_API_URL}/products/filters?category=${category}`)
+      .get('/products/filters', { params: { category } })
       .then(res => {
         setBrands(res.data.brands || [])
         setSizeOptionsByClothingType(
-          res.data.sizeOptionsByClothingType || {
-            clothes: [],
-            shoes: [],
-            bags: [],
-            eyeglass: []
-          }
+          res.data.sizeOptionsByClothingType || DEFAULT_SIZE_OPTIONS_BY_TYPE
         )
         const stillValid = res.data.brands?.some(b => b._id === brand)
         if (!stillValid) setBrand('')
