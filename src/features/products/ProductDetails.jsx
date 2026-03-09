@@ -65,7 +65,17 @@ export default function ProductDetails() {
 
   const variants = product?.variants || []
   const selectedVariant = selectedVariantIndex >= 0 ? variants[selectedVariantIndex] : null
-  const mainSizes = Array.isArray(product?.sizes) ? product.sizes : []
+  const getDefaultSizesForType = (type) => {
+    const normalized = String(type || '').toLowerCase() === 'bag' ? 'bags' : String(type || '').toLowerCase()
+    if (normalized === 'clothes') return ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+    if (normalized === 'shoes') return ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46']
+    if (normalized === 'bags') return ['Small', 'Medium', 'Large']
+    if (normalized === 'eyeglass') return ['One Size']
+    return []
+  }
+  const mainSizes = Array.isArray(product?.sizes) && product.sizes.length > 0
+    ? product.sizes
+    : getDefaultSizesForType(product?.clothingType)
   const variantSizes = [...new Set(
     variants
       .map(v => v?.options?.size)
