@@ -34,6 +34,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const [existingImages, setExistingImages] = useState([]) // IMAGES FROM SERVER
   const [imagePreviews, setImagePreviews] = useState([]) // NEW UPLOADS PREVIEWS
   const [clothingType, setClothingType] = useState('')
+  const [mainSizes, setMainSizes] = useState([])
   const [discount, setDiscount] = useState(0)
 
   // ---------------- VARIANTS STATE ----------------
@@ -96,6 +97,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         ? 'bags'
         : (editableProduct.clothingType || '')
     setClothingType(normalizedClothingType)
+    setMainSizes(Array.isArray(editableProduct.sizes) ? editableProduct.sizes : [])
     setDiscount(editableProduct.discount || 0)
 
     // MAIN IMAGES (EXISTING)
@@ -205,6 +207,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const handleClothingTypeChange = value => {
     const normalized = value === 'bag' ? 'bags' : value
     setClothingType(normalized)
+    setMainSizes(prev => prev.filter(s => getSizesForType(normalized).includes(s)))
     setVariants(prev =>
       prev.map(v => ({
         ...v,
@@ -214,6 +217,14 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
           size: getSizesForType(normalized).includes(v.options.size) ? v.options.size : ''
         }
       }))
+    )
+  }
+
+  const toggleMainSize = size => {
+    setMainSizes(prev =>
+      prev.includes(size)
+        ? prev.filter(s => s !== size)
+        : [...prev, size]
     )
   }
 
@@ -249,6 +260,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   ===================================================== */
   useEffect(() => {
     if (!clothingType) return
+    setMainSizes(prev => prev.filter(s => getSizesForType(clothingType).includes(s)))
     setVariants(prev =>
       prev.map(v => ({
         ...v,
@@ -325,6 +337,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         brand: brand || undefined,
         color: color || undefined,
         clothingType: clothingType || undefined,
+        sizes: mainSizes,
         discount: Number(discount),
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
         variants: payloadVariants,
@@ -356,6 +369,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
      UI
   ===================================================== */
   const isClothing = categories.find(c => c._id === category)?.name.toLowerCase() === 'clothing'
+  const availableMainSizes = getSizesForType(clothingType)
 
   if (product?._id && isFetchingProduct && !fullProductData?.product) {
     return <div className="py-10 text-center text-sm text-gray-500">Loading product details...</div>
@@ -393,6 +407,28 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
               <Input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0" className="rounded-xl border-gray-100" />
             </div>
           </div>
+
+          {isClothing && clothingType && availableMainSizes.length > 0 && (
+            <div>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2 block">Main Product Sizes</label>
+              <div className="flex flex-wrap gap-2">
+                {availableMainSizes.map(size => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => toggleMainSize(size)}
+                    className={`px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg border transition-colors ${
+                      mainSizes.includes(size)
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-black'
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Base Stock</label>

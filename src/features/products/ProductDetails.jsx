@@ -65,6 +65,12 @@ export default function ProductDetails() {
 
   const variants = product?.variants || []
   const selectedVariant = selectedVariantIndex >= 0 ? variants[selectedVariantIndex] : null
+  const mainSizes = Array.isArray(product?.sizes) ? product.sizes : []
+  const variantSizes = [...new Set(
+    variants
+      .map(v => v?.options?.size)
+      .filter(Boolean)
+  )]
 
   /* ================= EFFECTS (ALWAYS BEFORE RETURN) ================= */
   React.useEffect(() => {
@@ -262,6 +268,35 @@ export default function ProductDetails() {
           <p className="text-gray-600 text-sm leading-relaxed max-w-md">
             {product.description}
           </p>
+
+          {(mainSizes.length > 0 || variantSizes.length > 0) && (
+            <div className="space-y-3 pt-2">
+              {mainSizes.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Main Sizes</p>
+                  <div className="flex flex-wrap gap-2">
+                    {mainSizes.map(size => (
+                      <span key={`main-${size}`} className="px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-700">
+                        {size}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {variantSizes.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Variant Sizes</p>
+                  <div className="flex flex-wrap gap-2">
+                    {variantSizes.map(size => (
+                      <span key={`variant-${size}`} className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-[10px] font-black uppercase tracking-widest text-gray-700">
+                        {size}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
         {/* VARIANT SELECTOR */}
           {variants.length > 0 && (
