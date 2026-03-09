@@ -156,6 +156,13 @@ export const productApi = api.injectEndpoints({
       query: () => ({
         url: "/reviews/featured",
       }),
+      transformResponse: (response) => {
+        const reviews = Array.isArray(response)
+          ? response
+          : response?.reviews || response?.featuredReviews || response?.data || []
+
+        return { reviews }
+      },
       providesTags: ["Review"],
       keepUnusedDataFor: 300,
     }),

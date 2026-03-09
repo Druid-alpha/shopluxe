@@ -6,6 +6,7 @@ import Slider from 'react-slick'
 
 export default function FeaturedReviews() {
     const { data, isLoading } = useGetFeaturedReviewsQuery()
+    const featuredReviews = data?.reviews || []
 
     const settings = {
         dots: true,
@@ -29,7 +30,7 @@ export default function FeaturedReviews() {
         ]
     }
 
-    if (isLoading || !data?.reviews?.length) return null
+    if (isLoading || !featuredReviews.length) return null
 
     return (
         <section className="py-24 bg-gray-50/50 relative overflow-hidden">
@@ -54,7 +55,7 @@ export default function FeaturedReviews() {
 
                 <div className="relative">
                     <Slider {...settings} className="featured-reviews-slider">
-                        {data.reviews.map((review) => (
+                        {featuredReviews.map((review) => (
                             <div key={review._id} className="outline-none py-4">
                                 <div className="bg-white border border-gray-100 p-8 md:p-12 rounded-[2.5rem] shadow-xl shadow-gray-200/20 flex flex-col items-center text-center">
                                     <div className="mb-8 flex flex-col items-center gap-4">
@@ -77,7 +78,7 @@ export default function FeaturedReviews() {
                                     <div className="relative mb-10 max-w-2xl mx-auto">
                                         <Quote className="absolute -top-6 -left-6 text-gray-50 h-12 w-12 -z-10" />
                                         <p className="text-gray-600 text-lg md:text-xl leading-relaxed italic font-medium">
-                                            "{review.body}"
+                                            "{review.body || review.comment || ''}"
                                         </p>
                                     </div>
 
