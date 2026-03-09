@@ -346,13 +346,20 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
 
       fd.append('payload', JSON.stringify(payload))
 
+      let saved
       if (product?._id) {
-        await updateProduct({ id: product._id, formData: fd }).unwrap()
+        saved = await updateProduct({ id: product._id, formData: fd }).unwrap()
       } else {
-        await createProduct(fd).unwrap()
+        saved = await createProduct(fd).unwrap()
       }
 
-      toast({ title: 'Product saved successfully' })
+      const persistedSizes = saved?.product?.sizes
+      toast({
+        title: 'Product saved successfully',
+        description: Array.isArray(persistedSizes)
+          ? `Server saved sizes: ${persistedSizes.join(', ') || '(none)'}`
+          : 'Server did not return sizes field'
+      })
       onSuccess?.()
       if (closeOnSuccess) onClose?.()
     } catch (err) {
