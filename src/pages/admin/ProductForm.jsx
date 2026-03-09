@@ -69,7 +69,8 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   }
 
   const getSizesForType = type => {
-    const normalizedType = type === 'bag' ? 'bags' : type
+    const t = String(type || '').toLowerCase()
+    const normalizedType = t === 'bag' ? 'bags' : t
     return sizeOptionsByClothingType[normalizedType] || []
   }
 
@@ -87,7 +88,11 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     setBrand(editableProduct.brand?._id || '')
     setColor(editableProduct.color?._id || editableProduct.color || '')
     setTags(editableProduct.tags?.join(', ') || '')
-    setClothingType(editableProduct.clothingType || '')
+    const normalizedClothingType =
+      editableProduct.clothingType === 'bag'
+        ? 'bags'
+        : (editableProduct.clothingType || '')
+    setClothingType(normalizedClothingType)
     setDiscount(editableProduct.discount || 0)
 
     // MAIN IMAGES (EXISTING)
@@ -100,7 +105,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       editableProduct.variants?.map(v => ({
         _id: v._id, // ✅ ADD THIS LINE
         sku: v.sku || generateSKU(),
-        type: v.type || 'clothes',
+        type: (v.type === 'bag' ? 'bags' : (v.type || normalizedClothingType || '')),
         options: {
           color: v.options?.color?._id || v.options?.color || '',
           size: v.options?.size || ''
@@ -162,11 +167,13 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         )
         const stillValid = res.data.brands?.some(b => b._id === brand)
         if (!stillValid) setBrand('')
-        const isClothingCategory = categories.find(c => c._id === category)?.name.toLowerCase() === 'clothing'
-        if (!isClothingCategory) setClothingType('')
+        const selectedCategory = categories.find(c => c._id === category)
+        if (selectedCategory && selectedCategory.name?.toLowerCase() !== 'clothing') {
+          setClothingType('')
+        }
       })
       .catch(console.error)
-  }, [category])
+  }, [category, categories, brand])
 
   /* =====================================================
      VARIANT HANDLERS
@@ -201,6 +208,21 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   }
 
   const removeVariant = index => setVariants(prev => prev.filter((_, idx) => idx !== index))
+
+  const handleClothingTypeChange = value => {
+    const normalized = value === 'bag' ? 'bags' : value
+    setClothingType(normalized)
+    setVariants(prev =>
+      prev.map(v => ({
+        ...v,
+        type: normalized,
+        options: {
+          ...v.options,
+          size: getSizesForType(normalized).includes(v.options.size) ? v.options.size : ''
+        }
+      }))
+    )
+  }
 
   const handleVariantFile = (index, file) => {
     setVariants(prev => {
@@ -421,7 +443,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
             {isClothing && (
               <div>
                 <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Clothing Type</label>
-                <select value={clothingType} onChange={e => setClothingType(e.target.value)} className="w-full h-10 px-3 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-0 focus:border-black transition-colors appearance-none uppercase">
+                <select value={clothingType} onChange={e => handleClothingTypeChange(e.target.value)} className="w-full h-10 px-3 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-0 focus:border-black transition-colors appearance-none uppercase">
                   <option value="">Select type</option>
                   {clothingTypes.map(t => (
                     <option key={t} value={t}>{t}</option>
@@ -498,7 +520,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                   <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Size</label>
                   <select value={v.options.size} onChange={e => updateVariant(idx, 'size', e.target.value)} className="w-full h-10 px-3 py-2 text-[10px] border-white bg-white rounded-xl focus:outline-none focus:ring-0">
                     <option value="">Size</option>
-                    {getSizesForType(v.type || clothingType).map(s => (
+                    {getSizesForType(clothingType).map(s => (
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
