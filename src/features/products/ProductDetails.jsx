@@ -68,6 +68,9 @@ export default function ProductDetails() {
   // Show only explicitly selected/saved base sizes from ProductForm.
   // Do not auto-fill with all standard options here.
   const mainSizes = Array.isArray(product?.sizes) ? product.sizes : []
+  const defaultOptionLabel = mainSizes.length > 0
+    ? `Default (${mainSizes.join(', ')})`
+    : 'Default'
 
   /* ================= EFFECTS (ALWAYS BEFORE RETURN) ================= */
   React.useEffect(() => {
@@ -299,7 +302,7 @@ export default function ProductDetails() {
                     : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-gray-200'
                     }`}
                 >
-                  Default
+                  {defaultOptionLabel}
                 </button>
 
                 {variants.map((v, idx) => (
