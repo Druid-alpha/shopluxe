@@ -45,21 +45,10 @@ const slideInRight = {
 
 export default function Home() {
   const navigate = useNavigate()
-  const hasProductImage = React.useCallback((product) => {
-    const candidates = [
-      product?.images?.[0]?.url,
-      ...(product?.images || []).map((img) => img?.url),
-      product?.image?.url,
-      product?.image,
-      product?.thumbnail,
-      ...(product?.variants || []).map((variant) => variant?.image?.url),
-    ]
-    return candidates.some((value) => typeof value === 'string' && value.trim().length > 0)
-  }, [])
   const [stableFeaturedProducts, setStableFeaturedProducts] = React.useState(() => {
     try {
       const cached = JSON.parse(localStorage.getItem('homeFeaturedProducts') || '[]')
-      return Array.isArray(cached) ? cached.filter(hasProductImage) : []
+      return Array.isArray(cached) ? cached : []
     } catch {
       return []
     }
@@ -102,21 +91,21 @@ export default function Home() {
     : (fallbackData?.products || [])
 
   React.useEffect(() => {
-    const withImages = featuredProducts.filter(hasProductImage)
-    if (withImages.length > 0) {
-      setStableFeaturedProducts(withImages)
-      localStorage.setItem('homeFeaturedProducts', JSON.stringify(withImages))
+    if (featuredProducts.length > 0) {
+      setStableFeaturedProducts(featuredProducts)
+      localStorage.setItem('homeFeaturedProducts', JSON.stringify(featuredProducts))
     }
-  }, [featuredProducts, hasProductImage])
+  }, [featuredProducts])
 
   const displayedFeaturedProducts =
     featuredProducts.length > 0
-      ? featuredProducts.filter(hasProductImage)
+      ? featuredProducts
       : stableFeaturedProducts
 
   const isLoading = isFeaturedLoading || (shouldFetchFallback && isFallbackLoading)
   const isFetching = isFeaturedFetching || (shouldFetchFallback && isFallbackFetching)
   const isError = shouldFetchFallback ? isFallbackError : false
+  const showSkeleton = (isLoading || isFetching) && displayedFeaturedProducts.length === 0
 
   const handleRefetch = () => {
     refetchFeatured()
@@ -268,7 +257,7 @@ export default function Home() {
             variants={staggerContainer}
             className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4"
           >
-            {(isLoading || isFetching)
+            {showSkeleton
               ? Array.from({ length: 4 }).map((_, idx) => (
                 <div key={idx} className="animate-pulse border rounded-xl p-4 space-y-3">
                   <div className="h-48 bg-gray-200 rounded-lg w-full" />
