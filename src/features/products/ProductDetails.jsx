@@ -481,7 +481,7 @@ export default function ProductDetails() {
                         </span>
                       )}
                     </p>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-4 px-1 pb-1">
                       {variantColorOptions.map(c => {
                         const isSelected = selectedColorKey === c.key
                         return (
@@ -593,10 +593,16 @@ export default function ProductDetails() {
                     })}
                   </div>
                 ) : (
-                  <div className="flex items-center gap-3 p-4 bg-slate-50/50 backdrop-blur-sm rounded-2xl border border-slate-200/50">
+                  <div className="flex items-center gap-3 p-4 bg-slate-50/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 transition-all">
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Standard Edition</span>
-                      <span className="text-[9px] text-slate-500 font-bold uppercase">One Size Fits All</span>
+                      <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">
+                        {product.category?.name?.toLowerCase().includes('groceries') ? 'Fresh Stock' :
+                          product.category?.name?.toLowerCase().includes('electronics') ? 'Original Design' : 'Standard Edition'}
+                      </span>
+                      <span className="text-[9px] text-slate-500 font-bold uppercase">
+                        {product.category?.name?.toLowerCase().includes('groceries') ? 'Quality Assured' :
+                          product.category?.name?.toLowerCase().includes('electronics') ? 'Certified Product' : 'Authentic Item'}
+                      </span>
                     </div>
                   </div>
                 )}

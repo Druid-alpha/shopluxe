@@ -142,11 +142,11 @@ export default function ProductCard({ product }) {
       <Link to={`/products/${product._id}`} className="block relative aspect-[4/5] overflow-hidden bg-gray-50">
         {/* SALE BADGE */}
         {product.discount > 0 && (
-          <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5">
-            <span className="bg-white/40 backdrop-blur-md text-slate-900 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 shadow-[0_4px_12px_rgba(0,0,0,0.1)] rounded-lg border border-white/40 border-t-white/60">
+          <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5 animate-in fade-in zoom-in duration-500">
+            <span className="bg-white/60 backdrop-blur-lg text-slate-900 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 shadow-[0_8px_20px_rgba(255,255,255,0.3),0_4px_12px_rgba(0,0,0,0.1)] rounded-xl border border-white/50 border-t-white/80">
               Sale
             </span>
-            <span className="bg-rose-500/60 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-[0.1em] px-2.5 py-1 shadow-[0_8px_16px_rgba(244,63,94,0.3)] rounded-lg text-center border border-white/20 border-t-white/40">
+            <span className="bg-rose-500/80 backdrop-blur-lg text-white text-[10px] font-black uppercase tracking-[0.1em] px-2.5 py-1.2 shadow-[0_10px_20px_rgba(244,63,94,0.4)] rounded-xl text-center border border-white/30 border-t-white/50">
               -{product.discount}%
             </span>
           </div>
