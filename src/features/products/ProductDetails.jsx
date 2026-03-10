@@ -19,7 +19,7 @@ import { Heart } from 'lucide-react'
 import PriceDisplay from '@/components/PriceDisplay'
 import ReviewSummary from './ReviewSummary'
 
-/* ================= HELPERS ================= */
+
 const getImageUrl = (img) => {
   if (!img) return ''
   if (typeof img === 'string') return img
@@ -152,6 +152,19 @@ export default function ProductDetails() {
     }
   }, [product, mainImage])
 
+  // Sync image with purchaseMode and selectedVariant
+  React.useEffect(() => {
+    if (purchaseMode === 'base') {
+      if (product?.images?.[0]?.url) setMainImage(product.images[0].url)
+    } else {
+      if (selectedVariant?.image?.url) {
+        setMainImage(selectedVariant.image.url)
+      } else if (product?.images?.[0]?.url) {
+        setMainImage(product.images[0].url)
+      }
+    }
+  }, [purchaseMode, product, selectedVariant])
+
   // Auto-select first color when product loads
   React.useEffect(() => {
     if (!product) return
@@ -225,9 +238,10 @@ export default function ProductDetails() {
     id => id.toString() === product._id.toString() || id?.productId === product._id
   )
 
-  const currentStock = selectedVariant ? selectedVariant.stock : (product.stock ?? 0)
-  const currentPrice = selectedVariant ? selectedVariant.price : (product.price ?? 0)
-  const currentDiscount = Number(selectedVariant?.discount ?? product.discount ?? 0)
+  const effectiveVariant = purchaseMode === 'variant' ? selectedVariant : null
+  const currentStock = effectiveVariant ? effectiveVariant.stock : (product.stock ?? 0)
+  const currentPrice = effectiveVariant ? effectiveVariant.price : (product.price ?? 0)
+  const currentDiscount = Number(effectiveVariant?.discount ?? product.discount ?? 0)
   const discountedCurrentPrice = currentDiscount > 0
     ? Math.round((currentPrice || 0) * (1 - currentDiscount / 100))
     : (currentPrice || 0)
@@ -396,18 +410,18 @@ export default function ProductDetails() {
 
           {/* ─── PURCHASE MODE TOGGLE ─── */}
           {hasVariants && (mainSizes.length > 0 || !product.sizes?.length) && (
-            <div className="flex bg-gray-100 p-1 rounded-xl w-fit mt-4">
-              <button
-                onClick={() => setPurchaseMode('variant')}
-                className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${purchaseMode === 'variant' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
-              >
-                Buy Variant
-              </button>
+            <div className="flex bg-gray-100 p-1 rounded-xl w-fit mt-4 flex-wrap">
               <button
                 onClick={() => setPurchaseMode('base')}
                 className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${purchaseMode === 'base' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
               >
                 Buy Base Product
+              </button>
+              <button
+                onClick={() => setPurchaseMode('variant')}
+                className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${purchaseMode === 'variant' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                Buy Variant
               </button>
             </div>
           )}
@@ -473,17 +487,33 @@ export default function ProductDetails() {
                     {availableVariantSizes.map(size => {
                       const isSelected = selectedSize === size
                       const activeHex = selectedVariantColorHex || '#111'
+
+                      const variantForStock = variants.find(v => getColorMeta(v.options?.color).key === selectedColorKey && (v.options?.size || '') === size)
+                      const stockCount = variantForStock ? (variantForStock.stock ?? 0) : 0
+                      const isOOS = stockCount <= 0
+
                       return (
                         <button
                           key={`vsize-${size}`}
-                          onClick={() => setSelectedSize(size)}
-                          className="px-4 py-2 rounded-xl border-2 text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
-                          style={isSelected
+                          onClick={() => !isOOS && setSelectedSize(size)}
+                          disabled={isOOS}
+                          className={`relative px-4 py-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center min-w-[70px] ${isOOS ? 'opacity-50 bg-gray-50 border-gray-200 cursor-not-allowed text-gray-400' : 'hover:scale-105 active:scale-95 text-slate-700 bg-white border-gray-200'}`}
+                          style={(!isOOS && isSelected)
                             ? { backgroundColor: activeHex, color: '#fff', borderColor: activeHex }
-                            : { backgroundColor: '#fff', color: '#374151', borderColor: '#e5e7eb' }
+                            : undefined
                           }
                         >
-                          {size}
+                          <span className={`text-[11px] font-black uppercase tracking-widest ${isOOS ? 'line-through' : ''}`}>{size}</span>
+                          {!isOOS && (
+                            <span className="text-[8px] mt-0.5 opacity-80 lowercase tracking-wider font-semibold">
+                              {stockCount} left
+                            </span>
+                          )}
+                          {isOOS && (
+                            <span className="text-[8px] mt-0.5 opacity-80 uppercase tracking-wider font-bold">
+                              Out
+                            </span>
+                          )}
                         </button>
                       )
                     })}
