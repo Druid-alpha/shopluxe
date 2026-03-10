@@ -84,7 +84,7 @@ export default function Cart() {
 
     try {
       // Sync with backend in background
-      const data = await cartApi.updateCartItem(item.productId, newQty, item.variant);
+      const data = await cartApi.updateCartItem(item.productId, newQty, item.variantPayload || item.variant);
       dispatch(setCart(data));
     } catch (err) {
       console.error('Failed to update item:', err);
@@ -107,7 +107,7 @@ export default function Cart() {
       return
     }
     try {
-      const data = await cartApi.removeCartItem(item.productId, item.variant);
+      const data = await cartApi.removeCartItem(item.productId, item.variantPayload || item.variant);
       dispatch(setCart(data));
     } catch (err) {
       console.error('Failed to remove item:', err);
@@ -150,9 +150,9 @@ export default function Cart() {
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
                       <h3 className="font-black text-lg text-slate-900 tracking-tight uppercase leading-tight">{item.title}</h3>
-                      {item.variant && (
+                      {(item.variantLabel || typeof item.variant === 'string') && (
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded inline-block">
-                          {item.variant}
+                          {item.variantLabel || item.variant}
                         </p>
                       )}
                     </div>

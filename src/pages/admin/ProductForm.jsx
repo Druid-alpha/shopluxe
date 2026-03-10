@@ -14,6 +14,7 @@ import {
 
 export default function ProductForm({ product, onClose, onSuccess, closeOnSuccess = true }) {
   const { toast } = useToast()
+  const BASE_SIZE_TAG_PREFIX = '__base_sizes:'
   const DEFAULT_SIZE_OPTIONS_BY_TYPE = {
     clothes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
     shoes: ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46'],
@@ -78,6 +79,19 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     return sizeOptionsByClothingType[normalizedType] || []
   }
 
+  const parseBaseSizesFromTags = (rawTags = []) => {
+    const marker = (rawTags || []).find(t => typeof t === 'string' && t.startsWith(BASE_SIZE_TAG_PREFIX))
+    if (!marker) return []
+    return marker
+      .slice(BASE_SIZE_TAG_PREFIX.length)
+      .split('|')
+      .map(s => s.trim())
+      .filter(Boolean)
+  }
+
+  const stripBaseSizeTag = (rawTags = []) =>
+    (rawTags || []).filter(t => !(typeof t === 'string' && t.startsWith(BASE_SIZE_TAG_PREFIX)))
+
   /* =====================================================
      INITIALIZE PRODUCT (EDIT MODE)
   ===================================================== */
@@ -91,13 +105,15 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     setCategory(editableProduct.category?._id || '')
     setBrand(editableProduct.brand?._id || '')
     setColor(editableProduct.color?._id || editableProduct.color || '')
-    setTags(editableProduct.tags?.join(', ') || '')
+    const cleanedTags = stripBaseSizeTag(editableProduct.tags || [])
+    setTags(cleanedTags.join(', ') || '')
     const normalizedClothingType =
       editableProduct.clothingType === 'bag'
         ? 'bags'
         : (editableProduct.clothingType || '')
     setClothingType(normalizedClothingType)
-    setMainSizes(Array.isArray(editableProduct.sizes) ? editableProduct.sizes : [])
+    const fallbackSizes = parseBaseSizesFromTags(editableProduct.tags || [])
+    setMainSizes(Array.isArray(editableProduct.sizes) && editableProduct.sizes.length > 0 ? editableProduct.sizes : fallbackSizes)
     setDiscount(editableProduct.discount || 0)
 
     // MAIN IMAGES (EXISTING)
@@ -228,6 +244,15 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     )
   }
 
+  const toggleVariantSize = (index, size) => {
+    setVariants(prev => {
+      const copy = [...prev]
+      const current = copy[index].options?.size || ''
+      copy[index].options.size = current === size ? '' : size
+      return copy
+    })
+  }
+
   const handleVariantFile = (index, file) => {
     setVariants(prev => {
       const copy = [...prev]
@@ -328,6 +353,12 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         image: v.imageFile ? null : v.image
       }))
 
+      const plainTags = tags.split(',').map(t => t.trim()).filter(Boolean)
+      const payloadTags = [
+        ...stripBaseSizeTag(plainTags),
+        ...(mainSizes.length > 0 ? [`${BASE_SIZE_TAG_PREFIX}${mainSizes.join('|')}`] : [])
+      ]
+
       const payload = {
         title,
         description,
@@ -339,7 +370,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         clothingType: clothingType || undefined,
         sizes: mainSizes,
         discount: Number(discount),
-        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+        tags: payloadTags,
         variants: payloadVariants,
         images: existingImages // Pass existing images to keep
       }
@@ -419,20 +450,27 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
             <div>
               <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2 block">Main Product Sizes</label>
               <div className="flex flex-wrap gap-2">
-                {availableMainSizes.map(size => (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => toggleMainSize(size)}
-                    className={`px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg border transition-colors ${
-                      mainSizes.includes(size)
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-black'
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {availableMainSizes.map(size => {
+                  const checked = mainSizes.includes(size)
+                  return (
+                    <label
+                      key={size}
+                      className={`px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg border transition-colors cursor-pointer ${
+                        checked
+                          ? 'bg-black text-white border-black'
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-black'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleMainSize(size)}
+                        className="hidden"
+                      />
+                      {size}
+                    </label>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -554,12 +592,29 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
 
                 <div>
                   <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Size</label>
-                  <select value={v.options.size} onChange={e => updateVariant(idx, 'size', e.target.value)} className="w-full h-10 px-3 py-2 text-[10px] border-white bg-white rounded-xl focus:outline-none focus:ring-0">
-                    <option value="">Size</option>
-                    {getSizesForType(clothingType).map(s => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
+                  <div className="flex flex-wrap gap-2">
+                    {getSizesForType(clothingType).map(s => {
+                      const checked = v.options?.size === s
+                      return (
+                        <label
+                          key={s}
+                          className={`px-2 py-1 text-[9px] font-black uppercase tracking-widest rounded-lg border transition-colors cursor-pointer ${
+                            checked
+                              ? 'bg-black text-white border-black'
+                              : 'bg-white text-gray-600 border-gray-200 hover:border-black'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleVariantSize(idx, s)}
+                            className="hidden"
+                          />
+                          {s}
+                        </label>
+                      )
+                    })}
+                  </div>
                 </div>
 
                 <div>

@@ -3,6 +3,16 @@ import { createSlice } from "@reduxjs/toolkit"
 const sortNewestFirst = (items = []) =>
   [...items].sort((a, b) => new Date(b.addedAt || 0) - new Date(a.addedAt || 0))
 
+const getVariantKey = (variant) => {
+  if (!variant) return "default"
+  if (typeof variant === "string") return variant || "default"
+  if (variant?.sku) return variant.sku
+  const size = variant?.size || ""
+  const color = variant?.color || ""
+  const combined = `${color}|${size}`.trim()
+  return combined === "|" ? "default" : combined
+}
+
 const persistGuestCart = (items) => {
   localStorage.setItem("guestCart", JSON.stringify(items))
 }
@@ -13,7 +23,7 @@ const loadGuestCart = () => {
     const seedTime = Date.now()
     const normalized = saved.map((item, index) => ({
       ...item,
-      key: item.key || `${item.productId}-${item.variant || "default"}`,
+      key: item.key || `${item.productId}-${getVariantKey(item.variant)}`,
       addedAt: item.addedAt || new Date(seedTime + index).toISOString(),
     }))
     return sortNewestFirst(normalized)
@@ -40,10 +50,9 @@ const cartSlice = createSlice({
       const item = action.payload
       const addedAt = item.addedAt || new Date().toISOString()
 
-      const exists = state.items.find(
-        i =>
-          i.productId === item.productId &&
-          (i.variant || "") === (item.variant || "")
+      const exists = state.items.find(i =>
+        i.productId === item.productId &&
+        getVariantKey(i.variant) === getVariantKey(item.variant)
       )
 
       if (exists) {

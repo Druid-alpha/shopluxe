@@ -2,6 +2,29 @@ import axios from "@/lib/axios";
 
 const API = `${import.meta.env.VITE_API_URL}/cart`
 
+const getVariantKey = (variant) => {
+  if (!variant) return "default";
+  if (typeof variant === "string") return variant || "default";
+  if (variant?.sku) return variant.sku;
+  const size = variant?.size || "";
+  const color = variant?.color || "";
+  const combined = `${color}|${size}`.trim();
+  return combined === "|" ? "default" : combined;
+};
+
+const getColorName = (rawColor) => {
+  if (!rawColor) return "";
+  if (typeof rawColor === "string") return rawColor;
+  return rawColor.name || "";
+};
+
+const buildVariantLabel = ({ variantSku, size, colorName }) => {
+  if (colorName && size) return `${colorName} / ${size}`;
+  if (size) return `Size: ${size}`;
+  if (colorName) return `Color: ${colorName}`;
+  return variantSku || "";
+};
+
 // 🔥 Normalize cart for frontend
 export const normalizeCart = (cart) => {
   if (!cart || !Array.isArray(cart)) return [];
@@ -17,6 +40,20 @@ export const normalizeCart = (cart) => {
           : item.variant?.sku || null;
 
       const variantObj = product.variants?.find(v => v.sku === variantSku) || null;
+      const variantSize = variantObj?.options?.size || item.variant?.size || null
+      const variantColorObj = variantObj?.options?.color || null
+      const variantColorName = getColorName(variantColorObj) || getColorName(item.variant?.color)
+      const variantColorValue = variantColorObj?._id || variantColorObj?.name || item.variant?.color || null
+      const variantLabel = buildVariantLabel({
+        variantSku,
+        size: variantSize,
+        colorName: variantColorName
+      })
+      const variantPayload = {
+        ...(variantSku ? { sku: variantSku } : {}),
+        ...(variantSize ? { size: variantSize } : {}),
+        ...(variantColorValue ? { color: variantColorValue } : {})
+      }
       const productImage =
         variantObj?.image?.url || product.images?.[0]?.url || null
       const basePrice = Number(variantObj?.price ?? product.price ?? 0)
@@ -28,7 +65,7 @@ export const normalizeCart = (cart) => {
       const addedAt = item.addedAt || item.createdAt || item.updatedAt || fallbackAddedAt
 
       return {
-        key: `${product._id || product.id || Math.random()}-${variantSku || 'default'}`,
+        key: `${product._id || product.id || Math.random()}-${getVariantKey(item.variant)}`,
         productId: product._id || product.id,
         title: product.title || 'Product',
         price: finalPrice,
@@ -36,6 +73,10 @@ export const normalizeCart = (cart) => {
         discount,
         qty: item.qty,
         variant: variantSku,
+        variantPayload,
+        variantLabel,
+        variantSize,
+        variantColor: variantColorObj || item.variant?.color || null,
         variantStock: variantObj?.stock,
         productStock: product.stock,
         productImage,
@@ -51,29 +92,26 @@ export const getCart = async () => {
 };
 
 export const addToCart = async (productId, qty = 1, variant = null) => {
-  const variantSku = typeof variant === 'string' ? variant : variant?.sku ?? null;
   const res = await axios.post(
     `${API}/add`,
-    { productId, qty, variant: variantSku },
+    { productId, qty, variant },
     { withCredentials: true }
   );
   return normalizeCart(res.data.cart);
 };
 
 export const updateCartItem = async (productId, qty, variant = null) => {
-  const variantSku = typeof variant === 'string' ? variant : variant?.sku ?? null;
   const res = await axios.put(
     `${API}/update`,
-    { productId, qty, variant: variantSku },
+    { productId, qty, variant },
     { withCredentials: true }
   );
   return normalizeCart(res.data.cart);
 };
 
 export const removeCartItem = async (productId, variant = null) => {
-  const variantSku = typeof variant === 'string' ? variant : variant?.sku ?? null;
   const res = await axios.delete(`${API}/remove`, {
-    data: { productId, variant: variantSku },
+    data: { productId, variant },
     withCredentials: true
   });
   return normalizeCart(res.data.cart);

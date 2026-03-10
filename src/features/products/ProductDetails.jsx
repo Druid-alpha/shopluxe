@@ -27,6 +27,7 @@ const getImageUrl = (img) => {
 }
 
 export default function ProductDetails() {
+  const BASE_SIZE_TAG_PREFIX = '__base_sizes:'
   const { id } = useParams()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
@@ -60,17 +61,61 @@ export default function ProductDetails() {
   /* ================= STATE ================= */
   const [mainImage, setMainImage] = React.useState('')
   const [selectedVariantIndex, setSelectedVariantIndex] = React.useState(-1) // -1 means base product
+  const [selectedBaseSize, setSelectedBaseSize] = React.useState('')
+  const [selectedColorKey, setSelectedColorKey] = React.useState('')
+  const [selectedSize, setSelectedSize] = React.useState('')
   const [quantity, setQuantity] = React.useState(1)
   const [isAdding, setIsAdding] = React.useState(false)
 
   const variants = product?.variants || []
   const selectedVariant = selectedVariantIndex >= 0 ? variants[selectedVariantIndex] : null
+  const parseBaseSizesFromTags = (rawTags = []) => {
+    const marker = (rawTags || []).find(t => typeof t === 'string' && t.startsWith(BASE_SIZE_TAG_PREFIX))
+    if (!marker) return []
+    return marker
+      .slice(BASE_SIZE_TAG_PREFIX.length)
+      .split('|')
+      .map(s => s.trim())
+      .filter(Boolean)
+  }
   // Show only explicitly selected/saved base sizes from ProductForm.
   // Do not auto-fill with all standard options here.
-  const mainSizes = Array.isArray(product?.sizes) ? product.sizes : []
-  const defaultOptionLabel = mainSizes.length > 0
-    ? `Default (${mainSizes.join(', ')})`
-    : 'Default'
+  const mainSizes = Array.isArray(product?.sizes) && product.sizes.length > 0
+    ? product.sizes
+    : parseBaseSizesFromTags(product?.tags || [])
+  const getColorMeta = (rawColor) => {
+    if (!rawColor) return { key: 'no-color', name: 'No Color', hex: null, raw: rawColor }
+    if (typeof rawColor === 'string') {
+      return { key: rawColor, name: rawColor, hex: null, raw: rawColor }
+    }
+    const key = rawColor._id || rawColor.name || 'color'
+    return { key, name: rawColor.name || 'Color', hex: rawColor.hex || null, raw: rawColor }
+  }
+
+  const variantColorOptions = React.useMemo(() => {
+    const map = new Map()
+    variants.forEach(v => {
+      const meta = getColorMeta(v.options?.color)
+      if (!map.has(meta.key)) map.set(meta.key, meta)
+    })
+    return Array.from(map.values())
+  }, [variants])
+
+  const variantSizesByColor = React.useMemo(() => {
+    const map = new Map()
+    variants.forEach(v => {
+      const meta = getColorMeta(v.options?.color)
+      const size = v.options?.size
+      const sizes = Array.isArray(size) ? size : (size ? [size] : [])
+      if (!map.has(meta.key)) map.set(meta.key, new Set())
+      sizes.forEach(s => map.get(meta.key).add(s))
+    })
+    return map
+  }, [variants])
+
+  const availableVariantSizes = selectedColorKey && variantSizesByColor.has(selectedColorKey)
+    ? Array.from(variantSizesByColor.get(selectedColorKey))
+    : Array.from(new Set(Array.from(variantSizesByColor.values()).flatMap(set => Array.from(set))))
 
   /* ================= EFFECTS (ALWAYS BEFORE RETURN) ================= */
   React.useEffect(() => {
@@ -78,6 +123,42 @@ export default function ProductDetails() {
       setMainImage(product.images?.[0]?.url || '')
     }
   }, [product, mainImage])
+
+  React.useEffect(() => {
+    if (!product) return
+    if (variants.length > 0) {
+      const first = variants[0]
+      const meta = getColorMeta(first.options?.color)
+      if (!selectedColorKey) setSelectedColorKey(meta.key)
+      if (!selectedSize && first.options?.size) setSelectedSize(first.options.size)
+    } else {
+      setSelectedVariantIndex(-1)
+      if (mainSizes.length > 0 && !selectedBaseSize) setSelectedBaseSize(mainSizes[0])
+    }
+  }, [product, variants, mainSizes, selectedColorKey, selectedSize, selectedBaseSize])
+
+  React.useEffect(() => {
+    if (availableVariantSizes.length === 0) return
+    if (selectedSize && !availableVariantSizes.includes(selectedSize)) {
+      setSelectedSize('')
+    }
+  }, [availableVariantSizes, selectedSize])
+
+  React.useEffect(() => {
+    if (variants.length === 0) return
+    if (!selectedColorKey && !selectedSize) return
+    const idx = variants.findIndex(v => {
+      const meta = getColorMeta(v.options?.color)
+      const size = v.options?.size || ''
+      const colorMatch = selectedColorKey ? meta.key === selectedColorKey : true
+      const sizeMatch = selectedSize ? size === selectedSize : true
+      return colorMatch && sizeMatch
+    })
+    if (idx >= 0 && idx !== selectedVariantIndex) {
+      setSelectedVariantIndex(idx)
+      if (variants[idx]?.image?.url) setMainImage(variants[idx].image.url)
+    }
+  }, [variants, selectedColorKey, selectedSize, selectedVariantIndex])
 
 
   /* ================= SAFE EARLY RETURNS ================= */
@@ -119,14 +200,28 @@ export default function ProductDetails() {
     : (currentPrice || 0)
 
   const handleAddToCart = async () => {
+    if (variants.length > 0 && selectedVariantIndex >= 0) {
+      if (!selectedColorKey || (availableVariantSizes.length > 0 && !selectedSize)) {
+        toast({ title: 'Select color and size before adding', variant: 'destructive' })
+        return
+      }
+    } else if (variants.length > 0 && selectedVariantIndex === -1 && mainSizes.length === 0) {
+      toast({ title: 'Select a variant before adding', variant: 'destructive' })
+      return
+    } else if (mainSizes.length > 0 && !selectedBaseSize) {
+      toast({ title: 'Select a size before adding', variant: 'destructive' })
+      return
+    }
     if (!user) {
 
       const variantPayload = selectedVariant
         ? {
           _id: selectedVariant._id,
-          sku: selectedVariant.sku
+          sku: selectedVariant.sku,
+          size: selectedVariant.options?.size || selectedSize || undefined,
+          color: selectedVariant.options?.color?._id || selectedVariant.options?.color?.name || selectedVariant.options?.color || undefined
         }
-        : null
+        : (selectedBaseSize ? { size: selectedBaseSize } : null)
 
       dispatch(addGuestCart({
   productId: product._id,
@@ -137,10 +232,13 @@ export default function ProductDetails() {
   productImage: mainImage,
   productStock: product.stock ?? 0,
   qty: quantity,
-  variant: variantPayload?.sku || null,
+  variant: variantPayload || null,
+  variantLabel: selectedVariant
+    ? `${(selectedVariant.options?.color?.name || selectedVariant.options?.color || '').trim()}${selectedVariant.options?.size ? ` / ${selectedVariant.options?.size}` : ''}`.trim()
+    : (selectedBaseSize ? `Size: ${selectedBaseSize}` : ''),
   variantStock: selectedVariant?.stock,
   addedAt: new Date().toISOString(),
-  key: `${product._id}-${variantPayload?.sku || 'default'}`
+  key: `${product._id}-${variantPayload?.sku || variantPayload?.size || 'default'}`
 }))
 
       toast({ title: 'Added to cart (Guest)' })
@@ -161,9 +259,11 @@ export default function ProductDetails() {
       const variantPayload = selectedVariant
         ? {
           _id: selectedVariant._id,
-          sku: selectedVariant.sku
+          sku: selectedVariant.sku,
+          size: selectedVariant.options?.size || selectedSize || undefined,
+          color: selectedVariant.options?.color?._id || selectedVariant.options?.color?.name || selectedVariant.options?.color || undefined
         }
-        : null
+        : (selectedBaseSize ? { size: selectedBaseSize } : null)
 
       const updatedCart = await cartApi.addToCart(
         product._id,
@@ -274,11 +374,25 @@ export default function ProductDetails() {
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Main Sizes</p>
                 <div className="flex flex-wrap gap-2">
-                  {mainSizes.map(size => (
-                    <span key={`main-${size}`} className="px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-700">
-                      {size}
-                    </span>
-                  ))}
+                  {mainSizes.map(size => {
+                    const checked = selectedBaseSize === size
+                    return (
+                      <button
+                        key={`main-${size}`}
+                        onClick={() => {
+                          setSelectedVariantIndex(-1)
+                          setSelectedBaseSize(size)
+                        }}
+                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all ${
+                          checked
+                            ? 'border-black bg-black text-white'
+                            : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-black'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </div>
@@ -291,36 +405,64 @@ export default function ProductDetails() {
                 <span>Select Option</span>
                 <span>{variants.length} Options available</span>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => {
-                    setSelectedVariantIndex(-1)
-                    setMainImage(product.images?.[0]?.url || '')
-                  }}
-                  className={`px-5 py-3 border-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedVariantIndex === -1
-                    ? 'border-black bg-black text-white shadow-xl scale-105'
-                    : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-gray-200'
-                    }`}
-                >
-                  {defaultOptionLabel}
-                </button>
+              <div className="space-y-3">
+                {variantColorOptions.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Color</p>
+                    <div className="flex flex-wrap gap-2">
+                      {variantColorOptions.map(c => {
+                        const isSelected = selectedColorKey === c.key
+                        return (
+                          <button
+                            key={`color-${c.key}`}
+                            onClick={() => {
+                              setSelectedColorKey(c.key)
+                              const sizesForColor = variantSizesByColor.get(c.key)
+                              if (sizesForColor && sizesForColor.size > 0) {
+                                setSelectedSize(Array.from(sizesForColor)[0])
+                              }
+                            }}
+                            className={`w-10 h-10 rounded-full border-2 transition-all flex items-center justify-center ${
+                              isSelected ? 'border-black scale-105' : 'border-gray-200 hover:border-gray-400'
+                            }`}
+                            style={c.hex ? { backgroundColor: c.hex } : undefined}
+                            title={c.name}
+                          >
+                            {!c.hex && (
+                              <span className="text-[8px] font-black uppercase tracking-widest text-gray-500">
+                                {c.name?.slice(0, 3) || 'N/A'}
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
 
-                {variants.map((v, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setSelectedVariantIndex(idx)
-                      if (v.image?.url) setMainImage(v.image.url)
-                    }}
-                    className={`px-5 py-3 border-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedVariantIndex === idx
-                      ? 'border-black bg-black text-white shadow-xl scale-105'
-                      : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-gray-200'
-                      }`}
-                  >
-                    {v.options?.color?.name || v.options?.color || ''} {v.options?.size || ''}
-                    {!v.options?.color && !v.options?.size && (v.sku || `V${idx + 1}`)}
-                  </button>
-                ))}
+                {availableVariantSizes.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Size</p>
+                    <div className="flex flex-wrap gap-2">
+                      {availableVariantSizes.map(size => {
+                        const checked = selectedSize === size
+                        return (
+                          <button
+                            key={`variant-size-${size}`}
+                            onClick={() => setSelectedSize(size)}
+                            className={`px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all ${
+                              checked
+                                ? 'border-black bg-black text-white'
+                                : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-black'
+                            }`}
+                          >
+                            {size}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
