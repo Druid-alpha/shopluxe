@@ -454,6 +454,22 @@ export default function ProductDetails() {
                 <span>{variants.length} Options available</span>
               </div>
               <div className="space-y-3">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Base Product</p>
+                  <button
+                    onClick={() => {
+                      setSelectedVariantIndex(-1)
+                      if (product.images?.[0]?.url) setMainImage(product.images[0].url)
+                    }}
+                    className={`px-4 py-2 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all ${
+                      selectedVariantIndex === -1
+                        ? 'border-black bg-black text-white'
+                        : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-black'
+                    }`}
+                  >
+                    Use base product
+                  </button>
+                </div>
                 {variantColorOptions.length > 0 && (
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Color</p>
