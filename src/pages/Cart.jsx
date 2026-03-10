@@ -8,6 +8,63 @@ import * as cartApi from '@/features/cart/cartApi';
 import { Trash, Loader2, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+const CLOTHING_TYPES = new Set(['clothes', 'shoes', 'bags', 'eyeglass'])
+const SIZE_TYPE_LABEL = {
+  clothes: 'Size',
+  shoes: 'Shoe',
+  bags: 'Size',
+  eyeglass: 'Frame'
+}
+
+function VariantBadges({ item }) {
+  const isClothing = CLOTHING_TYPES.has(item.clothingType)
+  const colorHex = item.variantColorHex || null
+  const colorName = item.variantColorName || (item.variantLabel?.split(' / ')?.[0] || '')
+  const size = item.variantSize || item.variantLabel?.split(' / ')?.[1] || ''
+  const sizeTypeLabel = SIZE_TYPE_LABEL[item.clothingType] || 'Size'
+
+  if (!colorName && !size && !item.variantLabel) return null
+
+  if (isClothing) {
+    return (
+      <div className="flex flex-wrap items-center gap-2 mt-1">
+        {colorName && (
+          <span className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500">
+            {colorHex && (
+              <span
+                className="inline-block w-3 h-3 rounded-full border border-gray-200 flex-shrink-0"
+                style={{ backgroundColor: colorHex }}
+              />
+            )}
+            {colorName}
+          </span>
+        )}
+        {size && (
+          <span className="bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500">
+            {sizeTypeLabel}: {size}
+          </span>
+        )}
+        {!colorName && !size && item.variantLabel && (
+          <span className="bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500">
+            {item.variantLabel}
+          </span>
+        )}
+      </div>
+    )
+  }
+
+  // Non-clothing: show simple label tag
+  if (item.variantLabel || item.variant) {
+    return (
+      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded inline-block mt-1">
+        {item.variantLabel || item.variant}
+      </p>
+    )
+  }
+
+  return null
+}
+
 export default function Cart() {
   const cart = useAppSelector(state => state.cart.items);
   const user = useAppSelector(state => state.auth.user)
@@ -56,8 +113,7 @@ export default function Cart() {
 
   /* ================= CHANGE QUANTITY ================= */
   const changeQty = async (item, delta) => {
-    if (updatingItems[item.key]) return // Prevent multi-clicks
-
+    if (updatingItems[item.key]) return
     const currentQty = Number(item.qty);
     const stockValue = item.variantStock ?? item.productStock
     const availableStock = Number.isFinite(stockValue) ? Number(stockValue) : Number.POSITIVE_INFINITY
@@ -76,19 +132,16 @@ export default function Cart() {
       return
     }
 
-    // Optimistic UI Update  
     const optimisticCart = cart.map(cartItem =>
       cartItem.key === item.key ? { ...cartItem, qty: newQty } : cartItem
     )
     dispatch(setCart(optimisticCart))
 
     try {
-      // Sync with backend in background
       const data = await cartApi.updateCartItem(item.productId, newQty, item.variantPayload || item.variant);
       dispatch(setCart(data));
     } catch (err) {
       console.error('Failed to update item:', err);
-      // Revert to original cart on error
       dispatch(setCart(cart));
       toast({
         title: 'Failed to update cart',
@@ -132,74 +185,71 @@ export default function Cart() {
               const maxStock = hasKnownStock ? Number(stockValue) : Number.POSITIVE_INFINITY
 
               return (
-              <div
-                key={item.key}
-                className="flex flex-col sm:flex-row items-center sm:items-start gap-8 group"
-              >
-                {/* Product Image */}
-                <div className="w-full sm:w-40 aspect-[4/5] bg-gray-50 rounded-2xl overflow-hidden flex-shrink-0 border border-gray-100 p-4 transition-all group-hover:shadow-md">
-                  <img
-                    src={item.productImage || item.product?.images?.[0]?.url || 'https://via.placeholder.com/150'}
-                    alt={item.title}
-                    className="w-full h-full object-contain mix-blend-multiply transition-transform group-hover:scale-105 duration-500"
-                  />
-                </div>
+                <div
+                  key={item.key}
+                  className="flex flex-col sm:flex-row items-center sm:items-start gap-8 group"
+                >
+                  {/* Product Image */}
+                  <div className="w-full sm:w-40 aspect-[4/5] bg-gray-50 rounded-2xl overflow-hidden flex-shrink-0 border border-gray-100 p-4 transition-all group-hover:shadow-md">
+                    <img
+                      src={item.productImage || 'https://via.placeholder.com/150'}
+                      alt={item.title}
+                      className="w-full h-full object-contain mix-blend-multiply transition-transform group-hover:scale-105 duration-500"
+                    />
+                  </div>
 
-                {/* Product Details */}
-                <div className="flex-1 w-full space-y-4 pt-2">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <h3 className="font-black text-lg text-slate-900 tracking-tight uppercase leading-tight">{item.title}</h3>
-                      {(item.variantLabel || typeof item.variant === 'string') && (
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded inline-block">
-                          {item.variantLabel || item.variant}
+                  {/* Product Details */}
+                  <div className="flex-1 w-full space-y-4 pt-2">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <h3 className="font-black text-lg text-slate-900 tracking-tight uppercase leading-tight">{item.title}</h3>
+                        <VariantBadges item={item} />
+                      </div>
+                      <div className="text-right">
+                        <p className="font-black text-lg text-slate-900">
+                          ₦{((item.price || 0) * (item.qty || 1)).toLocaleString()}
                         </p>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <p className="font-black text-lg text-slate-900">
-                        ₦{((item.price || 0) * (item.qty || 1)).toLocaleString()}
-                      </p>
-                      <p className="text-[10px] font-bold text-gray-300 tracking-widest uppercase">₦{(item.price || 0).toLocaleString()} /ea</p>
-                    </div>
-                  </div>
-
-                  {/* Quantity & Remove actions */}
-                  <div className="flex items-center justify-between pt-6">
-                    <div className="flex items-center bg-gray-50 rounded-xl px-2 border border-gray-100">
-                      <button
-                        className="w-10 h-10 flex items-center justify-center font-bold text-gray-400 hover:text-black transition disabled:opacity-20"
-                        onClick={() => changeQty(item, -1)}
-                        disabled={updatingItems[item.key] || item.qty <= 1}
-                      >
-                        -
-                      </button>
-                      <span className="w-12 text-center text-xs font-black tracking-widest">
-                        {updatingItems[item.key] ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : item.qty}
-                      </span>
-                      <button
-                        className="w-10 h-10 flex items-center justify-center font-bold text-gray-400 hover:text-black transition disabled:opacity-20"
-                        onClick={() => changeQty(item, 1)}
-                        disabled={updatingItems[item.key] || item.qty >= maxStock}
-                      >
-                        +
-                      </button>
+                        <p className="text-[10px] font-bold text-gray-300 tracking-widest uppercase">₦{(item.price || 0).toLocaleString()} /ea</p>
+                      </div>
                     </div>
 
-                    <button
-                      className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-700 flex items-center gap-2 px-4 py-2 rounded-full hover:bg-red-50 transition-all active:scale-95"
-                      onClick={() => removeItem(item)}
-                    >
-                      <Trash size={14} /> Remove
-                    </button>
+                    {/* Quantity & Remove */}
+                    <div className="flex items-center justify-between pt-6">
+                      <div className="flex items-center bg-gray-50 rounded-xl px-2 border border-gray-100">
+                        <button
+                          className="w-10 h-10 flex items-center justify-center font-bold text-gray-400 hover:text-black transition disabled:opacity-20"
+                          onClick={() => changeQty(item, -1)}
+                          disabled={updatingItems[item.key] || item.qty <= 1}
+                        >
+                          -
+                        </button>
+                        <span className="w-12 text-center text-xs font-black tracking-widest">
+                          {updatingItems[item.key] ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : item.qty}
+                        </span>
+                        <button
+                          className="w-10 h-10 flex items-center justify-center font-bold text-gray-400 hover:text-black transition disabled:opacity-20"
+                          onClick={() => changeQty(item, 1)}
+                          disabled={updatingItems[item.key] || item.qty >= maxStock}
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <button
+                        className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-700 flex items-center gap-2 px-4 py-2 rounded-full hover:bg-red-50 transition-all active:scale-95"
+                        onClick={() => removeItem(item)}
+                      >
+                        <Trash size={14} /> Remove
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )})}
+              )
+            })}
           </div>
         </div>
 
-        {/* Order Summary (Right 1/3) */}
+        {/* Order Summary */}
         <div className="lg:w-1/3">
           <div className="bg-gray-50 rounded-xl p-6 md:p-8 space-y-6 sticky top-24 border border-gray-200/60 shadow-sm">
             <h2 className="text-xl font-bold text-gray-900 border-b border-gray-200 pb-4">Order Summary</h2>
@@ -217,7 +267,6 @@ export default function Cart() {
                 <span>Tax</span>
                 <span className="font-medium text-gray-900">₦0</span>
               </div>
-
               <div className="flex justify-between text-lg font-bold text-gray-900 pt-2">
                 <span>Total</span>
                 <span>₦{total.toLocaleString()}</span>
@@ -236,7 +285,7 @@ export default function Cart() {
                 onClick={() => navigate('/')}
                 className="text-sm text-gray-500 hover:text-black font-medium transition-colors"
               >
-                 Continue Shopping →
+                Continue Shopping →
               </button>
             </div>
           </div>

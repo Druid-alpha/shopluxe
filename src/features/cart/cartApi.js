@@ -34,7 +34,7 @@ export const normalizeCart = (cart) => {
   const seedTime = Date.now()
 
   return cart
-    .filter(item => item.product && (typeof item.product === 'object')) // Safety: Filter out unpopulated/deleted products
+    .filter(item => item.product && (typeof item.product === 'object'))
     .map((item, index) => {
       const product = item.product;
       const variantSku =
@@ -46,6 +46,9 @@ export const normalizeCart = (cart) => {
       const variantSize = variantObj?.options?.size || item.variant?.size || null
       const variantColorObj = variantObj?.options?.color || null
       const variantColorName = getColorName(variantColorObj) || getColorName(item.variant?.color)
+      const variantColorHex = (variantColorObj && typeof variantColorObj === 'object' && variantColorObj.hex)
+        ? variantColorObj.hex
+        : null
       const variantColorValue = variantColorObj?._id || variantColorObj?.name || item.variant?.color || null
       const variantLabel = buildVariantLabel({
         variantSku,
@@ -80,8 +83,11 @@ export const normalizeCart = (cart) => {
         variantLabel,
         variantSize,
         variantColor: variantColorObj || item.variant?.color || null,
+        variantColorHex,
+        variantColorName,
         variantStock: variantObj?.stock,
         productStock: product.stock,
+        clothingType: product.clothingType || null,
         productImage,
         addedAt
       };

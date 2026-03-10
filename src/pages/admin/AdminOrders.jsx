@@ -115,23 +115,40 @@ export default function AdminOrders() {
                     <div className="text-xs text-gray-400">{order.user?.email || 'N/A'}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1 max-w-xs">
-                      {order.items?.map((item, idx) => (
-                        <span key={idx} className="bg-gray-100 px-2 py-0.5 rounded text-[10px] font-medium text-gray-600 border border-gray-200">
-                          {item.title || 'Product'} x{item.qty}
-                          {(item.variant?.color || item.variant?.size || item.variant?.sku) && (
-                            <span className="text-[9px] text-gray-500 ml-1">
-                              (
-                              {item.variant?.color ? `Color: ${item.variant.color}` : ''}
-                              {item.variant?.color && (item.variant?.size || item.variant?.sku) ? ' • ' : ''}
-                              {item.variant?.size ? `Size: ${item.variant.size}` : ''}
-                              {(item.variant?.size && item.variant?.sku) ? ' • ' : ''}
-                              {item.variant?.sku ? `SKU: ${item.variant.sku}` : ''}
-                              )
+                    <div className="flex flex-wrap gap-1.5 max-w-xs">
+                      {order.items?.map((item, idx) => {
+                        const hasVariant = item.variant?.color || item.variant?.size
+                        const isClothing = ['clothes', 'shoes', 'bags', 'eyeglass'].includes(item.clothingType)
+                        return (
+                          <div key={idx} className="flex flex-col gap-1">
+                            <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px] font-medium text-gray-700 border border-gray-200">
+                              {item.title || 'Product'} ×{item.qty}
                             </span>
-                          )}
-                        </span>
-                      ))}
+                            {hasVariant && (
+                              <div className="flex flex-wrap gap-1">
+                                {item.variant?.color && (
+                                  <span className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-gray-500">
+                                    <span className="w-2.5 h-2.5 rounded-full border border-gray-300 flex-shrink-0 bg-gray-300"
+                                      style={{ backgroundColor: undefined }}
+                                    />
+                                    {item.variant.color}
+                                  </span>
+                                )}
+                                {item.variant?.size && (
+                                  <span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-slate-600">
+                                    {isClothing
+                                      ? (item.clothingType === 'shoes' ? `Shoe: ${item.variant.size}`
+                                        : item.clothingType === 'eyeglass' ? `Frame: ${item.variant.size}`
+                                          : `Size: ${item.variant.size}`)
+                                      : `Size: ${item.variant.size}`
+                                    }
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
                     </div>
                   </td>
                   <td className="px-6 py-4">

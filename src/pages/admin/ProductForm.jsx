@@ -31,9 +31,9 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const [category, setCategory] = useState('')
   const [brand, setBrand] = useState('')
   const [tags, setTags] = useState('')
-  const [images, setImages] = useState([]) // NEW UPLOADS
-  const [existingImages, setExistingImages] = useState([]) // IMAGES FROM SERVER
-  const [imagePreviews, setImagePreviews] = useState([]) // NEW UPLOADS PREVIEWS
+  const [images, setImages] = useState([])
+  const [existingImages, setExistingImages] = useState([])
+  const [imagePreviews, setImagePreviews] = useState([])
   const [clothingType, setClothingType] = useState('')
   const [mainSizes, setMainSizes] = useState([])
   const [discount, setDiscount] = useState(0)
@@ -45,9 +45,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const [categories, setCategories] = useState([])
   const [brands, setBrands] = useState([])
   const [colors, setColors] = useState([])
-  const [sizeOptionsByClothingType, setSizeOptionsByClothingType] = useState({
-    ...DEFAULT_SIZE_OPTIONS_BY_TYPE
-  })
+  const [sizeOptionsByClothingType, setSizeOptionsByClothingType] = useState({ ...DEFAULT_SIZE_OPTIONS_BY_TYPE })
   const clothingTypes = ['clothes', 'shoes', 'bags', 'eyeglass']
 
   // ---------------- ERRORS ----------------
@@ -82,11 +80,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const parseBaseSizesFromTags = (rawTags = []) => {
     const marker = (rawTags || []).find(t => typeof t === 'string' && t.startsWith(BASE_SIZE_TAG_PREFIX))
     if (!marker) return []
-    return marker
-      .slice(BASE_SIZE_TAG_PREFIX.length)
-      .split('|')
-      .map(s => s.trim())
-      .filter(Boolean)
+    return marker.slice(BASE_SIZE_TAG_PREFIX.length).split('|').map(s => s.trim()).filter(Boolean)
   }
 
   const stripBaseSizeTag = (rawTags = []) =>
@@ -108,23 +102,18 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     const cleanedTags = stripBaseSizeTag(editableProduct.tags || [])
     setTags(cleanedTags.join(', ') || '')
     const normalizedClothingType =
-      editableProduct.clothingType === 'bag'
-        ? 'bags'
-        : (editableProduct.clothingType || '')
+      editableProduct.clothingType === 'bag' ? 'bags' : (editableProduct.clothingType || '')
     setClothingType(normalizedClothingType)
     const fallbackSizes = parseBaseSizesFromTags(editableProduct.tags || [])
     setMainSizes(Array.isArray(editableProduct.sizes) && editableProduct.sizes.length > 0 ? editableProduct.sizes : fallbackSizes)
     setDiscount(editableProduct.discount || 0)
-
-    // MAIN IMAGES (EXISTING)
     setExistingImages(editableProduct.images || [])
-    setImagePreviews([]) // Clear new uploads previews
+    setImagePreviews([])
     setImages([])
 
-    // VARIANTS
     const normalizedVariants =
       editableProduct.variants?.map(v => ({
-        _id: v._id, // ✅ ADD THIS LINE
+        _id: v._id,
         sku: v.sku || generateSKU(),
         type: (v.type === 'bag' ? 'bags' : (v.type || normalizedClothingType || '')),
         options: {
@@ -146,20 +135,17 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
      FETCH FILTER OPTIONS
   ===================================================== */
   useEffect(() => {
-    axios
-      .get('/products/filters')
+    axios.get('/products/filters')
       .then(res => {
         setCategories(res.data.categories || [])
         setColors(res.data.colors || [])
-        setSizeOptionsByClothingType(
-          res.data.sizeOptionsByClothingType || DEFAULT_SIZE_OPTIONS_BY_TYPE
-        )
+        setSizeOptionsByClothingType(res.data.sizeOptionsByClothingType || DEFAULT_SIZE_OPTIONS_BY_TYPE)
       })
       .catch(console.error)
   }, [])
 
   /* =====================================================
-     FETCH BRANDS (DO NOT WIPE EXISTING BRAND)
+     FETCH BRANDS
   ===================================================== */
   useEffect(() => {
     if (!category) {
@@ -168,23 +154,15 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       setBrand('')
       return
     }
-
-    axios
-      .get('/products/filters', { params: { category } })
+    axios.get('/products/filters', { params: { category } })
       .then(res => {
         setBrands(res.data.brands || [])
-        setSizeOptionsByClothingType(
-          res.data.sizeOptionsByClothingType || DEFAULT_SIZE_OPTIONS_BY_TYPE
-        )
+        setSizeOptionsByClothingType(res.data.sizeOptionsByClothingType || DEFAULT_SIZE_OPTIONS_BY_TYPE)
         const stillValid = res.data.brands?.some(b => b._id === brand)
         if (!stillValid) setBrand('')
-        const selectedCategory = categories.find(c => c._id === category)
-        if (selectedCategory && selectedCategory.name?.toLowerCase() !== 'clothing') {
-          setClothingType('')
-        }
       })
       .catch(console.error)
-  }, [category, categories, brand])
+  }, [category, brand])
 
   /* =====================================================
      VARIANT HANDLERS
@@ -238,19 +216,8 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
 
   const toggleMainSize = size => {
     setMainSizes(prev =>
-      prev.includes(size)
-        ? prev.filter(s => s !== size)
-        : [...prev, size]
+      prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]
     )
-  }
-
-  const toggleVariantSize = (index, size) => {
-    setVariants(prev => {
-      const copy = [...prev]
-      const current = copy[index].options?.size || ''
-      copy[index].options.size = current === size ? '' : size
-      return copy
-    })
   }
 
   const handleVariantFile = (index, file) => {
@@ -291,9 +258,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         ...v,
         options: {
           ...v.options,
-          size: getSizesForType(clothingType).includes(v.options.size)
-            ? v.options.size
-            : ''
+          size: getSizesForType(clothingType).includes(v.options.size) ? v.options.size : ''
         }
       }))
     )
@@ -302,8 +267,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   /* =====================================================
      SKU UNIQUENESS VALIDATION
   ===================================================== */
-  const isSkuUnique = sku =>
-    variants.filter(v => v.sku === sku).length === 1
+  const isSkuUnique = sku => variants.filter(v => v.sku === sku).length === 1
 
   /* =====================================================
      CLIENT VALIDATION
@@ -313,34 +277,30 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     if (!title) errs.title = 'Title is required'
     if (!category) errs.category = 'Category required'
     if (!price) errs.price = 'Price required'
-
     variants.forEach((v, i) => {
       if (!isSkuUnique(v.sku)) errs[`sku_${i}`] = 'SKU must be unique'
       if (!v.price) errs[`price_${i}`] = 'Variant price required'
     })
-
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
 
   /* =====================================================
-     SUBMIT USING RTK QUERY
+     SUBMIT
   ===================================================== */
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     if (!validate()) return
 
     try {
       const fd = new FormData()
-
       images.forEach(f => fd.append('images', f))
       variants.forEach((v, idx) => {
         if (v.imageFile) fd.append(`variant_${idx}`, v.imageFile)
       })
 
       const payloadVariants = variants.map(v => ({
-        _id: v._id, // ✅ ADD THIS LINE
+        _id: v._id,
         sku: v.sku,
         type: v.type,
         options: {
@@ -372,7 +332,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         discount: Number(discount),
         tags: payloadTags,
         variants: payloadVariants,
-        images: existingImages // Pass existing images to keep
+        images: existingImages
       }
 
       fd.append('payload', JSON.stringify(payload))
@@ -388,8 +348,8 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       toast({
         title: 'Product saved successfully',
         description: Array.isArray(persistedSizes)
-          ? `Server saved sizes: ${persistedSizes.join(', ') || '(none)'}`
-          : 'Server did not return sizes field'
+          ? `Sizes: ${persistedSizes.join(', ') || '(none)'}`
+          : 'Saved'
       })
       onSuccess?.()
       if (closeOnSuccess) onClose?.()
@@ -404,10 +364,18 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   }
 
   /* =====================================================
-     UI
+     UI HELPERS
   ===================================================== */
-  const isClothing = categories.find(c => c._id === category)?.name.toLowerCase() === 'clothing'
+  // Show clothing type + size selectors for ANY category (shoes/bags/eyeglass/clothing all need them)
+  const isClothingLike = !!category
   const availableMainSizes = getSizesForType(clothingType)
+
+  const CLOTHING_TYPE_LABELS = {
+    clothes: 'Clothing Sizes (S, M, L…)',
+    shoes: 'Shoe Sizes (36–46)',
+    bags: 'Bag Sizes (S/M/L)',
+    eyeglass: 'Frame Sizes'
+  }
 
   if (product?._id && isFetchingProduct && !fullProductData?.product) {
     return <div className="py-10 text-center text-sm text-gray-500">Loading product details...</div>
@@ -416,7 +384,8 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   return (
     <form onSubmit={handleSubmit} className="space-y-6 px-4 py-2">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left Column: Basic Info */}
+
+        {/* ── LEFT COLUMN ── */}
         <div className="space-y-4">
           <div>
             <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Title</label>
@@ -446,20 +415,33 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
             </div>
           </div>
 
-          {isClothing && clothingType && availableMainSizes.length > 0 && (
+          <div>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Base Stock</label>
+            <Input type="number" value={stock} onChange={e => setStock(e.target.value)} placeholder="0" className="rounded-xl border-gray-100" />
+          </div>
+
+          <div>
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Tags (comma separated)</label>
+            <Input value={tags} onChange={e => setTags(e.target.value)} placeholder="luxury, limited, winter" className="rounded-xl border-gray-100" />
+          </div>
+
+          {/* MAIN PRODUCT SIZES — admin picks which sizes this product is available in */}
+          {isClothingLike && clothingType && availableMainSizes.length > 0 && (
             <div>
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2 block">Main Product Sizes</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1 block">
+                Available Sizes
+              </label>
+              <p className="text-[10px] text-gray-400 mb-2 font-medium">
+                {CLOTHING_TYPE_LABELS[clothingType] || 'Select available sizes'} — customers will pick one size when adding to cart
+              </p>
               <div className="flex flex-wrap gap-2">
                 {availableMainSizes.map(size => {
                   const checked = mainSizes.includes(size)
                   return (
                     <label
                       key={size}
-                      className={`px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg border transition-colors cursor-pointer ${
-                        checked
-                          ? 'bg-black text-white border-black'
-                          : 'bg-white text-gray-600 border-gray-200 hover:border-black'
-                      }`}
+                      className={`px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg border transition-colors cursor-pointer ${checked ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-200 hover:border-black'
+                        }`}
                     >
                       <input
                         type="checkbox"
@@ -474,19 +456,9 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
               </div>
             </div>
           )}
-
-          <div>
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Base Stock</label>
-            <Input type="number" value={stock} onChange={e => setStock(e.target.value)} placeholder="0" className="rounded-xl border-gray-100" />
-          </div>
-
-          <div>
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Tags (comma separated)</label>
-            <Input value={tags} onChange={e => setTags(e.target.value)} placeholder="luxury, limited, winter" className="rounded-xl border-gray-100" />
-          </div>
         </div>
 
-        {/* Right Column: Facets & Images */}
+        {/* ── RIGHT COLUMN ── */}
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -514,13 +486,18 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {isClothing && (
+            {/* CLOTHING TYPE — visible for all categories */}
+            {isClothingLike && (
               <div>
-                <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Clothing Type</label>
-                <select value={clothingType} onChange={e => handleClothingTypeChange(e.target.value)} className="w-full h-10 px-3 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-0 focus:border-black transition-colors appearance-none uppercase">
-                  <option value="">Select type</option>
+                <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Size Type</label>
+                <select
+                  value={clothingType}
+                  onChange={e => handleClothingTypeChange(e.target.value)}
+                  className="w-full h-10 px-3 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-0 focus:border-black transition-colors appearance-none"
+                >
+                  <option value="">— None / No sizes —</option>
                   {clothingTypes.map(t => (
-                    <option key={t} value={t}>{t}</option>
+                    <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
                   ))}
                 </select>
               </div>
@@ -563,10 +540,15 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         </div>
       </div>
 
-      {/* ====== VARIANTS ====== */}
+      {/* ══════ VARIANTS ══════ */}
       <div className="border-t border-gray-50 pt-6">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-sm font-black uppercase tracking-[.2em] text-gray-900">Product Variants</h3>
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h3 className="text-sm font-black uppercase tracking-[.2em] text-gray-900">Product Variants</h3>
+            <p className="text-[10px] text-gray-400 mt-0.5 font-medium">
+              Each variant = a different colour. Customer picks colour → then picks 1 size → adds to cart.
+            </p>
+          </div>
           <Button type="button" onClick={addVariant} variant="outline" className="rounded-xl text-[10px] uppercase font-black tracking-widest border-black hover:bg-black hover:text-white">+ Add Variant</Button>
         </div>
 
@@ -574,12 +556,14 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
           <div className="space-y-4">
             {variants.map((v, idx) => (
               <div key={idx} className="bg-gray-50 p-6 rounded-2xl grid grid-cols-1 md:grid-cols-6 gap-4 items-end relative group">
+                {/* SKU */}
                 <div className="md:col-span-1">
                   <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">SKU</label>
                   <Input value={v.sku} readOnly className="rounded-xl border-gray-100 bg-white font-mono text-[10px]" />
                   {errors[`sku_${idx}`] && <p className="text-red-500 text-[8px] mt-1 font-bold uppercase">{errors[`sku_${idx}`]}</p>}
                 </div>
 
+                {/* COLOR */}
                 <div>
                   <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Color</label>
                   <select value={v.options.color} onChange={e => updateVariant(idx, 'color', e.target.value)} className="w-full h-10 px-3 py-2 text-[10px] border-white bg-white rounded-xl focus:outline-none focus:ring-0">
@@ -590,43 +574,47 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                   </select>
                 </div>
 
+                {/* SIZE — dropdown for clothing types */}
                 <div>
-                  <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Size</label>
-                  <div className="flex flex-wrap gap-2">
-                    {getSizesForType(clothingType).map(s => {
-                      const checked = v.options?.size === s
-                      return (
-                        <label
-                          key={s}
-                          className={`px-2 py-1 text-[9px] font-black uppercase tracking-widest rounded-lg border transition-colors cursor-pointer ${
-                            checked
-                              ? 'bg-black text-white border-black'
-                              : 'bg-white text-gray-600 border-gray-200 hover:border-black'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => toggleVariantSize(idx, s)}
-                            className="hidden"
-                          />
-                          {s}
-                        </label>
-                      )
-                    })}
-                  </div>
+                  <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">
+                    Size
+                    {clothingType && <span className="ml-1 normal-case font-normal text-gray-300">({clothingType})</span>}
+                  </label>
+                  {clothingType ? (
+                    <select
+                      value={v.options.size}
+                      onChange={e => updateVariant(idx, 'size', e.target.value)}
+                      className="w-full h-10 px-3 py-2 text-[10px] border-white bg-white rounded-xl focus:outline-none focus:ring-0"
+                    >
+                      <option value="">— Pick size —</option>
+                      {getSizesForType(clothingType).map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Input
+                      value={v.options.size}
+                      onChange={e => updateVariant(idx, 'size', e.target.value)}
+                      placeholder="e.g. One Size"
+                      className="rounded-xl border-white bg-white text-[10px]"
+                    />
+                  )}
                 </div>
 
+                {/* PRICE */}
                 <div>
                   <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Price (₦)</label>
                   <Input type="number" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} className="rounded-xl border-white bg-white text-[10px]" />
+                  {errors[`price_${idx}`] && <p className="text-red-500 text-[8px] mt-1 font-bold uppercase">{errors[`price_${idx}`]}</p>}
                 </div>
 
+                {/* DISCOUNT */}
                 <div>
                   <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Discount (%)</label>
                   <Input type="number" value={v.discount || 0} onChange={e => updateVariant(idx, 'discount', e.target.value)} className="rounded-xl border-white bg-white text-[10px]" />
                 </div>
 
+                {/* STOCK + IMAGE + DELETE */}
                 <div className="md:col-span-2 space-y-2">
                   <div>
                     <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Stock</label>
@@ -654,7 +642,6 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                         className="absolute inset-0 opacity-0 cursor-pointer"
                       />
                     </label>
-
                     <button type="button" onClick={() => removeVariant(idx)} className="p-2 text-red-300 hover:text-red-600 transition-colors shrink-0">
                       <Trash2 size={16} />
                     </button>
@@ -665,7 +652,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
           </div>
         ) : (
           <div className="border border-dashed border-gray-100 rounded-2xl py-8 text-center text-gray-300 text-xs italic">
-            No variants added. Base pricing and stock will be used.
+            No variants added. Base pricing, stock, and sizes above will apply.
           </div>
         )}
       </div>
