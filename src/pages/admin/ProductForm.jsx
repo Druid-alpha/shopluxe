@@ -59,6 +59,49 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   })
   const editableProduct = fullProductData?.product || product
 
+  // ---------------- INLINE CUSTOM COLOR CREATION ----------------
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false)
+  const [newColorName, setNewColorName] = useState('')
+  const [newColorHex, setNewColorHex] = useState('#000000')
+  const [creatingColor, setCreatingColor] = useState(false)
+
+  const handleCreateCustomColor = async () => {
+    if (!newColorName.trim() || !category) {
+      toast({ title: 'Color Name & Category required', variant: 'destructive' })
+      return null
+    }
+
+    setCreatingColor(true)
+    try {
+      // Direct axios call to the colors route we just made in adminRoutes
+      const res = await axios.post('/admin/colors', {
+        name: newColorName.trim(),
+        hex: newColorHex,
+        category: category
+      })
+
+      const newColor = res.data.color || res.data
+      setColors(prev => [...prev, newColor])
+
+      setIsColorPickerOpen(false)
+      setNewColorName('')
+      setNewColorHex('#000000')
+      toast({ title: 'New color created successfully!' })
+      return newColor._id
+
+    } catch (err) {
+      console.error(err)
+      toast({
+        title: 'Error formatting color',
+        description: err.response?.data?.message || err.message,
+        variant: 'destructive'
+      })
+      return null
+    } finally {
+      setCreatingColor(false)
+    }
+  }
+
   /* =====================================================
      HELPERS
   ===================================================== */
@@ -504,14 +547,58 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
             )}
 
             {colors.length > 0 && (
-              <div>
-                <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Primary Color</label>
-                <select value={color} onChange={e => setColor(e.target.value)} className="w-full h-10 px-3 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-0 focus:border-black transition-colors appearance-none">
-                  <option value="">Select color</option>
-                  {colors.map(c => (
-                    <option key={c._id} value={c._id}>{c.name}</option>
-                  ))}
-                </select>
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-xs font-black uppercase tracking-widest text-gray-400 block p-0 m-0">Primary Color</label>
+                  {category && (
+                    <button
+                      type="button"
+                      onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
+                      className="text-[9px] font-black uppercase text-blue-500 hover:text-blue-700 block p-0 m-0"
+                    >
+                      {isColorPickerOpen ? 'Cancel' : '+ New Color'}
+                    </button>
+                  )}
+                </div>
+
+                {isColorPickerOpen ? (
+                  <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl space-y-3">
+                    <div className="flex gap-2 items-center">
+                      <Input
+                        type="color"
+                        value={newColorHex}
+                        onChange={e => setNewColorHex(e.target.value)}
+                        className="w-10 h-10 p-0 border-0 rounded overflow-hidden shadow-sm"
+                      />
+                      <Input
+                        placeholder="Color Name (e.g. Navy Blue)"
+                        value={newColorName}
+                        onChange={e => setNewColorName(e.target.value)}
+                        className="flex-1 bg-white text-xs border-gray-200"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={async () => {
+                        const cid = await handleCreateCustomColor()
+                        if (cid) setColor(cid)
+                      }}
+                      disabled={creatingColor || !newColorName.trim()}
+                      className="w-full h-8 text-[10px] uppercase font-black tracking-widest"
+                    >
+                      {creatingColor ? 'Saving...' : 'Save & Select Color'}
+                    </Button>
+                  </div>
+                ) : (
+                  <select value={color} onChange={e => setColor(e.target.value)} className="w-full h-10 px-3 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-0 focus:border-black transition-colors appearance-none bg-white">
+                    <option value="">Select color</option>
+                    {colors.map(c => (
+                      <option key={c._id} value={c._id}>
+                        {c.name} {c.hex ? `(HEX: ${c.hex})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             )}
           </div>
@@ -564,14 +651,56 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                 </div>
 
                 {/* COLOR */}
-                <div>
-                  <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Color</label>
-                  <select value={v.options.color} onChange={e => updateVariant(idx, 'color', e.target.value)} className="w-full h-10 px-3 py-2 text-[10px] border-white bg-white rounded-xl focus:outline-none focus:ring-0">
-                    <option value="">Color</option>
-                    {colors.map(c => (
-                      <option key={c._id} value={c._id}>{c.name}</option>
-                    ))}
-                  </select>
+                <div className="col-span-1 min-w-0">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 block m-0 p-0 truncate">Color</label>
+                    {category && (
+                      <button
+                        type="button"
+                        onClick={() => setIsColorPickerOpen(idx)}
+                        className="text-[7px] font-black uppercase text-blue-500 hover:text-blue-700 shrink-0"
+                      >
+                        {isColorPickerOpen === idx ? 'Close' : '+ New'}
+                      </button>
+                    )}
+                  </div>
+
+                  {isColorPickerOpen === idx ? (
+                    <div className="p-2 bg-blue-50 border border-blue-100 rounded-lg space-y-2 relative z-10 w-[200px] shadow-lg absolute">
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          type="color"
+                          value={newColorHex}
+                          onChange={e => setNewColorHex(e.target.value)}
+                          className="w-6 h-8 p-0 border-0 rounded shrink-0 shadow-sm"
+                        />
+                        <Input
+                          placeholder="Name..."
+                          value={newColorName}
+                          onChange={e => setNewColorName(e.target.value)}
+                          className="h-8 text-[10px] bg-white border-blue-100 px-2"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={async () => {
+                          const cid = await handleCreateCustomColor()
+                          if (cid) updateVariant(idx, 'color', cid)
+                        }}
+                        disabled={creatingColor || !newColorName.trim()}
+                        className="w-full h-7 text-[8px] uppercase font-black"
+                      >
+                        {creatingColor ? '...' : 'Create'}
+                      </Button>
+                    </div>
+                  ) : (
+                    <select value={v.options.color} onChange={e => updateVariant(idx, 'color', e.target.value)} className="w-full h-10 px-2 py-2 text-[10px] border-white bg-white rounded-xl focus:outline-none focus:ring-0 truncate pr-6 appearance-none">
+                      <option value="">Select</option>
+                      {colors.map(c => (
+                        <option key={c._id} value={c._id}>{c.name}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 {/* SIZE — dropdown for clothing types */}

@@ -167,25 +167,32 @@ export default function ProductDetails() {
 
   // Auto-select first color when product loads
   React.useEffect(() => {
-    if (!product) return
-    if (variants.length > 0) {
+    if (!product || variants.length === 0) return
+
+    // Only auto-select if we haven't already deliberately set a mode or variant
+    if (purchaseMode !== 'variant') {
       setPurchaseMode('variant')
-      if (!selectedColorKey && variantColorOptions.length > 0) {
-        const firstColor = variantColorOptions[0]
-        setSelectedColorKey(firstColor.key)
-        const sizes = variantSizesByColor.get(firstColor.key) || []
-        if (sizes.length > 0 && !selectedSize) setSelectedSize(sizes[0])
-      }
-    } else {
-      setPurchaseMode('base')
     }
-  }, [product, variantColorOptions])
+
+    if (!selectedColorKey && variantColorOptions.length > 0) {
+      const firstColor = variantColorOptions[0]
+      setSelectedColorKey(firstColor.key)
+      const sizes = variantSizesByColor.get(firstColor.key) || []
+      if (sizes.length > 0 && !selectedSize) setSelectedSize(sizes[0])
+    }
+  }, [product, variantColorOptions]) // Removed purchaseMode, selectedColorKey from deps conceptually - only run when product/variants change and we have NO selection
 
   // Auto-select first base size
   React.useEffect(() => {
-    if (!product || variants.length > 0) return
+    if (!product || variants.length > 0) {
+      // Only force base mode if there are NO variants at all
+      if (product && variants.length === 0 && purchaseMode !== 'base') {
+        setPurchaseMode('base')
+      }
+      return
+    }
     if (mainSizes.length > 0 && !selectedBaseSize) setSelectedBaseSize(mainSizes[0])
-  }, [product, mainSizes])
+  }, [product, mainSizes, variants.length])
 
   // Sync selectedVariantIndex from color+size
   React.useEffect(() => {
@@ -453,7 +460,7 @@ export default function ProductDetails() {
                             setSelectedSize(sizes.length > 0 ? sizes[0] : '')
                           }}
                           title={c.name}
-                          className={`w-9 h-9 rounded-full border-[3px] transition-all flex items-center justify-center shadow-sm hover:scale-110 active:scale-95 ${isSelected ? 'scale-110' : 'border-transparent'
+                          className={`w-10 h-10 rounded-full border-[3px] transition-all flex items-center justify-center shadow-sm hover:scale-110 active:scale-95 overflow-hidden ${isSelected ? 'scale-110' : 'border-transparent'
                             }`}
                           style={{
                             backgroundColor: c.hex || '#e5e7eb',
@@ -462,11 +469,15 @@ export default function ProductDetails() {
                             outlineOffset: '2px'
                           }}
                         >
-                          {!c.hex && (
-                            <span className="text-[7px] font-black uppercase text-gray-600 leading-none">
-                              {c.name?.slice(0, 3)}
-                            </span>
-                          )}
+                          <span
+                            className="text-[8px] font-black uppercase leading-tight text-center px-1 drop-shadow-md z-10"
+                            style={{
+                              color: c.hex && parseInt(c.hex.replace('#', ''), 16) > 0xffffff / 2 ? '#000' : '#fff',
+                              textShadow: c.hex && parseInt(c.hex.replace('#', ''), 16) > 0xffffff / 2 ? '0 1px 2px rgba(255,255,255,0.8)' : '0 1px 2px rgba(0,0,0,0.8)'
+                            }}
+                          >
+                            {c.name?.slice(0, 4)}
+                          </span>
                         </button>
                       )
                     })}
@@ -555,8 +566,8 @@ export default function ProductDetails() {
           )}
 
           {/* ─── INVENTORY STATUS ─── */}
-          <div className="space-y-4 pt-4 border-t border-gray-100">
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="space-y-4 pt-4 border-t border-gray-100 relative z-0">
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 relative z-0">
               <div className="flex items-center gap-3">
                 <div className={`w-2 h-2 rounded-full ${currentStock > 0 ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
