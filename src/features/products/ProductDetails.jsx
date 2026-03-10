@@ -71,6 +71,7 @@ export default function ProductDetails() {
 
   /* ================= STATE ================= */
   const [mainImage, setMainImage] = React.useState('')
+  const [purchaseMode, setPurchaseMode] = React.useState('variant') // 'variant' or 'base'
   const [selectedVariantIndex, setSelectedVariantIndex] = React.useState(-1)
   const [selectedBaseSize, setSelectedBaseSize] = React.useState('')
   const [selectedColorKey, setSelectedColorKey] = React.useState('')
@@ -153,12 +154,17 @@ export default function ProductDetails() {
 
   // Auto-select first color when product loads
   React.useEffect(() => {
-    if (!product || variants.length === 0) return
-    if (!selectedColorKey && variantColorOptions.length > 0) {
-      const firstColor = variantColorOptions[0]
-      setSelectedColorKey(firstColor.key)
-      const sizes = variantSizesByColor.get(firstColor.key) || []
-      if (sizes.length > 0 && !selectedSize) setSelectedSize(sizes[0])
+    if (!product) return
+    if (variants.length > 0) {
+      setPurchaseMode('variant')
+      if (!selectedColorKey && variantColorOptions.length > 0) {
+        const firstColor = variantColorOptions[0]
+        setSelectedColorKey(firstColor.key)
+        const sizes = variantSizesByColor.get(firstColor.key) || []
+        if (sizes.length > 0 && !selectedSize) setSelectedSize(sizes[0])
+      }
+    } else {
+      setPurchaseMode('base')
     }
   }, [product, variantColorOptions])
 
@@ -232,7 +238,7 @@ export default function ProductDetails() {
   /* ================= ADD TO CART ================= */
   const handleAddToCart = async () => {
     // Validation
-    if (hasVariants) {
+    if (purchaseMode === 'variant' && hasVariants) {
       if (!selectedColorKey) {
         toast({ title: 'Please select a color', variant: 'destructive' })
         return
@@ -245,12 +251,14 @@ export default function ProductDetails() {
         toast({ title: 'Please select a valid color & size combination', variant: 'destructive' })
         return
       }
-    } else if (mainSizes.length > 0 && !selectedBaseSize) {
-      toast({ title: `Please select a ${sizeLabel.toLowerCase()}`, variant: 'destructive' })
-      return
+    } else if (purchaseMode === 'base' || !hasVariants) {
+      if (mainSizes.length > 0 && !selectedBaseSize) {
+        toast({ title: `Please select a ${sizeLabel.toLowerCase()} for the base product`, variant: 'destructive' })
+        return
+      }
     }
 
-    const variantPayload = selectedVariant
+    const variantPayload = (purchaseMode === 'variant' && selectedVariant)
       ? {
         _id: selectedVariant._id,
         sku: selectedVariant.sku,
@@ -259,12 +267,12 @@ export default function ProductDetails() {
       }
       : (selectedBaseSize ? { size: selectedBaseSize } : null)
 
-    const variantLabel = selectedVariant
+    const variantLabel = (purchaseMode === 'variant' && selectedVariant)
       ? [
         selectedVariant.options?.color?.name || '',
         selectedVariant.options?.size ? `${sizeLabel}: ${selectedVariant.options.size}` : ''
       ].filter(Boolean).join(' / ')
-      : selectedBaseSize ? `${sizeLabel}: ${selectedBaseSize}` : ''
+      : selectedBaseSize ? `${sizeLabel}: ${selectedBaseSize}` : 'Base Product'
 
     if (!user) {
       dispatch(addGuestCart({
@@ -386,8 +394,26 @@ export default function ProductDetails() {
             {product.description}
           </p>
 
+          {/* ─── PURCHASE MODE TOGGLE ─── */}
+          {hasVariants && (mainSizes.length > 0 || !product.sizes?.length) && (
+            <div className="flex bg-gray-100 p-1 rounded-xl w-fit mt-4">
+              <button
+                onClick={() => setPurchaseMode('variant')}
+                className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${purchaseMode === 'variant' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                Buy Variant
+              </button>
+              <button
+                onClick={() => setPurchaseMode('base')}
+                className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${purchaseMode === 'base' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                Buy Base Product
+              </button>
+            </div>
+          )}
+
           {/* ─── VARIANT SELECTOR (products WITH variants) ─── */}
-          {hasVariants && (
+          {hasVariants && purchaseMode === 'variant' && (
             <div className="space-y-5 pt-4 border-t border-gray-100">
 
               {/* COLOR SELECTOR */}
@@ -468,7 +494,7 @@ export default function ProductDetails() {
           )}
 
           {/* ─── BASE PRODUCT SIZES (no variants OR base product selection) ─── */}
-          {!hasVariants && mainSizes.length > 0 && (
+          {(purchaseMode === 'base' || !hasVariants) && mainSizes.length > 0 && (
             <div className="pt-4 border-t border-gray-100">
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
                 {sizeLabel}
