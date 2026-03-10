@@ -62,6 +62,7 @@ export default function ProductDetails() {
   const [mainImage, setMainImage] = React.useState('')
   const [selectedVariantIndex, setSelectedVariantIndex] = React.useState(-1) // -1 means base product
   const [selectedBaseSize, setSelectedBaseSize] = React.useState('')
+  const [selectedBaseColor, setSelectedBaseColor] = React.useState('')
   const [selectedColorKey, setSelectedColorKey] = React.useState('')
   const [selectedSize, setSelectedSize] = React.useState('')
   const [quantity, setQuantity] = React.useState(1)
@@ -83,6 +84,14 @@ export default function ProductDetails() {
   const mainSizes = Array.isArray(product?.sizes) && product.sizes.length > 0
     ? product.sizes
     : parseBaseSizesFromTags(product?.tags || [])
+
+  const baseColor = product?.color
+  const isObjectIdLike = (v) => typeof v === 'string' && /^[a-f0-9]{24}$/i.test(v)
+  const baseColorMeta = baseColor
+    ? (typeof baseColor === 'string'
+      ? { key: baseColor, name: isObjectIdLike(baseColor) ? 'Color' : baseColor, hex: null }
+      : { key: baseColor._id || baseColor.name || 'base-color', name: baseColor.name || 'Color', hex: baseColor.hex || null })
+    : null
   const getColorMeta = (rawColor) => {
     if (!rawColor) return { key: 'no-color', name: 'No Color', hex: null, raw: rawColor }
     if (typeof rawColor === 'string') {
@@ -134,8 +143,9 @@ export default function ProductDetails() {
     } else {
       setSelectedVariantIndex(-1)
       if (mainSizes.length > 0 && !selectedBaseSize) setSelectedBaseSize(mainSizes[0])
+      if (baseColorMeta && !selectedBaseColor) setSelectedBaseColor(baseColorMeta.name || baseColorMeta.key)
     }
-  }, [product, variants, mainSizes, selectedColorKey, selectedSize, selectedBaseSize])
+  }, [product, variants, mainSizes, selectedColorKey, selectedSize, selectedBaseSize, baseColorMeta, selectedBaseColor])
 
   React.useEffect(() => {
     if (availableVariantSizes.length === 0) return
@@ -211,6 +221,9 @@ export default function ProductDetails() {
     } else if (mainSizes.length > 0 && !selectedBaseSize) {
       toast({ title: 'Select a size before adding', variant: 'destructive' })
       return
+    } else if (baseColorMeta && !selectedBaseColor) {
+      toast({ title: 'Select a color before adding', variant: 'destructive' })
+      return
     }
     if (!user) {
 
@@ -219,9 +232,9 @@ export default function ProductDetails() {
           _id: selectedVariant._id,
           sku: selectedVariant.sku,
           size: selectedVariant.options?.size || selectedSize || undefined,
-          color: selectedVariant.options?.color?._id || selectedVariant.options?.color?.name || selectedVariant.options?.color || undefined
+          color: selectedVariant.options?.color?.name || selectedVariant.options?.color?._id || selectedVariant.options?.color || undefined
         }
-        : (selectedBaseSize ? { size: selectedBaseSize } : null)
+        : ((selectedBaseSize || selectedBaseColor) ? { size: selectedBaseSize || undefined, color: selectedBaseColor || undefined } : null)
 
       dispatch(addGuestCart({
   productId: product._id,
@@ -235,7 +248,10 @@ export default function ProductDetails() {
   variant: variantPayload || null,
   variantLabel: selectedVariant
     ? `${(selectedVariant.options?.color?.name || selectedVariant.options?.color || '').trim()}${selectedVariant.options?.size ? ` / ${selectedVariant.options?.size}` : ''}`.trim()
-    : (selectedBaseSize ? `Size: ${selectedBaseSize}` : ''),
+    : [
+        selectedBaseColor ? `Color: ${selectedBaseColor}` : '',
+        selectedBaseSize ? `Size: ${selectedBaseSize}` : ''
+      ].filter(Boolean).join(' / '),
   variantStock: selectedVariant?.stock,
   addedAt: new Date().toISOString(),
   key: `${product._id}-${variantPayload?.sku || variantPayload?.size || 'default'}`
@@ -261,9 +277,9 @@ export default function ProductDetails() {
           _id: selectedVariant._id,
           sku: selectedVariant.sku,
           size: selectedVariant.options?.size || selectedSize || undefined,
-          color: selectedVariant.options?.color?._id || selectedVariant.options?.color?.name || selectedVariant.options?.color || undefined
+          color: selectedVariant.options?.color?.name || selectedVariant.options?.color?._id || selectedVariant.options?.color || undefined
         }
-        : (selectedBaseSize ? { size: selectedBaseSize } : null)
+        : ((selectedBaseSize || selectedBaseColor) ? { size: selectedBaseSize || undefined, color: selectedBaseColor || undefined } : null)
 
       const updatedCart = await cartApi.addToCart(
         product._id,
@@ -369,31 +385,63 @@ export default function ProductDetails() {
             {product.description}
           </p>
 
-          {mainSizes.length > 0 && (
+          {(mainSizes.length > 0 || baseColorMeta) && (
             <div className="space-y-3 pt-2">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Main Sizes</p>
-                <div className="flex flex-wrap gap-2">
-                  {mainSizes.map(size => {
-                    const checked = selectedBaseSize === size
-                    return (
+                {baseColorMeta && (
+                  <div className="mb-3">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Base Color</p>
+                    <div className="flex items-center gap-2">
                       <button
-                        key={`main-${size}`}
                         onClick={() => {
                           setSelectedVariantIndex(-1)
-                          setSelectedBaseSize(size)
+                          setSelectedBaseColor(baseColorMeta.name || baseColorMeta.key)
                         }}
-                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all ${
-                          checked
-                            ? 'border-black bg-black text-white'
-                            : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-black'
+                        className={`w-10 h-10 rounded-full border-2 transition-all flex items-center justify-center ${
+                          selectedBaseColor ? 'border-black' : 'border-gray-200'
                         }`}
+                        style={baseColorMeta.hex ? { backgroundColor: baseColorMeta.hex } : undefined}
+                        title={baseColorMeta.name}
                       >
-                        {size}
+                        {!baseColorMeta.hex && (
+                          <span className="text-[8px] font-black uppercase tracking-widest text-gray-500">
+                            {baseColorMeta.name?.slice(0, 3) || 'N/A'}
+                          </span>
+                        )}
                       </button>
-                    )
-                  })}
-                </div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                        {baseColorMeta.name || 'Color'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {mainSizes.length > 0 && (
+                  <>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Main Sizes</p>
+                    <div className="flex flex-wrap gap-2">
+                      {mainSizes.map(size => {
+                        const checked = selectedBaseSize === size
+                        return (
+                          <button
+                            key={`main-${size}`}
+                            onClick={() => {
+                              setSelectedVariantIndex(-1)
+                              setSelectedBaseSize(size)
+                            }}
+                            className={`px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all ${
+                              checked
+                                ? 'border-black bg-black text-white'
+                                : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-black'
+                            }`}
+                          >
+                            {size}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}

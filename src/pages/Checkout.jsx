@@ -221,7 +221,11 @@ export default function Checkout() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm text-gray-900 line-clamp-2">{item.title}</p>
-                    {item.variant && <p className="text-gray-400 text-xs uppercase mt-0.5">{item.variant}</p>}
+                    {(item.variantLabel || typeof item.variant === 'string') && (
+                      <p className="text-gray-400 text-xs uppercase mt-0.5">
+                        {item.variantLabel || item.variant}
+                      </p>
+                    )}
                     <p className="text-gray-500 text-xs mt-1">Qty: {item.qty}</p>
                   </div>
                   <div className="font-semibold text-sm text-gray-900 whitespace-nowrap">

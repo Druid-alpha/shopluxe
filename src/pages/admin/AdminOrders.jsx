@@ -119,6 +119,17 @@ export default function AdminOrders() {
                       {order.items?.map((item, idx) => (
                         <span key={idx} className="bg-gray-100 px-2 py-0.5 rounded text-[10px] font-medium text-gray-600 border border-gray-200">
                           {item.title || 'Product'} x{item.qty}
+                          {(item.variant?.color || item.variant?.size || item.variant?.sku) && (
+                            <span className="text-[9px] text-gray-500 ml-1">
+                              (
+                              {item.variant?.color ? `Color: ${item.variant.color}` : ''}
+                              {item.variant?.color && (item.variant?.size || item.variant?.sku) ? ' • ' : ''}
+                              {item.variant?.size ? `Size: ${item.variant.size}` : ''}
+                              {(item.variant?.size && item.variant?.sku) ? ' • ' : ''}
+                              {item.variant?.sku ? `SKU: ${item.variant.sku}` : ''}
+                              )
+                            </span>
+                          )}
                         </span>
                       ))}
                     </div>

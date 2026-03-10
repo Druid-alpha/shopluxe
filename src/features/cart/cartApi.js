@@ -14,7 +14,10 @@ const getVariantKey = (variant) => {
 
 const getColorName = (rawColor) => {
   if (!rawColor) return "";
-  if (typeof rawColor === "string") return rawColor;
+  if (typeof rawColor === "string") {
+    if (/^[a-f0-9]{24}$/i.test(rawColor)) return "";
+    return rawColor;
+  }
   return rawColor.name || "";
 };
 
