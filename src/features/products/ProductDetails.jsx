@@ -136,16 +136,21 @@ export default function ProductDetails() {
   React.useEffect(() => {
     if (!product) return
     if (variants.length > 0) {
-      const first = variants[0]
-      const meta = getColorMeta(first.options?.color)
-      if (!selectedColorKey) setSelectedColorKey(meta.key)
-      if (!selectedSize && first.options?.size) setSelectedSize(first.options.size)
+      if (selectedVariantIndex >= 0) {
+        const first = variants[0]
+        const meta = getColorMeta(first.options?.color)
+        if (!selectedColorKey) setSelectedColorKey(meta.key)
+        if (!selectedSize && first.options?.size) setSelectedSize(first.options.size)
+      }
+      if (selectedVariantIndex === -1 && mainSizes.length === 0 && !baseColorMeta) {
+        setSelectedVariantIndex(0)
+      }
     } else {
       setSelectedVariantIndex(-1)
       if (mainSizes.length > 0 && !selectedBaseSize) setSelectedBaseSize(mainSizes[0])
       if (baseColorMeta && !selectedBaseColor) setSelectedBaseColor(baseColorMeta.name || baseColorMeta.key)
     }
-  }, [product, variants, mainSizes, selectedColorKey, selectedSize, selectedBaseSize, baseColorMeta, selectedBaseColor])
+  }, [product, variants, mainSizes, selectedColorKey, selectedSize, selectedBaseSize, baseColorMeta, selectedBaseColor, selectedVariantIndex])
 
   React.useEffect(() => {
     if (availableVariantSizes.length === 0) return
@@ -156,6 +161,7 @@ export default function ProductDetails() {
 
   React.useEffect(() => {
     if (variants.length === 0) return
+    if (selectedVariantIndex === -1) return
     if (!selectedColorKey && !selectedSize) return
     const idx = variants.findIndex(v => {
       const meta = getColorMeta(v.options?.color)
@@ -459,6 +465,8 @@ export default function ProductDetails() {
                   <button
                     onClick={() => {
                       setSelectedVariantIndex(-1)
+                      setSelectedColorKey('')
+                      setSelectedSize('')
                       if (product.images?.[0]?.url) setMainImage(product.images[0].url)
                     }}
                     className={`px-4 py-2 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all ${
