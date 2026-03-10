@@ -430,19 +430,24 @@ export default function ProductDetails() {
 
           {/* ─── PURCHASE MODE TOGGLE ─── */}
           {hasVariants && (mainSizes.length > 0 || !product.sizes?.length) && (
-            <div className="flex bg-gray-100 p-1 rounded-xl w-fit mt-4 flex-wrap">
-              <button
-                onClick={() => setPurchaseMode('base')}
-                className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${purchaseMode === 'base' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
-              >
-                Buy Base Product
-              </button>
-              <button
-                onClick={() => setPurchaseMode('variant')}
-                className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${purchaseMode === 'variant' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
-              >
-                Buy Variant
-              </button>
+            <div className="pt-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 block">
+                Purchase Options
+              </p>
+              <div className="flex bg-gray-100 p-1 rounded-2xl w-fit">
+                <button
+                  onClick={() => setPurchaseMode('variant')}
+                  className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'variant' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  Configure Options
+                </button>
+                <button
+                  onClick={() => setPurchaseMode('base')}
+                  className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'base' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  Buy Base Product
+                </button>
+              </div>
             </div>
           )}
 
@@ -489,7 +494,7 @@ export default function ProductDetails() {
                               textShadow: c.hex && getContrastYIQ(c.hex) === '#000000' ? '0 1px 2px rgba(255,255,255,0.8)' : '0 1px 2px rgba(0,0,0,0.8)'
                             }}
                           >
-                            {c.name?.slice(0, 4)}
+                            {!c.hex && c.name?.slice(0, 4)}
                           </span>
                         </button>
                       )
