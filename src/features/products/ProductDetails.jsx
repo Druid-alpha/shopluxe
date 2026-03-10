@@ -117,9 +117,29 @@ export default function ProductDetails() {
 
   const getColorMeta = (rawColor) => {
     if (!rawColor) return { key: 'no-color', name: '', hex: null }
-    if (typeof rawColor === 'string') return { key: rawColor, name: rawColor, hex: null }
+
+    // Handle standard legacy string colors
+    if (typeof rawColor === 'string') {
+      const isHex = rawColor.startsWith('#')
+      return {
+        key: rawColor,
+        name: isHex ? 'Custom Color' : rawColor,
+        hex: isHex ? rawColor : null
+      }
+    }
+
+    // Handle populated DB objects
     const key = rawColor._id || rawColor.name || 'color'
-    return { key, name: rawColor.name || '', hex: rawColor.hex || null }
+    let name = rawColor.name || ''
+
+    // If the name in the DB was accidentally saved as a raw hex code, override it
+    if (name.startsWith('#')) {
+      name = 'Custom Color'
+    } else if (!name && rawColor.hex) {
+      name = 'Custom Color'
+    }
+
+    return { key, name, hex: rawColor.hex || null }
   }
 
   // ---- Variant color options (deduplicated) ----
@@ -436,16 +456,16 @@ export default function ProductDetails() {
               </p>
               <div className="flex bg-gray-100 p-1 rounded-2xl w-fit">
                 <button
-                  onClick={() => setPurchaseMode('variant')}
-                  className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'variant' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
-                >
-                  Configure Variants
-                </button>
-                <button
                   onClick={() => setPurchaseMode('base')}
                   className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'base' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
                 >
-                  Buy Main Product
+                  Main Product
+                </button>
+                <button
+                  onClick={() => setPurchaseMode('variant')}
+                  className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'variant' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  Variants
                 </button>
               </div>
             </div>
@@ -478,12 +498,12 @@ export default function ProductDetails() {
                             setSelectedSize(sizes.length > 0 ? sizes[0] : '')
                           }}
                           title={c.name}
-                          className={`w-10 h-10 rounded-full border-[3px] transition-all flex items-center justify-center shadow-sm hover:scale-110 active:scale-95 overflow-hidden ${isSelected ? 'scale-110' : 'border-gray-300'
+                          className={`w-10 h-10 rounded-full border-[3px] transition-all flex items-center justify-center shadow-md hover:scale-110 active:scale-95 overflow-hidden ${isSelected ? 'scale-110' : 'border-gray-200'
                             }`}
                           style={{
                             backgroundColor: c.hex || '#e5e7eb',
-                            borderColor: isSelected ? (c.hex || '#111') : '#d1d5db',
-                            outline: isSelected ? `3px solid ${c.hex === '#ffffff' || c.hex === '#fff' ? '#9ca3af' : (c.hex || '#111')}` : 'none',
+                            borderColor: isSelected ? (c.hex && (c.hex.toLowerCase() === '#ffffff' || c.hex.toLowerCase() === '#fff') ? '#111' : (c.hex || '#111')) : (c.hex && (c.hex.toLowerCase() === '#ffffff' || c.hex.toLowerCase() === '#fff') ? '#d1d5db' : '#e5e7eb'),
+                            outline: isSelected ? `3px solid ${c.hex && (c.hex.toLowerCase() === '#ffffff' || c.hex.toLowerCase() === '#fff') ? '#111' : (c.hex || '#111')}` : 'none',
                             outlineOffset: '2px'
                           }}
                         >
