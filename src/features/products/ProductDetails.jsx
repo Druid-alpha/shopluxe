@@ -324,9 +324,9 @@ export default function ProductDetails() {
     const variantLabel = (purchaseMode === 'variant' && selectedVariant)
       ? [
         selectedVariant.options?.color?.name || '',
-        selectedVariant.options?.size ? `${sizeLabel}: ${selectedVariant.options.size}` : ''
+        selectedVariant.options?.size || ''
       ].filter(Boolean).join(' / ')
-      : selectedBaseSize ? `${sizeLabel}: ${selectedBaseSize}` : 'Base Product'
+      : selectedBaseSize || 'Base Product'
 
     if (!user) {
       dispatch(addGuestCart({

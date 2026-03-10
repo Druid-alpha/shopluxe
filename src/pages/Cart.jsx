@@ -20,10 +20,15 @@ function VariantBadges({ item }) {
   const isClothing = CLOTHING_TYPES.has(item.clothingType)
   const colorHex = item.variantColorHex || null
   const colorName = item.variantColorName || (item.variantLabel?.split(' / ')?.[0] || '')
-  const size = item.variantSize || item.variantLabel?.split(' / ')?.[1] || ''
+
+  // Robust size extraction
+  const rawSize = item.variantSize || item.variantLabel?.split(' / ')?.[1] || ''
   const sizeTypeLabel = SIZE_TYPE_LABEL[item.clothingType] || 'Size'
 
-  if (!colorName && !size && !item.variantLabel) return null
+  // Clean up size if it already contains the prefix
+  const cleanSize = String(rawSize).replace(new RegExp(`^${sizeTypeLabel}:\\s*`, 'i'), '').trim()
+
+  if (!colorName && !cleanSize && !item.variantLabel) return null
 
   if (isClothing) {
     return (
@@ -39,12 +44,12 @@ function VariantBadges({ item }) {
             {colorName}
           </span>
         )}
-        {size && (
+        {cleanSize && (
           <span className="bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500">
-            {sizeTypeLabel}: {size}
+            {sizeTypeLabel}: {cleanSize}
           </span>
         )}
-        {!colorName && !size && item.variantLabel && (
+        {!colorName && !cleanSize && item.variantLabel && (
           <span className="bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500">
             {item.variantLabel}
           </span>
