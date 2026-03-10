@@ -443,22 +443,22 @@ export default function ProductDetails() {
 
           {/* ─── PURCHASE MODE TOGGLE ─── */}
           {hasVariants && (mainSizes.length > 0 || !product.sizes?.length) && (
-            <div className="pt-2 relative z-20 bg-white">
+            <div className="pt-2 relative z-20 bg-transparent">
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 block">
                 Purchase Options
               </p>
-              <div className="flex bg-gray-100 p-1 rounded-2xl w-fit relative">
+              <div className="flex bg-slate-100/50 backdrop-blur-sm p-1.5 rounded-2xl w-fit relative border border-slate-200/50">
                 <button
                   type="button"
                   onClick={() => setPurchaseMode('base')}
-                  className={`relative z-10 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'base' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`relative z-10 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'base' ? 'bg-white shadow-sm text-black scale-100' : 'text-gray-400 hover:text-gray-600 scale-95 opacity-70'}`}
                 >
                   Main Product
                 </button>
                 <button
                   type="button"
                   onClick={() => setPurchaseMode('variant')}
-                  className={`relative z-10 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'variant' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`relative z-10 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'variant' ? 'bg-white shadow-sm text-black scale-100' : 'text-gray-400 hover:text-gray-600 scale-95 opacity-70'}`}
                 >
                   Variants
                 </button>
@@ -466,10 +466,10 @@ export default function ProductDetails() {
             </div>
           )}
 
-          <div className="relative z-10 bg-white min-h-[100px]">
+          <div className="relative z-10 bg-transparent min-h-[120px] pb-4 px-1 -mx-1 overflow-hidden sm:overflow-visible">
             {/* ─── VARIANT SELECTOR ─── */}
             {hasVariants && purchaseMode === 'variant' && (
-              <div key="variant-selector" className="space-y-5 pt-4 border-t border-gray-100 bg-white">
+              <div key="variant-selector" className="space-y-6 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300">
                 {/* COLOR SELECTOR */}
                 {variantColorOptions.length > 0 && (
                   <div>
@@ -563,34 +563,43 @@ export default function ProductDetails() {
             )}
 
             {/* ─── BASE PRODUCT SIZES ─── */}
-            {(purchaseMode === 'base' || !hasVariants) && mainSizes.length > 0 && (
-              <div key="base-selector" className="pt-4 border-t border-gray-100 bg-white">
+            {(purchaseMode === 'base' || !hasVariants) && (
+              <div key="base-selector" className="pt-4 border-t border-slate-100 bg-transparent">
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
-                  {sizeLabel}
-                  {selectedBaseSize && (
+                  {mainSizes.length > 0 ? sizeLabel : 'Product Info'}
+                  {selectedBaseSize && mainSizes.length > 0 && (
                     <span className="ml-2 text-gray-600 normal-case font-bold">— {selectedBaseSize}</span>
                   )}
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {mainSizes.map(size => {
-                    const isSelected = selectedBaseSize === size
-                    const activeHex = baseColorHex || '#111'
-                    return (
-                      <button
-                        key={`bsize-${size}`}
-                        type="button"
-                        onClick={() => setSelectedBaseSize(size)}
-                        className="px-4 py-2 rounded-xl border-2 text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
-                        style={isSelected
-                          ? { backgroundColor: activeHex, color: getContrastYIQ(activeHex), borderColor: activeHex === '#ffffff' ? '#e5e7eb' : activeHex }
-                          : { backgroundColor: '#fff', color: '#374151', borderColor: '#e5e7eb' }
-                        }
-                      >
-                        {size}
-                      </button>
-                    )
-                  })}
-                </div>
+                {mainSizes.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {mainSizes.map(size => {
+                      const isSelected = selectedBaseSize === size
+                      const activeHex = baseColorHex || '#111'
+                      return (
+                        <button
+                          key={`bsize-${size}`}
+                          type="button"
+                          onClick={() => setSelectedBaseSize(size)}
+                          className="px-4 py-2 rounded-xl border-2 text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
+                          style={isSelected
+                            ? { backgroundColor: activeHex, color: getContrastYIQ(activeHex), borderColor: activeHex === '#ffffff' ? '#e5e7eb' : activeHex }
+                            : { backgroundColor: 'transparent', color: '#374151', borderColor: '#e5e7eb' }
+                          }
+                        >
+                          {size}
+                        </button>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 p-4 bg-slate-50/50 backdrop-blur-sm rounded-2xl border border-slate-200/50">
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Standard Edition</span>
+                      <span className="text-[9px] text-slate-500 font-bold uppercase">One Size Fits All</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

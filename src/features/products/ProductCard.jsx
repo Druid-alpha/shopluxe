@@ -58,22 +58,22 @@ export default function ProductCard({ product }) {
     if (!product) return
 
     if (!user) {
-     dispatch(addGuestCart({
-  productId: product._id,
-  title: product.title,
-  price: discountedPrice,
-  basePrice: product.price || 0,
-  discount: product.discount || 0,
-  productImage: primaryImageUrl,
-  productStock: totalStock,
-  qty: 1,
-  variant: null,
-  addedAt: new Date().toISOString(),
-  key: `${product._id}-default`
-}))
+      dispatch(addGuestCart({
+        productId: product._id,
+        title: product.title,
+        price: discountedPrice,
+        basePrice: product.price || 0,
+        discount: product.discount || 0,
+        productImage: primaryImageUrl,
+        productStock: totalStock,
+        qty: 1,
+        variant: null,
+        addedAt: new Date().toISOString(),
+        key: `${product._id}-default`
+      }))
 
       toast({ title: 'Added to cart (Guest)' })
-       navigate('/cart')
+      navigate('/cart')
       return
     }
 
@@ -142,11 +142,11 @@ export default function ProductCard({ product }) {
       <Link to={`/products/${product._id}`} className="block relative aspect-[4/5] overflow-hidden bg-gray-50">
         {/* SALE BADGE */}
         {product.discount > 0 && (
-          <div className="absolute top-4 left-4 z-10 flex flex-col gap-1">
-            <span className="bg-slate-600 text-white text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 shadow-md rounded-sm">
+          <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5">
+            <span className="bg-white/40 backdrop-blur-md text-slate-900 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 shadow-[0_4px_12px_rgba(0,0,0,0.1)] rounded-lg border border-white/40 border-t-white/60">
               Sale
             </span>
-            <span className="bg-rose-400 text-white text-[10px] font-black uppercase tracking-[0.1em] px-2 py-1 shadow-lg rounded-sm text-center">
+            <span className="bg-rose-500/60 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-[0.1em] px-2.5 py-1 shadow-[0_8px_16px_rgba(244,63,94,0.3)] rounded-lg text-center border border-white/20 border-t-white/40">
               -{product.discount}%
             </span>
           </div>
