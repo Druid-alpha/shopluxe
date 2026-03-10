@@ -40,6 +40,19 @@ const resolveHex = (rawColor) => {
   return null
 }
 
+const getContrastYIQ = (hex) => {
+  if (!hex) return '#ffffff';
+  let cleanHex = hex.replace('#', '');
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map(c => c + c).join('');
+  }
+  const r = parseInt(cleanHex.substring(0, 2), 16) || 0;
+  const g = parseInt(cleanHex.substring(2, 4), 16) || 0;
+  const b = parseInt(cleanHex.substring(4, 6), 16) || 0;
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  return (yiq >= 128) ? '#000000' : '#ffffff';
+}
+
 export default function ProductDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -472,8 +485,8 @@ export default function ProductDetails() {
                           <span
                             className="text-[8px] font-black uppercase leading-tight text-center px-1 drop-shadow-md z-10"
                             style={{
-                              color: c.hex && parseInt(c.hex.replace('#', ''), 16) > 0xffffff / 2 ? '#000' : '#fff',
-                              textShadow: c.hex && parseInt(c.hex.replace('#', ''), 16) > 0xffffff / 2 ? '0 1px 2px rgba(255,255,255,0.8)' : '0 1px 2px rgba(0,0,0,0.8)'
+                              color: c.hex ? getContrastYIQ(c.hex) : '#fff',
+                              textShadow: c.hex && getContrastYIQ(c.hex) === '#000000' ? '0 1px 2px rgba(255,255,255,0.8)' : '0 1px 2px rgba(0,0,0,0.8)'
                             }}
                           >
                             {c.name?.slice(0, 4)}
@@ -510,7 +523,7 @@ export default function ProductDetails() {
                           disabled={isOOS}
                           className={`relative px-4 py-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center min-w-[70px] ${isOOS ? 'opacity-50 bg-gray-50 border-gray-200 cursor-not-allowed text-gray-400' : 'hover:scale-105 active:scale-95 text-slate-700 bg-white border-gray-200'}`}
                           style={(!isOOS && isSelected)
-                            ? { backgroundColor: activeHex, color: '#fff', borderColor: activeHex }
+                            ? { backgroundColor: activeHex, color: getContrastYIQ(activeHex), borderColor: activeHex === '#ffffff' ? '#e5e7eb' : activeHex }
                             : undefined
                           }
                         >
@@ -553,7 +566,7 @@ export default function ProductDetails() {
                       onClick={() => setSelectedBaseSize(size)}
                       className="px-4 py-2 rounded-xl border-2 text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
                       style={isSelected
-                        ? { backgroundColor: activeHex, color: '#fff', borderColor: activeHex }
+                        ? { backgroundColor: activeHex, color: getContrastYIQ(activeHex), borderColor: activeHex === '#ffffff' ? '#e5e7eb' : activeHex }
                         : { backgroundColor: '#fff', color: '#374151', borderColor: '#e5e7eb' }
                       }
                     >
