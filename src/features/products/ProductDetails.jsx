@@ -439,13 +439,13 @@ export default function ProductDetails() {
                   onClick={() => setPurchaseMode('variant')}
                   className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'variant' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
                 >
-                  Configure Options
+                  Configure Variants
                 </button>
                 <button
                   onClick={() => setPurchaseMode('base')}
                   className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'base' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}
                 >
-                  Buy Base Product
+                  Buy Main Product
                 </button>
               </div>
             </div>
@@ -478,11 +478,11 @@ export default function ProductDetails() {
                             setSelectedSize(sizes.length > 0 ? sizes[0] : '')
                           }}
                           title={c.name}
-                          className={`w-10 h-10 rounded-full border-[3px] transition-all flex items-center justify-center shadow-sm hover:scale-110 active:scale-95 overflow-hidden ${isSelected ? 'scale-110' : 'border-transparent'
+                          className={`w-10 h-10 rounded-full border-[3px] transition-all flex items-center justify-center shadow-sm hover:scale-110 active:scale-95 overflow-hidden ${isSelected ? 'scale-110' : 'border-gray-200'
                             }`}
                           style={{
                             backgroundColor: c.hex || '#e5e7eb',
-                            borderColor: isSelected ? (c.hex || '#111') : 'transparent',
+                            borderColor: isSelected ? (c.hex || '#111') : '#e5e7eb',
                             outline: isSelected ? `3px solid ${c.hex || '#111'}` : 'none',
                             outlineOffset: '2px'
                           }}
