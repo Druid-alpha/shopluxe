@@ -84,7 +84,7 @@ export default function ProductDetails() {
 
   /* ================= STATE ================= */
   const [mainImage, setMainImage] = React.useState('')
-  const [purchaseMode, setPurchaseMode] = React.useState('variant') // 'variant' or 'base'
+  const [purchaseMode, setPurchaseMode] = React.useState('base') // 'base' or 'variant'
   const [selectedVariantIndex, setSelectedVariantIndex] = React.useState(-1)
   const [selectedBaseSize, setSelectedBaseSize] = React.useState('')
   const [selectedColorKey, setSelectedColorKey] = React.useState('')
@@ -198,22 +198,15 @@ export default function ProductDetails() {
     }
   }, [purchaseMode, product, selectedVariant])
 
-  // Auto-select first color when product loads
+  // Auto-select first color ONLY if we are in variant mode
   React.useEffect(() => {
-    if (!product || variants.length === 0) return
-
-    // Only auto-select if we haven't already deliberately set a mode or variant
-    if (purchaseMode !== 'variant') {
-      setPurchaseMode('variant')
-    }
-
-    if (!selectedColorKey && variantColorOptions.length > 0) {
+    if (purchaseMode === 'variant' && !selectedColorKey && variantColorOptions.length > 0) {
       const firstColor = variantColorOptions[0]
       setSelectedColorKey(firstColor.key)
       const sizes = variantSizesByColor.get(firstColor.key) || []
       if (sizes.length > 0 && !selectedSize) setSelectedSize(sizes[0])
     }
-  }, [product, variantColorOptions]) // Removed purchaseMode, selectedColorKey from deps conceptually - only run when product/variants change and we have NO selection
+  }, [product, variantColorOptions, purchaseMode]) // Removed purchaseMode, selectedColorKey from deps conceptually - only run when product/variants change and we have NO selection
 
   // Auto-select first base size
   React.useEffect(() => {
@@ -604,8 +597,8 @@ export default function ProductDetails() {
           )}
 
           {/* ─── INVENTORY STATUS ─── */}
-          <div className="space-y-4 pt-4 border-t border-gray-100 relative z-0">
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 relative z-0">
+          <div className="space-y-4 pt-4 border-t border-gray-100">
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
               <div className="flex items-center gap-3">
                 <div className={`w-2 h-2 rounded-full ${currentStock > 0 ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
