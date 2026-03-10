@@ -478,12 +478,12 @@ export default function ProductDetails() {
                             setSelectedSize(sizes.length > 0 ? sizes[0] : '')
                           }}
                           title={c.name}
-                          className={`w-10 h-10 rounded-full border-[3px] transition-all flex items-center justify-center shadow-sm hover:scale-110 active:scale-95 overflow-hidden ${isSelected ? 'scale-110' : 'border-gray-200'
+                          className={`w-10 h-10 rounded-full border-[3px] transition-all flex items-center justify-center shadow-sm hover:scale-110 active:scale-95 overflow-hidden ${isSelected ? 'scale-110' : 'border-gray-300'
                             }`}
                           style={{
                             backgroundColor: c.hex || '#e5e7eb',
-                            borderColor: isSelected ? (c.hex || '#111') : '#e5e7eb',
-                            outline: isSelected ? `3px solid ${c.hex || '#111'}` : 'none',
+                            borderColor: isSelected ? (c.hex || '#111') : '#d1d5db',
+                            outline: isSelected ? `3px solid ${c.hex === '#ffffff' || c.hex === '#fff' ? '#9ca3af' : (c.hex || '#111')}` : 'none',
                             outlineOffset: '2px'
                           }}
                         >
