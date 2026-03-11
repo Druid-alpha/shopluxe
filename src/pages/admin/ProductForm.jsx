@@ -102,6 +102,20 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     }
   }
 
+  const handleEyeDropper = async () => {
+    if (!window.EyeDropper) {
+      toast({ title: 'EyeDropper not supported in this browser', variant: 'destructive' })
+      return
+    }
+    const eyeDropper = new window.EyeDropper()
+    try {
+      const result = await eyeDropper.open()
+      setNewColorHex(result.sRGBHex)
+    } catch (e) {
+      console.log('EyeDropper cancelled')
+    }
+  }
+
   /* =====================================================
      HELPERS
   ===================================================== */
@@ -387,12 +401,8 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         saved = await createProduct(fd).unwrap()
       }
 
-      const persistedSizes = saved?.product?.sizes
       toast({
-        title: 'Product saved successfully',
-        description: Array.isArray(persistedSizes)
-          ? `Sizes: ${persistedSizes.join(', ') || '(none)'}`
-          : 'Saved'
+        title: product?._id ? 'Product updated successfully' : 'Product created successfully',
       })
       onSuccess?.()
       if (closeOnSuccess) onClose?.()
@@ -469,33 +479,64 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
           </div>
 
           {/* MAIN PRODUCT SIZES — admin picks which sizes this product is available in */}
-          {isClothingLike && clothingType && availableMainSizes.length > 0 && (
-            <div>
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1 block">
-                Available Sizes
-              </label>
-              <p className="text-[10px] text-gray-400 mb-2 font-medium">
-                {CLOTHING_TYPE_LABELS[clothingType] || 'Select available sizes'} — customers will pick one size when adding to cart
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {availableMainSizes.map(size => {
-                  const checked = mainSizes.includes(size)
-                  return (
-                    <label
-                      key={size}
-                      className={`px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg border transition-colors cursor-pointer ${checked ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-200 hover:border-black'
-                        }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleMainSize(size)}
-                        className="hidden"
-                      />
-                      {size}
-                    </label>
-                  )
-                })}
+          {isClothingLike && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2 block">
+                  {categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') ? 'Product Specs' : 'Available Sizes'}
+                </label>
+                <div className="flex gap-2 mb-3">
+                  <Input
+                    placeholder={categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') ? "Add custom spec (e.g. 8GB RAM)" : "Add custom size (e.g. 500g)"}
+                    className="rounded-xl border-gray-100"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const val = e.target.value.trim();
+                        if (val && !mainSizes.includes(val)) {
+                          setMainSizes(prev => [...prev, val]);
+                          e.target.value = '';
+                        }
+                      }
+                    }}
+                  />
+                </div>
+                {availableMainSizes.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {availableMainSizes.map(size => {
+                      const checked = mainSizes.includes(size)
+                      return (
+                        <label
+                          key={size}
+                          className={`px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg border transition-colors cursor-pointer ${checked ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-200 hover:border-black'
+                            }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleMainSize(size)}
+                            className="hidden"
+                          />
+                          {size}
+                        </label>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {mainSizes.filter(s => !availableMainSizes.includes(s)).length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">Custom Choices</p>
+                    <div className="flex flex-wrap gap-2">
+                      {mainSizes.filter(s => !availableMainSizes.includes(s)).map(s => (
+                        <span key={s} className="flex items-center gap-2 px-3 py-2 bg-zinc-100 text-zinc-800 text-[10px] font-black uppercase tracking-widest rounded-lg border border-zinc-200">
+                          {s}
+                          <Trash2 size={10} className="cursor-pointer hover:text-red-500" onClick={() => toggleMainSize(s)} />
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -564,12 +605,22 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                 {isColorPickerOpen ? (
                   <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl space-y-3">
                     <div className="flex gap-2 items-center">
-                      <Input
-                        type="color"
-                        value={newColorHex}
-                        onChange={e => setNewColorHex(e.target.value)}
-                        className="w-10 h-10 p-0 border-0 rounded overflow-hidden shadow-sm"
-                      />
+                      <div className="relative group/eyedrop">
+                        <Input
+                          type="color"
+                          value={newColorHex}
+                          onChange={e => setNewColorHex(e.target.value)}
+                          className="w-10 h-10 p-0 border-0 rounded overflow-hidden shadow-sm cursor-pointer"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleEyeDropper}
+                          className="absolute inset-0 bg-black/20 text-white flex items-center justify-center opacity-0 group-hover/eyedrop:opacity-100 transition-opacity rounded"
+                          title="Pick from image"
+                        >
+                          <span className="text-[10px]">👁</span>
+                        </button>
+                      </div>
                       <Input
                         placeholder="Color Name (e.g. Navy Blue)"
                         value={newColorName}
@@ -706,8 +757,10 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                 {/* SIZE — dropdown for clothing types */}
                 <div>
                   <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">
-                    Size
-                    {clothingType && <span className="ml-1 normal-case font-normal text-gray-300">({clothingType})</span>}
+                    {categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') ? 'Spec' : 'Size'}
+                    {clothingType && !categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') && (
+                      <span className="ml-1 normal-case font-normal text-gray-300">({clothingType})</span>
+                    )}
                   </label>
                   {clothingType ? (
                     <select

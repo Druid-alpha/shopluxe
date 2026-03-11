@@ -110,6 +110,9 @@ export default function ProductDetails() {
     ? product.sizes
     : parseBaseSizesFromTags(product?.tags || [])
 
+  const isElectronics = product?.category?.name?.toLowerCase().includes('electronics')
+  const sizeLabel = isElectronics ? 'Specifications' : 'Select Size'
+
   // ---- Color meta helpers ----
   const baseColor = product?.color
   const baseColorHex = resolveHex(baseColor)
@@ -451,7 +454,11 @@ export default function ProductDetails() {
                 <button
                   type="button"
                   onClick={() => setPurchaseMode('base')}
-                  className={`relative z-10 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'base' ? 'bg-white shadow-sm text-black scale-100' : 'text-gray-400 hover:text-gray-600 scale-95 opacity-70'}`}
+                  className={`relative z-10 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'base' ? 'shadow-lg scale-100' : 'text-gray-400 hover:text-gray-600 scale-95 opacity-70'}`}
+                  style={purchaseMode === 'base' ? {
+                    backgroundColor: baseColorHex || '#000000',
+                    color: getContrastYIQ(baseColorHex || '#000000')
+                  } : {}}
                 >
                   Main Product
                 </button>

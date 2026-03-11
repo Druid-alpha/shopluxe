@@ -46,7 +46,7 @@ function VariantBadges({ item }) {
         )}
         {cleanSize && (
           <span className="bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500">
-            {sizeTypeLabel}: {cleanSize}
+            {isDuplicate ? cleanSize : `${sizeTypeLabel}: ${cleanSize}`}
           </span>
         )}
         {!colorName && !cleanSize && item.variantLabel && (

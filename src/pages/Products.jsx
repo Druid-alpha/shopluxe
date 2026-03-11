@@ -137,7 +137,9 @@ export default function Products() {
     const current = searchParams.toString()
     const target = next.toString()
     if (current !== target) {
-      setSearchParams(next, { replace: true })
+      // Use replace: false for page changes to support the browser's back button
+      const isPageChangeOnly = current.replace(/page=\d+/, '') === target.replace(/page=\d+/, '')
+      setSearchParams(next, { replace: !isPageChangeOnly })
     }
   }, [page, debouncedSearch, category, clothingType, brand, color, minPrice, maxPrice, availability, sortBy, normalizeClothingType, searchParams, setSearchParams])
 
