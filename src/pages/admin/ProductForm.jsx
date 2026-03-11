@@ -102,18 +102,22 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     }
   }
 
+  const [isImagePickerOpen, setIsImagePickerOpen] = useState(false)
+
   const handleEyeDropper = async () => {
-    if (!window.EyeDropper) {
-      toast({ title: 'EyeDropper not supported in this browser', variant: 'destructive' })
-      return
+    if (window.EyeDropper) {
+      const eyeDropper = new window.EyeDropper()
+      try {
+        const result = await eyeDropper.open()
+        setNewColorHex(result.sRGBHex)
+        return
+      } catch (e) {
+        console.log('EyeDropper cancelled')
+        return
+      }
     }
-    const eyeDropper = new window.EyeDropper()
-    try {
-      const result = await eyeDropper.open()
-      setNewColorHex(result.sRGBHex)
-    } catch (e) {
-      console.log('EyeDropper cancelled')
-    }
+    // Fallback for mobile/Safari
+    setIsImagePickerOpen(true)
   }
 
   /* =====================================================
@@ -843,6 +847,53 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         <Button type="submit" className="bg-black text-white hover:bg-zinc-800 rounded-xl px-12 py-6 font-black uppercase tracking-widest text-[10px]">Publish Product</Button>
         <Button type="button" variant="ghost" onClick={onClose} className="rounded-xl px-8 py-6 font-bold uppercase tracking-widest text-[10px] text-gray-400">Cancel</Button>
       </div>
+
+      {/* ── IMAGE COLOR PICKER MODAL (Mobile Fallback) ── */}
+      {isImagePickerOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col animate-in fade-in duration-300">
+          <div className="p-4 flex justify-between items-center border-b border-white/10">
+            <h3 className="text-white text-xs font-black uppercase tracking-widest">Tap to pick color</h3>
+            <button type="button" onClick={() => setIsImagePickerOpen(false)} className="text-white/60 hover:text-white">
+              <Trash2 size={20} />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {[...existingImages, ...imagePreviews.map(p => ({ url: p }))].map((img, i) => (
+              <div key={i} className="relative">
+                <img
+                  src={img.url}
+                  crossOrigin="anonymous"
+                  className="w-full rounded-2xl cursor-crosshair"
+                  onClick={(e) => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const target = e.target;
+                    canvas.width = target.naturalWidth;
+                    canvas.height = target.naturalHeight;
+                    ctx.drawImage(target, 0, 0);
+
+                    const rect = target.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * target.naturalWidth;
+                    const y = ((e.clientY - rect.top) / rect.height) * target.naturalHeight;
+
+                    const pixel = ctx.getImageData(x, y, 1, 1).data;
+                    const hex = '#' + ('000000' + ((pixel[0] << 16) | (pixel[1] << 8) | pixel[2]).toString(16)).slice(-6);
+                    setNewColorHex(hex);
+                    setIsImagePickerOpen(false);
+                    toast({ title: `Color picked: ${hex}` });
+                  }}
+                />
+              </div>
+            ))}
+            {existingImages.length === 0 && imagePreviews.length === 0 && (
+              <div className="h-full flex flex-col items-center justify-center text-white/40 text-sm">
+                No images available to pick from.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </form>
   )
 }
