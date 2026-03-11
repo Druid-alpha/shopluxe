@@ -102,6 +102,31 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     }
   }
 
+  const copyToClipboard = async (text) => {
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text)
+        return true
+      } catch (err) { }
+    }
+    // Fallback for iOS/non-secure contexts
+    try {
+      const textArea = document.createElement('textarea')
+      textArea.value = text
+      textArea.style.position = 'fixed'
+      textArea.style.left = '-9999px'
+      textArea.style.top = '0'
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+      const successful = document.execCommand('copy')
+      document.body.removeChild(textArea)
+      return successful
+    } catch (err) {
+      return false
+    }
+  }
+
   const [isImagePickerOpen, setIsImagePickerOpen] = useState(false)
   const [magnifier, setMagnifier] = useState({ show: false, x: 0, y: 0, hex: '#000000' })
 
@@ -911,14 +936,15 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                     };
 
                     const onMove = (moveEv) => sample(moveEv);
-                    const onUp = (upEv) => {
+                    const onUp = async (upEv) => {
                       const finalHex = sample(upEv);
                       if (finalHex) {
                         setNewColorHex(finalHex);
-                        try {
-                          navigator.clipboard.writeText(finalHex);
-                        } catch (err) { }
-                        toast({ title: `Color captured & copied: ${finalHex}` });
+                        const copied = await copyToClipboard(finalHex);
+                        toast({
+                          title: copied ? `Color captured & copied: ${finalHex}` : `Color captured: ${finalHex}`,
+                          description: copied ? "Ready to use in the form!" : "(Clipboard blocked, but color is set in form)"
+                        });
                       }
                       setMagnifier({ show: false, x: 0, y: 0, hex: '#000000' });
                       setIsImagePickerOpen(false);
