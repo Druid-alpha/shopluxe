@@ -103,6 +103,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   }
 
   const [isImagePickerOpen, setIsImagePickerOpen] = useState(false)
+  const [magnifier, setMagnifier] = useState({ show: false, x: 0, y: 0, hex: '#000000' })
 
   const handleEyeDropper = async () => {
     if (window.EyeDropper) {
@@ -858,34 +859,109 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 select-none touch-none">
             {[...existingImages, ...imagePreviews.map(p => ({ url: p }))].map((img, i) => (
-              <div key={i} className="relative">
+              <div key={i} className="relative overflow-hidden rounded-2xl border border-white/5 bg-zinc-900">
                 <img
                   src={img.url}
                   crossOrigin="anonymous"
-                  className="w-full rounded-2xl cursor-crosshair"
-                  onClick={(e) => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const target = e.target;
-                    canvas.width = target.naturalWidth;
-                    canvas.height = target.naturalHeight;
-                    ctx.drawImage(target, 0, 0);
-
+                  className="w-full cursor-crosshair opacity-90"
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    const target = e.currentTarget;
                     const rect = target.getBoundingClientRect();
-                    const x = ((e.clientX - rect.left) / rect.width) * target.naturalWidth;
-                    const y = ((e.clientY - rect.top) / rect.height) * target.naturalHeight;
 
-                    const pixel = ctx.getImageData(x, y, 1, 1).data;
-                    const hex = '#' + ('000000' + ((pixel[0] << 16) | (pixel[1] << 8) | pixel[2]).toString(16)).slice(-6);
-                    setNewColorHex(hex);
-                    setIsImagePickerOpen(false);
-                    toast({ title: `Color picked: ${hex}` });
+                    // Create a persistent canvas for sampling
+                    const sampleCanvas = document.createElement('canvas');
+                    sampleCanvas.width = target.naturalWidth;
+                    sampleCanvas.height = target.naturalHeight;
+                    const sCtx = sampleCanvas.getContext('2d', { willReadFrequently: true });
+                    sCtx.drawImage(target, 0, 0);
+
+                    const sample = (ev) => {
+                      const x = ((ev.clientX - rect.left) / rect.width) * target.naturalWidth;
+                      const y = ((ev.clientY - rect.top) / rect.height) * target.naturalHeight;
+
+                      if (x < 0 || x > target.naturalWidth || y < 0 || y > target.naturalHeight) return;
+
+                      const pixel = sCtx.getImageData(x, y, 1, 1).data;
+                      const hex = '#' + ('000000' + ((pixel[0] << 16) | (pixel[1] << 8) | pixel[2]).toString(16)).slice(-6);
+
+                      // Zoom logic: draw a small patch around (x,y) to a magnifier canvas
+                      const zoomSize = 20; // 20x20 area
+                      const zoomCanvas = document.createElement('canvas');
+                      zoomCanvas.width = 100;
+                      zoomCanvas.height = 100;
+                      const zCtx = zoomCanvas.getContext('2d');
+                      zCtx.imageSmoothingEnabled = false; // Keep it pixelated for precision
+                      zCtx.drawImage(
+                        target,
+                        x - zoomSize / 2, y - zoomSize / 2, zoomSize, zoomSize,
+                        0, 0, 100, 100
+                      );
+
+                      setMagnifier({
+                        show: true,
+                        x: ev.clientX,
+                        y: ev.clientY - 100,
+                        hex,
+                        zoomData: zoomCanvas.toDataURL()
+                      });
+                      return hex;
+                    };
+
+                    const onMove = (moveEv) => sample(moveEv);
+                    const onUp = (upEv) => {
+                      const finalHex = sample(upEv);
+                      if (finalHex) {
+                        setNewColorHex(finalHex);
+                        try {
+                          navigator.clipboard.writeText(finalHex);
+                        } catch (err) { }
+                        toast({ title: `Color captured & copied: ${finalHex}` });
+                      }
+                      setMagnifier({ show: false, x: 0, y: 0, hex: '#000000' });
+                      setIsImagePickerOpen(false);
+                      window.removeEventListener('pointermove', onMove);
+                      window.removeEventListener('pointerup', onUp);
+                    };
+
+                    sample(e);
+                    window.addEventListener('pointermove', onMove);
+                    window.addEventListener('pointerup', onUp);
                   }}
                 />
               </div>
             ))}
+
+            {/* Enhanced Magnifier Glass */}
+            {magnifier.show && (
+              <div
+                className="fixed z-[120] pointer-events-none -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
+                style={{ left: magnifier.x, top: magnifier.y }}
+              >
+                <div className="relative w-28 h-28 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-zinc-800">
+                  {magnifier.zoomData && (
+                    <img src={magnifier.zoomData} className="w-full h-full object-cover" />
+                  )}
+                  {/* Crosshair */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-full h-[1px] bg-white/50" />
+                    <div className="absolute w-[1px] h-full bg-white/50" />
+                    <div className="w-2 h-2 border-2 border-white rounded-full shadow-[0_0_5px_rgba(0,0,0,0.5)]" />
+                  </div>
+                  {/* Sample Color circle */}
+                  <div
+                    className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-2 border-white shadow-lg"
+                    style={{ backgroundColor: magnifier.hex }}
+                  />
+                </div>
+                <div className="mt-3 bg-black/80 backdrop-blur-md text-white text-[11px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.2em] border border-white/20">
+                  {magnifier.hex}
+                </div>
+              </div>
+            )}
+
             {existingImages.length === 0 && imagePreviews.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-white/40 text-sm">
                 No images available to pick from.

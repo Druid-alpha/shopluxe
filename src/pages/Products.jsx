@@ -114,9 +114,16 @@ export default function Products() {
     setBrand((prev) => (prev === null ? prev : null))
   }, [clothingType])
 
-  // ---------------- Reset page on ALL filter changes ----------------
+  // ---------------- Reset page on filter changes ONLY ----------------
+  const prevFiltersRef = React.useRef({ debouncedSearch, category, brand, color, clothingType, minPrice, maxPrice, availability, sortBy })
   React.useEffect(() => {
-    setPage((prev) => (prev === 1 ? prev : 1))
+    const currentFilters = { debouncedSearch, category, brand, color, clothingType, minPrice, maxPrice, availability, sortBy }
+    const filtersChanged = Object.keys(currentFilters).some(key => currentFilters[key] !== prevFiltersRef.current[key])
+
+    if (filtersChanged) {
+      setPage(1)
+      prevFiltersRef.current = currentFilters
+    }
   }, [debouncedSearch, category, brand, color, clothingType, minPrice, maxPrice, availability, sortBy])
 
   // ---------------- Update URL ----------------

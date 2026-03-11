@@ -25,8 +25,9 @@ function VariantBadges({ item }) {
   const rawSize = item.variantSize || item.variantLabel?.split(' / ')?.[1] || ''
   const sizeTypeLabel = SIZE_TYPE_LABEL[item.clothingType] || 'Size'
 
-  // Clean up size if it already contains the prefix
-  const cleanSize = String(rawSize).replace(new RegExp(`^${sizeTypeLabel}:\\s*`, 'i'), '').trim()
+  // Clean up size if it already contains the prefix or category name
+  const cleanSize = String(rawSize).replace(new RegExp(`^${sizeTypeLabel}:?\\s*`, 'i'), '').trim()
+  const isDuplicate = cleanSize.toLowerCase().includes(sizeTypeLabel.toLowerCase())
 
   if (!colorName && !cleanSize && !item.variantLabel) return null
 
