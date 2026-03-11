@@ -574,7 +574,7 @@ export default function ProductDetails() {
             {(purchaseMode === 'base' || !hasVariants) && (
               <div key="base-selector" className="pt-4 border-t border-slate-100 bg-transparent">
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
-                  {mainSizes.length > 0 ? sizeLabel : 'Product Info'}
+                  {mainSizes.length > 0 ? sizeLabel : (isElectronics ? 'Specifications' : 'Product Info')}
                   {selectedBaseSize && mainSizes.length > 0 && (
                     <span className="ml-2 text-gray-600 normal-case font-bold">— {selectedBaseSize}</span>
                   )}

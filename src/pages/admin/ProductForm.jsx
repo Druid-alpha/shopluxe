@@ -60,6 +60,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const editableProduct = fullProductData?.product || product
 
   // ---------------- INLINE CUSTOM COLOR CREATION ----------------
+  // isColorPickerOpen can be: false, 'main', or a variant index (number)
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false)
   const [newColorName, setNewColorName] = useState('')
   const [newColorHex, setNewColorHex] = useState('#000000')
@@ -513,11 +514,11 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2 block">
-                  {categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') ? 'Product Specs' : 'Available Sizes'}
+                  {categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') ? 'Product Specifications' : 'Available Sizes'}
                 </label>
                 <div className="flex gap-2 mb-3">
                   <Input
-                    placeholder={categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') ? "Add custom spec (e.g. 8GB RAM)" : "Add custom size (e.g. 500g)"}
+                    placeholder={categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') ? "Add specification (e.g. 8GB RAM)" : "Add custom size (e.g. 500g)"}
                     className="rounded-xl border-gray-100"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -624,15 +625,15 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                   {category && (
                     <button
                       type="button"
-                      onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
+                      onClick={() => setIsColorPickerOpen(isColorPickerOpen === 'main' ? false : 'main')}
                       className="text-[9px] font-black uppercase text-blue-500 hover:text-blue-700 block p-0 m-0"
                     >
-                      {isColorPickerOpen ? 'Cancel' : '+ New Color'}
+                      {isColorPickerOpen === 'main' ? 'Cancel' : '+ New Color'}
                     </button>
                   )}
                 </div>
 
-                {isColorPickerOpen ? (
+                {isColorPickerOpen === 'main' ? (
                   <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl space-y-3">
                     <div className="flex gap-2 items-center">
                       <div className="relative group/eyedrop">
@@ -747,19 +748,29 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                   </div>
 
                   {isColorPickerOpen === idx ? (
-                    <div className="p-2 bg-blue-50 border border-blue-100 rounded-lg space-y-2 relative z-10 w-[200px] shadow-lg absolute">
+                    <div className="p-2 bg-blue-50 border border-blue-100 rounded-lg space-y-2 relative z-10 w-[200px] shadow-lg absolute right-0">
                       <div className="flex gap-2 items-center">
-                        <Input
-                          type="color"
-                          value={newColorHex}
-                          onChange={e => setNewColorHex(e.target.value)}
-                          className="w-6 h-8 p-0 border-0 rounded shrink-0 shadow-sm"
-                        />
+                        <div className="relative group/eyedrop">
+                          <Input
+                            type="color"
+                            value={newColorHex}
+                            onChange={e => setNewColorHex(e.target.value)}
+                            className="w-8 h-8 p-0 border-0 rounded overflow-hidden shadow-sm cursor-pointer"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleEyeDropper}
+                            className="absolute inset-0 bg-black/20 text-white flex items-center justify-center opacity-0 group-hover/eyedrop:opacity-100 transition-opacity rounded"
+                            title="Pick from image"
+                          >
+                            <span className="text-[8px]">👁</span>
+                          </button>
+                        </div>
                         <Input
                           placeholder="Name..."
                           value={newColorName}
                           onChange={e => setNewColorName(e.target.value)}
-                          className="h-8 text-[10px] bg-white border-blue-100 px-2"
+                          className="h-8 text-[10px] bg-white border-blue-100 px-2 flex-1"
                         />
                       </div>
                       <Button
@@ -787,7 +798,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                 {/* SIZE — dropdown for clothing types */}
                 <div>
                   <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">
-                    {categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') ? 'Spec' : 'Size'}
+                    {categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') ? 'Specification' : 'Size'}
                     {clothingType && !categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') && (
                       <span className="ml-1 normal-case font-normal text-gray-300">({clothingType})</span>
                     )}
@@ -866,8 +877,9 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
           <div className="border border-dashed border-gray-100 rounded-2xl py-8 text-center text-gray-300 text-xs italic">
             No variants added. Base pricing, stock, and sizes above will apply.
           </div>
-        )}
-      </div>
+        )
+        }
+      </div >
 
       <div className="flex gap-4 pt-8 border-t border-gray-50">
         <Button type="submit" className="bg-black text-white hover:bg-zinc-800 rounded-xl px-12 py-6 font-black uppercase tracking-widest text-[10px]">Publish Product</Button>
@@ -875,127 +887,129 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       </div>
 
       {/* ── IMAGE COLOR PICKER MODAL (Mobile Fallback) ── */}
-      {isImagePickerOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col animate-in fade-in duration-300">
-          <div className="p-4 flex justify-between items-center border-b border-white/10">
-            <h3 className="text-white text-xs font-black uppercase tracking-widest">Tap to pick color</h3>
-            <button type="button" onClick={() => setIsImagePickerOpen(false)} className="text-white/60 hover:text-white">
-              <Trash2 size={20} />
-            </button>
-          </div>
+      {
+        isImagePickerOpen && (
+          <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col animate-in fade-in duration-300">
+            <div className="p-4 flex justify-between items-center border-b border-white/10">
+              <h3 className="text-white text-xs font-black uppercase tracking-widest">Tap to pick color</h3>
+              <button type="button" onClick={() => setIsImagePickerOpen(false)} className="text-white/60 hover:text-white">
+                <Trash2 size={20} />
+              </button>
+            </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 select-none touch-none">
-            {[...existingImages, ...imagePreviews.map(p => ({ url: p }))].map((img, i) => (
-              <div key={i} className="relative overflow-hidden rounded-2xl border border-white/5 bg-zinc-900">
-                <img
-                  src={img.url}
-                  crossOrigin="anonymous"
-                  className="w-full cursor-crosshair opacity-90"
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    const target = e.currentTarget;
-                    const rect = target.getBoundingClientRect();
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 select-none touch-none">
+              {[...existingImages, ...imagePreviews.map(p => ({ url: p }))].map((img, i) => (
+                <div key={i} className="relative overflow-hidden rounded-2xl border border-white/5 bg-zinc-900">
+                  <img
+                    src={img.url}
+                    crossOrigin="anonymous"
+                    className="w-full cursor-crosshair opacity-90"
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      const target = e.currentTarget;
+                      const rect = target.getBoundingClientRect();
 
-                    // Create a persistent canvas for sampling
-                    const sampleCanvas = document.createElement('canvas');
-                    sampleCanvas.width = target.naturalWidth;
-                    sampleCanvas.height = target.naturalHeight;
-                    const sCtx = sampleCanvas.getContext('2d', { willReadFrequently: true });
-                    sCtx.drawImage(target, 0, 0);
+                      // Create a persistent canvas for sampling
+                      const sampleCanvas = document.createElement('canvas');
+                      sampleCanvas.width = target.naturalWidth;
+                      sampleCanvas.height = target.naturalHeight;
+                      const sCtx = sampleCanvas.getContext('2d', { willReadFrequently: true });
+                      sCtx.drawImage(target, 0, 0);
 
-                    const sample = (ev) => {
-                      const x = ((ev.clientX - rect.left) / rect.width) * target.naturalWidth;
-                      const y = ((ev.clientY - rect.top) / rect.height) * target.naturalHeight;
+                      const sample = (ev) => {
+                        const x = ((ev.clientX - rect.left) / rect.width) * target.naturalWidth;
+                        const y = ((ev.clientY - rect.top) / rect.height) * target.naturalHeight;
 
-                      if (x < 0 || x > target.naturalWidth || y < 0 || y > target.naturalHeight) return;
+                        if (x < 0 || x > target.naturalWidth || y < 0 || y > target.naturalHeight) return;
 
-                      const pixel = sCtx.getImageData(x, y, 1, 1).data;
-                      const hex = '#' + ('000000' + ((pixel[0] << 16) | (pixel[1] << 8) | pixel[2]).toString(16)).slice(-6);
+                        const pixel = sCtx.getImageData(x, y, 1, 1).data;
+                        const hex = '#' + ('000000' + ((pixel[0] << 16) | (pixel[1] << 8) | pixel[2]).toString(16)).slice(-6);
 
-                      // Zoom logic: draw a small patch around (x,y) to a magnifier canvas
-                      const zoomSize = 20; // 20x20 area
-                      const zoomCanvas = document.createElement('canvas');
-                      zoomCanvas.width = 100;
-                      zoomCanvas.height = 100;
-                      const zCtx = zoomCanvas.getContext('2d');
-                      zCtx.imageSmoothingEnabled = false; // Keep it pixelated for precision
-                      zCtx.drawImage(
-                        target,
-                        x - zoomSize / 2, y - zoomSize / 2, zoomSize, zoomSize,
-                        0, 0, 100, 100
-                      );
+                        // Zoom logic: draw a small patch around (x,y) to a magnifier canvas
+                        const zoomSize = 20; // 20x20 area
+                        const zoomCanvas = document.createElement('canvas');
+                        zoomCanvas.width = 100;
+                        zoomCanvas.height = 100;
+                        const zCtx = zoomCanvas.getContext('2d');
+                        zCtx.imageSmoothingEnabled = false; // Keep it pixelated for precision
+                        zCtx.drawImage(
+                          target,
+                          x - zoomSize / 2, y - zoomSize / 2, zoomSize, zoomSize,
+                          0, 0, 100, 100
+                        );
 
-                      setMagnifier({
-                        show: true,
-                        x: ev.clientX,
-                        y: ev.clientY - 100,
-                        hex,
-                        zoomData: zoomCanvas.toDataURL()
-                      });
-                      return hex;
-                    };
-
-                    const onMove = (moveEv) => sample(moveEv);
-                    const onUp = async (upEv) => {
-                      const finalHex = sample(upEv);
-                      if (finalHex) {
-                        setNewColorHex(finalHex);
-                        const copied = await copyToClipboard(finalHex);
-                        toast({
-                          title: copied ? `Color captured & copied: ${finalHex}` : `Color captured: ${finalHex}`,
-                          description: copied ? "Ready to use in the form!" : "(Clipboard blocked, but color is set in form)"
+                        setMagnifier({
+                          show: true,
+                          x: ev.clientX,
+                          y: ev.clientY - 100,
+                          hex,
+                          zoomData: zoomCanvas.toDataURL()
                         });
-                      }
-                      setMagnifier({ show: false, x: 0, y: 0, hex: '#000000' });
-                      setIsImagePickerOpen(false);
-                      window.removeEventListener('pointermove', onMove);
-                      window.removeEventListener('pointerup', onUp);
-                    };
+                        return hex;
+                      };
 
-                    sample(e);
-                    window.addEventListener('pointermove', onMove);
-                    window.addEventListener('pointerup', onUp);
-                  }}
-                />
-              </div>
-            ))}
+                      const onMove = (moveEv) => sample(moveEv);
+                      const onUp = async (upEv) => {
+                        const finalHex = sample(upEv);
+                        if (finalHex) {
+                          setNewColorHex(finalHex);
+                          const copied = await copyToClipboard(finalHex);
+                          toast({
+                            title: copied ? `Color captured & copied: ${finalHex}` : `Color captured: ${finalHex}`,
+                            description: copied ? "Ready to use in the form!" : "(Clipboard blocked, but color is set in form)"
+                          });
+                        }
+                        setMagnifier({ show: false, x: 0, y: 0, hex: '#000000' });
+                        setIsImagePickerOpen(false);
+                        window.removeEventListener('pointermove', onMove);
+                        window.removeEventListener('pointerup', onUp);
+                      };
 
-            {/* Enhanced Magnifier Glass */}
-            {magnifier.show && (
-              <div
-                className="fixed z-[120] pointer-events-none -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
-                style={{ left: magnifier.x, top: magnifier.y }}
-              >
-                <div className="relative w-28 h-28 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-zinc-800">
-                  {magnifier.zoomData && (
-                    <img src={magnifier.zoomData} className="w-full h-full object-cover" />
-                  )}
-                  {/* Crosshair */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-full h-[1px] bg-white/50" />
-                    <div className="absolute w-[1px] h-full bg-white/50" />
-                    <div className="w-2 h-2 border-2 border-white rounded-full shadow-[0_0_5px_rgba(0,0,0,0.5)]" />
-                  </div>
-                  {/* Sample Color circle */}
-                  <div
-                    className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-2 border-white shadow-lg"
-                    style={{ backgroundColor: magnifier.hex }}
+                      sample(e);
+                      window.addEventListener('pointermove', onMove);
+                      window.addEventListener('pointerup', onUp);
+                    }}
                   />
                 </div>
-                <div className="mt-3 bg-black/80 backdrop-blur-md text-white text-[11px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.2em] border border-white/20">
-                  {magnifier.hex}
-                </div>
-              </div>
-            )}
+              ))}
 
-            {existingImages.length === 0 && imagePreviews.length === 0 && (
-              <div className="h-full flex flex-col items-center justify-center text-white/40 text-sm">
-                No images available to pick from.
-              </div>
-            )}
+              {/* Enhanced Magnifier Glass */}
+              {magnifier.show && (
+                <div
+                  className="fixed z-[120] pointer-events-none -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
+                  style={{ left: magnifier.x, top: magnifier.y }}
+                >
+                  <div className="relative w-28 h-28 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-zinc-800">
+                    {magnifier.zoomData && (
+                      <img src={magnifier.zoomData} className="w-full h-full object-cover" />
+                    )}
+                    {/* Crosshair */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-full h-[1px] bg-white/50" />
+                      <div className="absolute w-[1px] h-full bg-white/50" />
+                      <div className="w-2 h-2 border-2 border-white rounded-full shadow-[0_0_5px_rgba(0,0,0,0.5)]" />
+                    </div>
+                    {/* Sample Color circle */}
+                    <div
+                      className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-2 border-white shadow-lg"
+                      style={{ backgroundColor: magnifier.hex }}
+                    />
+                  </div>
+                  <div className="mt-3 bg-black/80 backdrop-blur-md text-white text-[11px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.2em] border border-white/20">
+                    {magnifier.hex}
+                  </div>
+                </div>
+              )}
+
+              {existingImages.length === 0 && imagePreviews.length === 0 && (
+                <div className="h-full flex flex-col items-center justify-center text-white/40 text-sm">
+                  No images available to pick from.
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </form>
+        )
+      }
+    </form >
   )
 }
