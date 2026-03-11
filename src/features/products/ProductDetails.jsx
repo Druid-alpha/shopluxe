@@ -110,7 +110,15 @@ export default function ProductDetails() {
     ? product.sizes
     : parseBaseSizesFromTags(product?.tags || [])
 
-  const isElectronics = product?.category?.name?.toLowerCase().includes('electronics')
+  // Robust Category Detection
+  const isElectronics =
+    product?.category?.name?.toLowerCase().includes('electronic') ||
+    (typeof product?.category === 'string' && product?.category?.toLowerCase().includes('electronic'))
+
+  const isGrocery =
+    product?.category?.name?.toLowerCase().includes('groc') ||
+    (typeof product?.category === 'string' && product?.category?.toLowerCase().includes('groc'))
+
   const sizeLabel = isElectronics
     ? 'Specifications'
     : (clothingType ? (CLOTHING_SIZE_LABELS[clothingType] || 'Size') : 'Size')
@@ -604,12 +612,10 @@ export default function ProductDetails() {
                   <div className="flex items-center gap-3 p-4 bg-slate-50/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 transition-all">
                     <div className="flex flex-col">
                       <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">
-                        {product.category?.name?.toLowerCase().includes('groceries') ? 'Fresh Stock' :
-                          product.category?.name?.toLowerCase().includes('electronics') ? 'Original Design' : 'Standard Edition'}
+                        {isGrocery ? 'Fresh Stock' : isElectronics ? 'Original Design' : 'Standard Edition'}
                       </span>
                       <span className="text-[9px] text-slate-500 font-bold uppercase">
-                        {product.category?.name?.toLowerCase().includes('groceries') ? 'Quality Assured' :
-                          product.category?.name?.toLowerCase().includes('electronics') ? 'Certified Product' : 'Authentic Item'}
+                        {isGrocery ? 'Quality Assured' : isElectronics ? 'Certified Product' : 'Authentic Item'}
                       </span>
                     </div>
                   </div>

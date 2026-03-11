@@ -646,10 +646,10 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                         <button
                           type="button"
                           onClick={handleEyeDropper}
-                          className="absolute inset-0 bg-black/20 text-white flex items-center justify-center opacity-0 group-hover/eyedrop:opacity-100 transition-opacity rounded"
-                          title="Pick from image"
+                          className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover/eyedrop:opacity-100 transition-opacity rounded-lg"
+                          title="Magnifier / EyeDropper"
                         >
-                          <span className="text-[10px]">👁</span>
+                          <span className="text-[12px]">👁</span>
                         </button>
                       </div>
                       <Input
@@ -666,9 +666,9 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                         if (cid) setColor(cid)
                       }}
                       disabled={creatingColor || !newColorName.trim()}
-                      className="w-full h-8 text-[10px] uppercase font-black tracking-widest"
+                      className="w-full h-8 text-[9px] uppercase font-black tracking-widest bg-blue-600 hover:bg-blue-700 text-white"
                     >
-                      {creatingColor ? 'Saving...' : 'Save & Select Color'}
+                      {creatingColor ? 'Creating...' : 'Create & Select Color'}
                     </Button>
                   </div>
                 ) : (
@@ -748,29 +748,29 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                   </div>
 
                   {isColorPickerOpen === idx ? (
-                    <div className="p-2 bg-blue-50 border border-blue-100 rounded-lg space-y-2 relative z-10 w-[200px] shadow-lg absolute right-0">
+                    <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl space-y-3 relative z-10 w-[220px] shadow-2xl absolute right-0 mt-2 backdrop-blur-sm">
                       <div className="flex gap-2 items-center">
                         <div className="relative group/eyedrop">
                           <Input
                             type="color"
                             value={newColorHex}
                             onChange={e => setNewColorHex(e.target.value)}
-                            className="w-8 h-8 p-0 border-0 rounded overflow-hidden shadow-sm cursor-pointer"
+                            className="w-10 h-10 p-0 border-0 rounded-lg overflow-hidden shadow-sm cursor-pointer"
                           />
                           <button
                             type="button"
                             onClick={handleEyeDropper}
-                            className="absolute inset-0 bg-black/20 text-white flex items-center justify-center opacity-0 group-hover/eyedrop:opacity-100 transition-opacity rounded"
-                            title="Pick from image"
+                            className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover/eyedrop:opacity-100 transition-opacity rounded-lg"
+                            title="Sampler"
                           >
-                            <span className="text-[8px]">👁</span>
+                            <span className="text-[12px]">👁</span>
                           </button>
                         </div>
                         <Input
-                          placeholder="Name..."
+                          placeholder="Color Name..."
                           value={newColorName}
                           onChange={e => setNewColorName(e.target.value)}
-                          className="h-8 text-[10px] bg-white border-blue-100 px-2 flex-1"
+                          className="h-10 text-[10px] bg-white border-blue-100 px-2 flex-1 font-bold"
                         />
                       </div>
                       <Button
@@ -780,9 +780,9 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                           if (cid) updateVariant(idx, 'color', cid)
                         }}
                         disabled={creatingColor || !newColorName.trim()}
-                        className="w-full h-7 text-[8px] uppercase font-black"
+                        className="w-full h-8 text-[9px] uppercase font-black bg-blue-600 hover:bg-blue-700 text-white"
                       >
-                        {creatingColor ? '...' : 'Create'}
+                        {creatingColor ? '...' : 'Create & Set Color'}
                       </Button>
                     </div>
                   ) : (
