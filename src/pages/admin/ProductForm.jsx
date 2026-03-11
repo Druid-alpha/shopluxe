@@ -636,22 +636,12 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                 {isColorPickerOpen === 'main' ? (
                   <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl space-y-3">
                     <div className="flex gap-2 items-center">
-                      <div className="relative group/eyedrop">
-                        <Input
-                          type="color"
-                          value={newColorHex}
-                          onChange={e => setNewColorHex(e.target.value)}
-                          className="w-10 h-10 p-0 border-0 rounded overflow-hidden shadow-sm cursor-pointer"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleEyeDropper}
-                          className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover/eyedrop:opacity-100 transition-opacity rounded-lg"
-                          title="Magnifier / EyeDropper"
-                        >
-                          <span className="text-[12px]">👁</span>
-                        </button>
-                      </div>
+                      <Input
+                        type="color"
+                        value={newColorHex}
+                        onChange={e => setNewColorHex(e.target.value)}
+                        className="w-10 h-10 p-0 border-0 rounded-lg overflow-hidden shadow-sm cursor-pointer"
+                      />
                       <Input
                         placeholder="Color Name (e.g. Navy Blue)"
                         value={newColorName}
@@ -659,6 +649,28 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                         className="flex-1 bg-white text-xs border-gray-200"
                       />
                     </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {window.EyeDropper && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleEyeDropper}
+                          className="flex-1 h-8 text-[9px] uppercase font-black tracking-widest border-blue-200 text-blue-600 hover:bg-blue-50 text-center"
+                        >
+                          Screen Pick
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsImagePickerOpen(true)}
+                        className="flex-1 h-8 text-[9px] uppercase font-black tracking-widest border-blue-200 text-blue-600 hover:bg-blue-50 text-center"
+                      >
+                        Image Pick
+                      </Button>
+                    </div>
+
                     <Button
                       type="button"
                       onClick={async () => {
@@ -666,7 +678,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                         if (cid) setColor(cid)
                       }}
                       disabled={creatingColor || !newColorName.trim()}
-                      className="w-full h-8 text-[9px] uppercase font-black tracking-widest bg-blue-600 hover:bg-blue-700 text-white"
+                      className="w-full h-8 text-[9px] uppercase font-black tracking-widest bg-blue-600 hover:bg-blue-700 text-white shadow-md"
                     >
                       {creatingColor ? 'Creating...' : 'Create & Select Color'}
                     </Button>
@@ -750,22 +762,12 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                   {isColorPickerOpen === idx ? (
                     <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl space-y-3 relative z-10 w-[220px] shadow-2xl absolute right-0 mt-2 backdrop-blur-sm">
                       <div className="flex gap-2 items-center">
-                        <div className="relative group/eyedrop">
-                          <Input
-                            type="color"
-                            value={newColorHex}
-                            onChange={e => setNewColorHex(e.target.value)}
-                            className="w-10 h-10 p-0 border-0 rounded-lg overflow-hidden shadow-sm cursor-pointer"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleEyeDropper}
-                            className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover/eyedrop:opacity-100 transition-opacity rounded-lg"
-                            title="Sampler"
-                          >
-                            <span className="text-[12px]">👁</span>
-                          </button>
-                        </div>
+                        <Input
+                          type="color"
+                          value={newColorHex}
+                          onChange={e => setNewColorHex(e.target.value)}
+                          className="w-10 h-10 p-0 border-0 rounded-lg overflow-hidden shadow-sm cursor-pointer"
+                        />
                         <Input
                           placeholder="Color Name..."
                           value={newColorName}
@@ -773,6 +775,28 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                           className="h-10 text-[10px] bg-white border-blue-100 px-2 flex-1 font-bold"
                         />
                       </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {window.EyeDropper && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleEyeDropper}
+                            className="flex-1 h-7 text-[8px] uppercase font-black tracking-widest border-blue-200 text-blue-600 hover:bg-blue-50"
+                          >
+                            Screen Pick
+                          </Button>
+                        )}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsImagePickerOpen(true)}
+                          className="flex-1 h-7 text-[8px] uppercase font-black tracking-widest border-blue-200 text-blue-600 hover:bg-blue-50"
+                        >
+                          Image Pick
+                        </Button>
+                      </div>
+
                       <Button
                         type="button"
                         onClick={async () => {
@@ -796,32 +820,33 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                 </div>
 
                 {/* SIZE — dropdown for clothing types */}
-                <div>
+                < div >
                   <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">
                     {categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') ? 'Specification' : 'Size'}
                     {clothingType && !categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') && (
                       <span className="ml-1 normal-case font-normal text-gray-300">({clothingType})</span>
                     )}
                   </label>
-                  {clothingType ? (
-                    <select
-                      value={v.options.size}
-                      onChange={e => updateVariant(idx, 'size', e.target.value)}
-                      className="w-full h-10 px-3 py-2 text-[10px] border-white bg-white rounded-xl focus:outline-none focus:ring-0"
-                    >
-                      <option value="">— Pick size —</option>
-                      {getSizesForType(clothingType).map(s => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <Input
-                      value={v.options.size}
-                      onChange={e => updateVariant(idx, 'size', e.target.value)}
-                      placeholder="e.g. One Size"
-                      className="rounded-xl border-white bg-white text-[10px]"
-                    />
-                  )}
+                  {
+                    clothingType ? (
+                      <select
+                        value={v.options.size}
+                        onChange={e => updateVariant(idx, 'size', e.target.value)}
+                        className="w-full h-10 px-3 py-2 text-[10px] border-white bg-white rounded-xl focus:outline-none focus:ring-0"
+                      >
+                        <option value="">— Pick size —</option>
+                        {getSizesForType(clothingType).map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <Input
+                        value={v.options.size}
+                        onChange={e => updateVariant(idx, 'size', e.target.value)}
+                        placeholder="e.g. One Size"
+                        className="rounded-xl border-white bg-white text-[10px]"
+                      />
+                    )}
                 </div>
 
                 {/* PRICE */}
@@ -870,9 +895,10 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                     </button>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              </div >
+            ))
+            }
+          </div >
         ) : (
           <div className="border border-dashed border-gray-100 rounded-2xl py-8 text-center text-gray-300 text-xs italic">
             No variants added. Base pricing, stock, and sizes above will apply.
