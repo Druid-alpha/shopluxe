@@ -111,7 +111,9 @@ export default function ProductDetails() {
     : parseBaseSizesFromTags(product?.tags || [])
 
   const isElectronics = product?.category?.name?.toLowerCase().includes('electronics')
-  const sizeLabel = isElectronics ? 'Specifications' : 'Select Size'
+  const sizeLabel = isElectronics
+    ? 'Specifications'
+    : (clothingType ? (CLOTHING_SIZE_LABELS[clothingType] || 'Size') : 'Size')
 
   // ---- Color meta helpers ----
   const baseColor = product?.color
@@ -283,7 +285,6 @@ export default function ProductDetails() {
     : (currentPrice || 0)
 
   const hasVariants = variants.length > 0
-  const sizeLabel = clothingType ? (CLOTHING_SIZE_LABELS[clothingType] || 'Size') : 'Size'
 
   /* ================= ADD TO CART ================= */
   const handleAddToCart = async () => {
