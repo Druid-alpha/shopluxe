@@ -550,10 +550,10 @@ export default function ProductDetails() {
   }, [selectedColorKey, selectedSize, variants])
 
   if (isLoading) return (
-    <div className="max-w-7xl mx-auto px-4 py-12 space-y-10 animate-pulse overflow-hidden overflow-x-hidden">
-      <div className="flex flex-col lg:flex-row gap-8 overflow-hidden">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6 animate-pulse overflow-hidden overflow-x-hidden">
+      <div className="flex flex-col lg:flex-row gap-6 overflow-hidden">
         <div className="lg:w-1/2 aspect-[4/5] bg-gray-200 rounded-2xl overflow-hidden" />
-        <div className="lg:w-1/2 space-y-6 min-w-0 overflow-hidden">
+        <div className="lg:w-1/2 space-y-4 min-w-0 overflow-hidden">
           <div className="h-10 bg-gray-200 rounded w-3/4" />
           <div className="h-6 bg-gray-200 rounded w-1/4" />
           <div className="h-32 bg-gray-100 rounded-2xl" />
@@ -692,11 +692,11 @@ export default function ProductDetails() {
   ]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12 space-y-8 lg:space-y-10 overflow-x-hidden">
-      <div className="flex flex-col lg:flex-row gap-8 xl:gap-10">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6 lg:space-y-8 overflow-x-hidden">
+      <div className="flex flex-col lg:flex-row gap-6 xl:gap-8">
 
         {/* ── IMAGES COLUMN ── */}
-        <div className="lg:w-1/2 xl:w-[52%] space-y-6">
+        <div className="lg:w-1/2 xl:w-[52%] space-y-4">
           <div className="aspect-[4/5] max-h-[560px] bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm group">
             <img
               src={getImageUrl(mainImage)}
@@ -704,7 +704,7 @@ export default function ProductDetails() {
               className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
             />
           </div>
-          <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
             {imageList.map((img, idx) => {
               const url = getImageUrl(img)
               if (!url) return null
@@ -723,9 +723,9 @@ export default function ProductDetails() {
         </div>
 
         {/* ── DETAILS COLUMN ── */}
-        <div className="lg:w-1/2 xl:w-[48%] space-y-8">
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+        <div className="lg:w-1/2 xl:w-[48%] space-y-6">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
               <span>{product.brand?.name || 'ShopLuxe Original'}</span>
               <span>•</span>
               <StarRating rating={product.avgRating} size={14} />
@@ -735,7 +735,7 @@ export default function ProductDetails() {
               {product.title}
             </h1>
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center justify-between pt-1">
               <PriceDisplay price={currentPrice} discount={currentDiscount} className="text-4xl" />
               {currentDiscount > 0 && (
                 <div className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-red-100 shadow-sm animate-pulse">
@@ -751,7 +751,7 @@ export default function ProductDetails() {
 
           {/* ─── PURCHASE MODE TOGGLE ─── */}
           {hasVariants && (mainSizes.length > 0 || !product.sizes?.length) && (
-            <div className="pt-2 relative z-20 bg-transparent">
+            <div className="pt-1 relative z-20 bg-transparent">
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 block">
                 Purchase Options
               </p>
@@ -778,10 +778,10 @@ export default function ProductDetails() {
             </div>
           )}
 
-          <div className="relative z-10 bg-transparent min-h-[120px] pb-4 px-1 -mx-1 overflow-hidden sm:overflow-visible flex flex-col gap-6">
+          <div className="relative z-10 bg-transparent min-h-[100px] pb-3 px-1 -mx-1 overflow-hidden sm:overflow-visible flex flex-col gap-4">
             {/* ─── VARIANT SELECTOR ─── */}
             {hasVariants && purchaseMode === 'variant' && (
-              <div key="variant-selector" className="space-y-6 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300">
+              <div key="variant-selector" className="space-y-4 pt-4 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300">
                 {/* COLOR SELECTOR */}
                 {variantColorOptions.length > 0 && (
                   <div>
@@ -793,7 +793,7 @@ export default function ProductDetails() {
                         </span>
                       )}
                     </p>
-                    <div className="flex flex-wrap gap-4 px-1 pb-1">
+                    <div className="flex flex-wrap gap-3 px-1 pb-1">
                       {variantColorOptions.map(c => {
                         const isSelected = selectedColorKey === c.key
                         return (
@@ -876,10 +876,10 @@ export default function ProductDetails() {
 
             {/* ─── MAIN PRODUCT SPECIFICATIONS / SIZES / SELECTION ─── */}
             {(mainSizes.length > 0 || baseColorName) && (isElectronics || isGrocery || !isClothingProduct || purchaseMode === 'base' || !hasVariants) && (
-              <div key="main-product-specs" className="space-y-6 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300 mb-4">
-                <div className="flex flex-col gap-4">
+              <div key="main-product-specs" className="space-y-4 pt-4 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300 mb-3">
+                <div className="flex flex-col gap-3">
                   {/* Branded Info Card */}
-                  <div className="flex items-center justify-between p-4 bg-slate-50/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 transition-all">
+                  <div className="flex items-center justify-between p-3 bg-slate-50/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 transition-all">
                     <div className="flex flex-col">
                       <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">
                         {isGrocery ? 'Fresh Stock' : isElectronics ? 'Original Design' : 'Standard Edition'}
@@ -894,7 +894,7 @@ export default function ProductDetails() {
                   </div>
 
                   {/* Specification / Size Values */}
-                  <div className="space-y-2.5 px-1">
+                  <div className="space-y-2 px-1">
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
                       {sizeLabel}
                       {purchaseMode === 'base' && selectedBaseSize && (
@@ -954,8 +954,8 @@ export default function ProductDetails() {
             )}
 
             {/* ─── INVENTORY STATUS ─── */}
-            <div className="space-y-4 pt-4 border-t border-gray-100">
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="space-y-3 pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
                 <div className="flex items-center gap-3">
                   <div className={`w-2 h-2 rounded-full ${currentStock > 0 ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
                   <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
@@ -971,8 +971,8 @@ export default function ProductDetails() {
             </div>
 
             {/* ─── PURCHASE ACTIONS ─── */}
-            <div className="space-y-4">
-              <div className="flex gap-4">
+            <div className="space-y-3">
+              <div className="flex gap-3">
                 <div className="flex items-center bg-gray-100 rounded-xl px-2">
                   <button
                     type="button"
@@ -1016,9 +1016,9 @@ export default function ProductDetails() {
       </div>
 
       {/* ─── REVIEWS ─── */}
-      <div className="pt-10 lg:pt-8 border-t border-gray-100 space-y-10 lg:space-y-8">
+      <div className="pt-8 lg:pt-6 border-t border-gray-100 space-y-8 lg:space-y-6">
         <section>
-          <h2 className="text-2xl font-black tracking-tighter uppercase mb-5 lg:mb-4">Customer Reviews</h2>
+          <h2 className="text-2xl font-black tracking-tighter uppercase mb-4 lg:mb-3">Customer Reviews</h2>
           {isReviewsLoading ? (
             <div className="grid md:grid-cols-2 gap-12 py-10">
               <div className="h-32 bg-gray-100 rounded-2xl animate-pulse" />
@@ -1038,7 +1038,7 @@ export default function ProductDetails() {
           )}
         </section>
 
-        <section className="grid lg:grid-cols-3 gap-8 xl:gap-10">
+        <section className="grid lg:grid-cols-3 gap-6 xl:gap-8">
           <div className="lg:col-span-2 min-w-0">
             {isReviewsLoading ? (
               <div className="space-y-4">

@@ -710,30 +710,6 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                         className="flex-1 bg-white text-xs border-zinc-200 rounded-xl h-10 font-bold"
                       />
                     </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleEyeDropper}
-                        className="h-9 text-[8px] sm:text-[9px] uppercase font-black tracking-tight sm:tracking-widest border-zinc-200 text-zinc-600 hover:bg-zinc-100 rounded-xl flex items-center justify-center gap-1.5 px-2"
-                      >
-                        <span className="text-sm">👁️</span>
-                        <span className="hidden xs:inline">Screen Pick</span>
-                        <span className="xs:hidden">Screen</span>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsImagePickerOpen(true)}
-                        className="h-9 text-[8px] sm:text-[9px] uppercase font-black tracking-tight sm:tracking-widest border-zinc-200 text-zinc-600 hover:bg-zinc-100 rounded-xl flex items-center justify-center gap-1.5 px-2"
-                      >
-                        <span className="text-sm">🖼️</span>
-                        <span className="hidden xs:inline">Image Pick</span>
-                        <span className="xs:hidden">Image</span>
-                      </Button>
-                    </div>
-
                     <Button
                       type="button"
                       onClick={async () => {
@@ -847,32 +823,6 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                           className="h-10 text-[10px] bg-white border-blue-100 px-2 flex-1 font-bold"
                         />
                       </div>
-
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        {window.EyeDropper && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleEyeDropper}
-                            className="h-9 text-[8px] sm:text-[9px] uppercase font-black tracking-tight sm:tracking-widest border-zinc-200 text-zinc-600 hover:bg-zinc-100 rounded-xl flex items-center justify-center gap-1.5 px-2"
-                          >
-                            <span className="text-sm">👁️</span>
-                            <span className="hidden xs:inline">Screen Pick</span>
-                            <span className="xs:hidden">Screen</span>
-                          </Button>
-                        )}
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setIsImagePickerOpen(idx)}
-                          className={`h-9 text-[8px] sm:text-[9px] uppercase font-black tracking-tight sm:tracking-widest border-zinc-200 text-zinc-600 hover:bg-zinc-100 rounded-xl flex items-center justify-center gap-1.5 px-2 ${!window.EyeDropper ? 'col-span-2' : ''}`}
-                        >
-                          <span className="text-sm">🖼️</span>
-                          <span className="hidden xs:inline">Image Pick</span>
-                          <span className="xs:hidden">Image</span>
-                        </Button>
-                      </div>
-
                       <Button
                         type="button"
                         onClick={async () => {
@@ -1112,3 +1062,4 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     </form >
   )
 }
+
