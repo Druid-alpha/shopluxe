@@ -358,6 +358,14 @@ export default function ProductDetails() {
     return () => clearInterval(timer)
   }, [refetch])
 
+  React.useEffect(() => {
+    const prev = document.body.style.overflowX
+    document.body.style.overflowX = 'hidden'
+    return () => {
+      document.body.style.overflowX = prev
+    }
+  }, [])
+
   const reviews = reviewsData?.reviews || []
 
   const { data: wishlistData } = useGetWishlistQuery()
@@ -867,7 +875,7 @@ export default function ProductDetails() {
             )}
 
             {/* ─── MAIN PRODUCT SPECIFICATIONS / SIZES / SELECTION ─── */}
-            {mainSizes.length > 0 && (isElectronics || isGrocery || !isClothingProduct || purchaseMode === 'base' || !hasVariants) && (
+            {(mainSizes.length > 0 || baseColorName) && (isElectronics || isGrocery || !isClothingProduct || purchaseMode === 'base' || !hasVariants) && (
               <div key="main-product-specs" className="space-y-6 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300 mb-4">
                 <div className="flex flex-col gap-4">
                   {/* Branded Info Card */}
@@ -893,6 +901,20 @@ export default function ProductDetails() {
                         <span className="ml-2 text-slate-700 normal-case font-bold">— {selectedBaseSize}</span>
                       )}
                     </p>
+                    {baseColorName && (
+                      <div className="flex items-center gap-2 pb-1">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Color</span>
+                        <span className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-gray-200 bg-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-600">
+                          {baseColorHex && (
+                            <span
+                              className="inline-block w-3 h-3 rounded-full border border-gray-200"
+                              style={{ backgroundColor: baseColorHex }}
+                            />
+                          )}
+                          {baseColorName}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex flex-wrap gap-2">
                       {mainSizes.map(size => {
                         const isSelected = selectedBaseSize === size
@@ -920,6 +942,11 @@ export default function ProductDetails() {
                           </button>
                         )
                       })}
+                      {mainSizes.length === 0 && (
+                        <span className="px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                          No specs set
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
