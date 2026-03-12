@@ -285,11 +285,12 @@ export const normalizeCart = (cart) => {
       const variantObj = product.variants?.find(v => v.sku === variantSku) || null;
       const variantSize = variantObj?.options?.size || item.variant?.size || null
       const variantColorObj = variantObj?.options?.color || null
-      const variantColorName = getColorName(variantColorObj) || getColorName(item.variant?.color)
+      const baseColorObj = product.color || null
+      const variantColorName = getColorName(variantColorObj) || getColorName(item.variant?.color) || getColorName(baseColorObj)
       const variantColorHex = (variantColorObj && typeof variantColorObj === 'object' && variantColorObj.hex)
         ? variantColorObj.hex
-        : null
-      const variantColorValue = variantColorObj?._id || variantColorObj?.name || item.variant?.color || null
+        : (baseColorObj && typeof baseColorObj === 'object' && baseColorObj.hex ? baseColorObj.hex : null)
+      const variantColorValue = variantColorObj?._id || variantColorObj?.name || item.variant?.color || baseColorObj?._id || baseColorObj?.name || null
       const variantLabel = buildVariantLabel({
         variantSku,
         size: variantSize,

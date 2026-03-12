@@ -23,7 +23,7 @@ function VariantBadges({ item }) {
 
   // Robust size extraction
   const rawSize = item.variantSize || item.variantLabel?.split(' / ')?.[1] || ''
-  const sizeTypeLabel = SIZE_TYPE_LABEL[item.clothingType] || 'Size'
+  const sizeTypeLabel = isClothing ? (SIZE_TYPE_LABEL[item.clothingType] || 'Size') : 'Spec'
 
   // Clean up size if it already contains the prefix or category name
   const cleanSize = String(rawSize).replace(new RegExp(`^${sizeTypeLabel}:?\\s*`, 'i'), '').trim()
@@ -31,44 +31,31 @@ function VariantBadges({ item }) {
 
   if (!colorName && !cleanSize && !item.variantLabel) return null
 
-  if (isClothing) {
-    return (
-      <div className="flex flex-wrap items-center gap-2 mt-1">
-        {colorName && (
-          <span className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500">
-            {colorHex && (
-              <span
-                className="inline-block w-3 h-3 rounded-full border border-gray-200 flex-shrink-0"
-                style={{ backgroundColor: colorHex }}
-              />
-            )}
-            {colorName}
-          </span>
-        )}
-        {cleanSize && (
-          <span className="bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500">
-            {isDuplicate ? cleanSize : `${sizeTypeLabel}: ${cleanSize}`}
-          </span>
-        )}
-        {!colorName && !cleanSize && item.variantLabel && (
-          <span className="bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500">
-            {item.variantLabel}
-          </span>
-        )}
-      </div>
-    )
-  }
-
-  // Non-clothing: show simple label tag
-  if (item.variantLabel || item.variant) {
-    return (
-      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded inline-block mt-1">
-        {item.variantLabel || item.variant}
-      </p>
-    )
-  }
-
-  return null
+  return (
+    <div className="flex flex-wrap items-center gap-2 mt-1">
+      {colorName && (
+        <span className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500">
+          {colorHex && (
+            <span
+              className="inline-block w-3 h-3 rounded-full border border-gray-200 flex-shrink-0"
+              style={{ backgroundColor: colorHex }}
+            />
+          )}
+          {colorName}
+        </span>
+      )}
+      {cleanSize && (
+        <span className="bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500">
+          {isDuplicate ? cleanSize : `${sizeTypeLabel}: ${cleanSize}`}
+        </span>
+      )}
+      {!colorName && !cleanSize && item.variantLabel && (
+        <span className="bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500">
+          {item.variantLabel}
+        </span>
+      )}
+    </div>
+  )
 }
 
 export default function Cart() {
