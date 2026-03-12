@@ -451,6 +451,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
      UI HELPERS
   ===================================================== */
   // Show clothing type + size selectors for ANY category (shoes/bags/eyeglass/clothing all need them)
+  const isClothingLike = !!category
   const availableMainSizes = getSizesForType(clothingType)
 
   const isElectronics =
