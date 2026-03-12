@@ -563,6 +563,13 @@ export default function ProductDetails() {
       }
     }
 
+    const displayVariantColorName = (purchaseMode === 'variant' && selectedVariant)
+      ? getColorDisplayName(selectedVariant.options?.color)
+      : getColorDisplayName(baseColor)
+    const displayVariantColorHex = (purchaseMode === 'variant' && selectedVariant)
+      ? resolveHex(selectedVariant.options?.color)
+      : baseColorHex
+
     const variantPayload = (purchaseMode === 'variant' && selectedVariant)
       ? {
         _id: selectedVariant._id,
@@ -574,10 +581,13 @@ export default function ProductDetails() {
 
     const variantLabel = (purchaseMode === 'variant' && selectedVariant)
       ? [
-        selectedVariant.options?.color?.name || '',
+        displayVariantColorName || '',
         selectedVariant.options?.size || ''
       ].filter(Boolean).join(' / ')
-      : selectedBaseSize || 'Base Product'
+      : [
+        displayVariantColorName || '',
+        selectedBaseSize || ''
+      ].filter(Boolean).join(' / ') || 'Base Product'
 
     if (!user) {
       dispatch(addGuestCart({
@@ -591,6 +601,9 @@ export default function ProductDetails() {
         qty: quantity,
         variant: variantPayload || null,
         variantLabel,
+        variantSize: selectedVariant?.options?.size || selectedBaseSize || '',
+        variantColorName: displayVariantColorName || '',
+        variantColorHex: displayVariantColorHex || '',
         variantStock: selectedVariant?.stock,
         clothingType,
         addedAt: new Date().toISOString(),
