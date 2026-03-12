@@ -330,10 +330,11 @@ export const normalizeCart = (cart) => {
       const variantSize = variantObj?.options?.size || item.variant?.size || null
       const variantColorObj = variantObj?.options?.color || null
       const baseColorObj = product.color || null
-      const variantColorName = getColorName(variantColorObj) || getColorName(item.variant?.color) || getColorName(baseColorObj)
+      const productColorName = getColorName(baseColorObj) || getColorName(item.variant?.color) || ""
+      const variantColorName = getColorName(variantColorObj) || productColorName || getColorName(item.variant?.color)
       const variantColorHex = resolveHex(variantColorObj)
-        || resolveHex(item.variant?.color)
         || resolveHex(baseColorObj)
+        || resolveHex(item.variant?.color)
         || null
       const variantColorValue = variantColorObj?._id || variantColorObj?.name || item.variant?.color || baseColorObj?._id || baseColorObj?.name || null
       const variantLabel = buildVariantLabel({
@@ -369,9 +370,10 @@ export const normalizeCart = (cart) => {
         variantPayload,
         variantLabel,
         variantSize,
-        variantColor: variantColorObj || item.variant?.color || null,
+        variantColor: variantColorObj || item.variant?.color || baseColorObj || null,
         variantColorHex,
         variantColorName,
+        productColorName,
         variantStock: variantObj?.stock,
         productStock: product.stock,
         clothingType: product.clothingType || null,

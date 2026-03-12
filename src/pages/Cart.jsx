@@ -41,7 +41,9 @@ function VariantBadges({ item }) {
     categoryName.includes('veg')
   const colorHex = item.variantColorHex || null
   const labelColor = item.variantLabel?.split(' / ')?.[0] || ''
-  let colorName = item.variantColorName || (!/^(size|spec|weight|size\/weight)\b/i.test(labelColor) ? labelColor : '')
+  let colorName = item.variantColorName
+    || item.productColorName
+    || (!/^(size|spec|weight|size\/weight)\b/i.test(labelColor) ? labelColor : '')
 
   // Robust size extraction
   const rawSize = item.variantSize || item.variantLabel?.split(' / ')?.[1] || ''
