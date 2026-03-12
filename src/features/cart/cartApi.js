@@ -245,6 +245,16 @@ const normalizeHex = (hex) => {
   return h;
 };
 
+const resolveHex = (raw) => {
+  if (!raw) return null;
+  if (typeof raw === "string") {
+    if (raw.startsWith("#") || isHexLike(raw)) return normalizeHex(raw);
+    return null;
+  }
+  if (typeof raw === "object" && raw.hex) return normalizeHex(raw.hex);
+  return null;
+};
+
 const familyFromHex = (hex) => {
   const h = normalizeHex(hex);
   if (!h) return "";
@@ -314,9 +324,10 @@ export const normalizeCart = (cart) => {
       const variantColorObj = variantObj?.options?.color || null
       const baseColorObj = product.color || null
       const variantColorName = getColorName(variantColorObj) || getColorName(item.variant?.color) || getColorName(baseColorObj)
-      const variantColorHex = (variantColorObj && typeof variantColorObj === 'object' && variantColorObj.hex)
-        ? variantColorObj.hex
-        : (baseColorObj && typeof baseColorObj === 'object' && baseColorObj.hex ? baseColorObj.hex : null)
+      const variantColorHex = resolveHex(variantColorObj)
+        || resolveHex(item.variant?.color)
+        || resolveHex(baseColorObj)
+        || null
       const variantColorValue = variantColorObj?._id || variantColorObj?.name || item.variant?.color || baseColorObj?._id || baseColorObj?.name || null
       const variantLabel = buildVariantLabel({
         variantSku,

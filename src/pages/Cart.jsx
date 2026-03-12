@@ -49,7 +49,10 @@ function VariantBadges({ item }) {
     : (isElectronics ? 'Spec' : (isGrocery ? 'Size/Weight' : 'Size'))
 
   // Clean up size if it already contains the prefix or category name
-  const cleanSize = String(rawSize).replace(new RegExp(`^${sizeTypeLabel}:?\\s*`, 'i'), '').trim()
+  const cleanSize = String(rawSize)
+    .replace(/^(Size|Spec|Size\/Weight):?\s*/i, '')
+    .replace(new RegExp(`^${sizeTypeLabel}:?\\s*`, 'i'), '')
+    .trim()
   const isDuplicate = cleanSize.toLowerCase().includes(sizeTypeLabel.toLowerCase())
 
   if (!colorName && !cleanSize && !item.variantLabel) return null
