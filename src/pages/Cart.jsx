@@ -18,12 +18,35 @@ const SIZE_TYPE_LABEL = {
 
 function VariantBadges({ item }) {
   const isClothing = CLOTHING_TYPES.has(item.clothingType)
+  const categoryName = String(item.productCategoryName || '').toLowerCase()
+  const isElectronics =
+    categoryName.includes('electronic') ||
+    categoryName.includes('gadget') ||
+    categoryName.includes('phone') ||
+    categoryName.includes('laptop') ||
+    categoryName.includes('computer') ||
+    categoryName.includes('tech') ||
+    categoryName.includes('appliance') ||
+    categoryName.includes('camera') ||
+    categoryName.includes('tablet')
+  const isGrocery =
+    categoryName.includes('groc') ||
+    categoryName.includes('food') ||
+    categoryName.includes('drink') ||
+    categoryName.includes('beverage') ||
+    categoryName.includes('snack') ||
+    categoryName.includes('provision') ||
+    categoryName.includes('supermarket') ||
+    categoryName.includes('fruit') ||
+    categoryName.includes('veg')
   const colorHex = item.variantColorHex || null
   const colorName = item.variantColorName || (item.variantLabel?.split(' / ')?.[0] || '')
 
   // Robust size extraction
   const rawSize = item.variantSize || item.variantLabel?.split(' / ')?.[1] || ''
-  const sizeTypeLabel = isClothing ? (SIZE_TYPE_LABEL[item.clothingType] || 'Size') : 'Spec'
+  const sizeTypeLabel = isClothing
+    ? (SIZE_TYPE_LABEL[item.clothingType] || 'Size')
+    : (isElectronics ? 'Spec' : (isGrocery ? 'Size/Weight' : 'Size'))
 
   // Clean up size if it already contains the prefix or category name
   const cleanSize = String(rawSize).replace(new RegExp(`^${sizeTypeLabel}:?\\s*`, 'i'), '').trim()

@@ -315,6 +315,7 @@ export const normalizeCart = (cart) => {
         key: `${product._id || product.id || Math.random()}-${getVariantKey(item.variant)}`,
         productId: product._id || product.id,
         title: product.title || 'Product',
+        productCategoryName: product?.category?.name || (typeof product?.category === 'string' ? product.category : ''),
         price: finalPrice,
         basePrice,
         discount,

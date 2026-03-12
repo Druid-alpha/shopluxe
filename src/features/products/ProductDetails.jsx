@@ -513,7 +513,7 @@ export default function ProductDetails() {
   }, [selectedColorKey, selectedSize, variants])
 
   if (isLoading) return (
-    <div className="max-w-7xl mx-auto px-4 py-12 space-y-12 animate-pulse">
+    <div className="max-w-7xl mx-auto px-4 py-12 space-y-12 animate-pulse overflow-hidden">
       <div className="flex flex-col lg:flex-row gap-12">
         <div className="lg:w-1/2 aspect-[4/5] bg-gray-200 rounded-2xl" />
         <div className="lg:w-1/2 space-y-6">
