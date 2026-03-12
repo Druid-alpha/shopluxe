@@ -252,17 +252,17 @@ export default function ProductDetails() {
   }, [selectedColorKey, selectedSize, variants])
 
   if (isLoading) return (
-    <div className=\"max-w-7xl mx-auto px-4 py-12 space-y-12 animate-pulse\">
-      < div className =\"flex flex-col lg:flex-row gap-12\">
-        < div className =\"lg:w-1/2 aspect-[4/5] bg-gray-200 rounded-2xl\" />
-          < div className =\"lg:w-1/2 space-y-6\">
-            < div className =\"h-10 bg-gray-200 rounded w-3/4\" />
-              < div className =\"h-6 bg-gray-200 rounded w-1/4\" />
-                < div className =\"h-32 bg-gray-100 rounded-2xl\" />
-                  < div className =\"h-20 bg-gray-100 rounded-2xl\" />
-        </div >
-      </div >
-    </div >
+    <div className="max-w-7xl mx-auto px-4 py-12 space-y-12 animate-pulse">
+      <div className="flex flex-col lg:flex-row gap-12">
+        <div className="lg:w-1/2 aspect-[4/5] bg-gray-200 rounded-2xl" />
+        <div className="lg:w-1/2 space-y-6">
+          <div className="h-10 bg-gray-200 rounded w-3/4" />
+          <div className="h-6 bg-gray-200 rounded w-1/4" />
+          <div className="h-32 bg-gray-100 rounded-2xl" />
+          <div className="h-20 bg-gray-100 rounded-2xl" />
+        </div>
+      </div>
+    </div>
   )
   if (!product) return <p>Product not found</p>
 
@@ -380,366 +380,337 @@ export default function ProductDetails() {
   ]
 
   return (
-    <div className=\"max-w-7xl mx-auto px-4 py-12 space-y-14 lg:space-y-12\">
-      < div className =\"flex flex-col lg:flex-row gap-12 xl:gap-16\">
+    <div className="max-w-7xl mx-auto px-4 py-12 space-y-14 lg:space-y-12">
+      <div className="flex flex-col lg:flex-row gap-12 xl:gap-16">
 
-  {/* ── IMAGES COLUMN ── */ }
-  <div className=\"lg:w-1/2 xl:w-[52%] space-y-6\">
-    < div className =\"aspect-[4/5] max-h-[560px] bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm group\">
-      < img
-  src = { getImageUrl(mainImage) }
-  alt = { product.title }
-  className =\"w-full h-full object-contain transition-transform duration-500 group-hover:scale-105\"
-    />
-          </div >
-    <div className=\"grid grid-cols-4 md:grid-cols-6 gap-4\">
-  {
-    imageList.map((img, idx) => {
-      const url = getImageUrl(img)
-      if (!url) return null
-      const isActive = getImageUrl(mainImage) === url
-      return (
-        <div
-          key={idx}
-          className={`aspect-square rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${isActive ? 'border-black' : 'border-transparent hover:border-gray-200'}`}
-          onClick={() => setMainImage(url)}
-        >
-          <img src={url} className=\"w-full h-full object-cover\" />
+        {/* ── IMAGES COLUMN ── */}
+        <div className="lg:w-1/2 xl:w-[52%] space-y-6">
+          <div className="aspect-[4/5] max-h-[560px] bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm group">
+            <img
+              src={getImageUrl(mainImage)}
+              alt={product.title}
+              className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+            />
+          </div>
+          <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
+            {imageList.map((img, idx) => {
+              const url = getImageUrl(img)
+              if (!url) return null
+              const isActive = getImageUrl(mainImage) === url
+              return (
+                <div
+                  key={idx}
+                  className={`aspect-square rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${isActive ? 'border-black' : 'border-transparent hover:border-gray-200'}`}
+                  onClick={() => setMainImage(url)}
+                >
+                  <img src={url} className="w-full h-full object-cover" />
+                </div>
+              )
+            })}
+          </div>
         </div>
-      )
-    })
-  }
-          </div >
-        </div >
 
-    {/* ── DETAILS COLUMN ── */ }
-    < div className =\"lg:w-1/2 xl:w-[48%] space-y-8\">
-      < div className =\"space-y-4\">
-        < div className =\"flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400\">
-          < span > { product.brand?.name || 'ShopLuxe Original' }</span >
+        {/* ── DETAILS COLUMN ── */}
+        <div className="lg:w-1/2 xl:w-[48%] space-y-8">
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+              <span>{product.brand?.name || 'ShopLuxe Original'}</span>
               <span>•</span>
               <StarRating rating={product.avgRating} size={14} />
-            </div >
+            </div>
 
-    <h1 className=\"text-4xl md:text-5xl font-black tracking-tighter text-slate-900 leading-none\">
-  { product.title }
-            </h1 >
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 leading-none">
+              {product.title}
+            </h1>
 
-    <div className=\"flex items-center justify-between pt-2\">
-      < PriceDisplay price = { currentPrice } discount = { currentDiscount } className =\"text-4xl\" />
-  {
-    currentDiscount > 0 && (
-      <div className=\"bg-red-50 text-red-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-red-100 shadow-sm animate-pulse\">
-    Sale - { currentDiscount } %
-                </div >
-              )
-  }
-            </div >
-          </div >
+            <div className="flex items-center justify-between pt-2">
+              <PriceDisplay price={currentPrice} discount={currentDiscount} className="text-4xl" />
+              {currentDiscount > 0 && (
+                <div className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-red-100 shadow-sm animate-pulse">
+                  Sale -{currentDiscount}%
+                </div>
+              )}
+            </div>
+          </div>
 
-    <p className=\"text-gray-600 text-sm leading-relaxed max-w-md relative z-10\">
-  { product.description }
-          </p >
+          <p className="text-gray-600 text-sm leading-relaxed max-w-md relative z-10">
+            {product.description}
+          </p>
 
-    {/* ─── PURCHASE MODE TOGGLE ─── */ }
-  {
-    hasVariants && (mainSizes.length > 0 || !product.sizes?.length) && (
-      <div className=\"pt-2 relative z-20 bg-transparent\">
-        < p className =\"text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 block\">
+          {/* ─── PURCHASE MODE TOGGLE ─── */}
+          {hasVariants && (mainSizes.length > 0 || !product.sizes?.length) && (
+            <div className="pt-2 relative z-20 bg-transparent">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 block">
                 Purchase Options
-              </p >
-      <div className=\"flex bg-slate-100/50 backdrop-blur-sm p-1.5 rounded-2xl w-fit relative border border-slate-200/50\">
-        < button
-    type =\"button\"
-    onClick = {() => setPurchaseMode('base')
-  }
-  className = {`relative z-10 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'base' ? 'shadow-lg scale-100' : 'text-gray-400 hover:text-gray-600 scale-95 opacity-70'}`
-}
-style = { purchaseMode === 'base' ? {
-  backgroundColor: baseColorHex || '#000000',
-  color: getContrastYIQ(baseColorHex || '#000000')
-} : {}}
+              </p>
+              <div className="flex bg-slate-100/50 backdrop-blur-sm p-1.5 rounded-2xl w-fit relative border border-slate-200/50">
+                <button
+                  type="button"
+                  onClick={() => setPurchaseMode('base')}
+                  className={`relative z-10 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'base' ? 'shadow-lg scale-100' : 'text-gray-400 hover:text-gray-600 scale-95 opacity-70'}`}
+                  style={purchaseMode === 'base' ? {
+                    backgroundColor: baseColorHex || '#000000',
+                    color: getContrastYIQ(baseColorHex || '#000000')
+                  } : {}}
                 >
-  Main Product
-                </button >
-  <button
-    type=\"button\"
-onClick = {() => setPurchaseMode('variant')}
-className = {`relative z-10 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'variant' ? 'bg-white shadow-sm text-black scale-100' : 'text-gray-400 hover:text-gray-600 scale-95 opacity-70'}`}
+                  Main Product
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPurchaseMode('variant')}
+                  className={`relative z-10 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'variant' ? 'bg-white shadow-sm text-black scale-100' : 'text-gray-400 hover:text-gray-600 scale-95 opacity-70'}`}
                 >
-  Variants
-                </button >
-              </div >
-            </div >
+                  Variants
+                </button>
+              </div>
+            </div>
           )}
 
-<div className=\"relative z-10 bg-transparent min-h-[120px] pb-4 px-1 -mx-1 overflow-hidden sm:overflow-visible flex flex-col gap-6\">
-{/* ─── VARIANT SELECTOR ─── */ }
-{
-  hasVariants && purchaseMode === 'variant' && (
-    <div key=\"variant-selector\" className=\"space-y-6 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300\">
-  {/* COLOR SELECTOR */ }
-  {
-    variantColorOptions.length > 0 && (
-      <div>
-        <p className=\"text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3\">
-        Color
-        {selectedColorKey && (
-          <span className=\"ml-2 text-gray-600 normal-case font-bold\">
-        — {variantColorOptions.find(c => c.key === selectedColorKey)?.name || ''}
-      </span>
-    )
-  }
-                    </p >
-    <div className=\"flex flex-wrap gap-4 px-1 pb-1\">
-  {
-    variantColorOptions.map(c => {
-      const isSelected = selectedColorKey === c.key
-      return (
-        <button
-          key={`color-${c.key}`}
-          type=\"button\"
-      onClick = {() => {
-        setSelectedColorKey(c.key)
-        const sizes = variantSizesByColor.get(c.key) || []
-        setSelectedSize(sizes.length > 0 ? sizes[0] : '')
-      }
-    }
-                            title = { c.name }
-                            className = {`w-10 h-10 rounded-full border-[3px] transition-all flex items-center justify-center shadow-md hover:scale-110 active:scale-95 overflow-hidden ${isSelected ? 'scale-110' : 'border-gray-200'}`}
-  style = {{
-    backgroundColor: c.hex || '#e5e7eb',
-      borderColor: isSelected ? (c.hex && (c.hex.toLowerCase() === '#ffffff' || c.hex.toLowerCase() === '#fff') ? '#111' : (c.hex || '#111')) : (c.hex && (c.hex.toLowerCase() === '#ffffff' || c.hex.toLowerCase() === '#fff') ? '#d1d5db' : '#e5e7eb'),
-        outline: isSelected ? `3px solid ${c.hex && (c.hex.toLowerCase() === '#ffffff' || c.hex.toLowerCase() === '#fff') ? '#111' : (c.hex || '#111')}` : 'none',
-          outlineOffset: '2px'
-  }
-}
+          <div className="relative z-10 bg-transparent min-h-[120px] pb-4 px-1 -mx-1 overflow-hidden sm:overflow-visible flex flex-col gap-6">
+            {/* ─── VARIANT SELECTOR ─── */}
+            {hasVariants && purchaseMode === 'variant' && (
+              <div key="variant-selector" className="space-y-6 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300">
+                {/* COLOR SELECTOR */}
+                {variantColorOptions.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
+                      Color
+                      {selectedColorKey && (
+                        <span className="ml-2 text-gray-600 normal-case font-bold">
+                          — {variantColorOptions.find(c => c.key === selectedColorKey)?.name || ''}
+                        </span>
+                      )}
+                    </p>
+                    <div className="flex flex-wrap gap-4 px-1 pb-1">
+                      {variantColorOptions.map(c => {
+                        const isSelected = selectedColorKey === c.key
+                        return (
+                          <button
+                            key={`color-${c.key}`}
+                            type="button"
+                            onClick={() => {
+                              setSelectedColorKey(c.key)
+                              const sizes = variantSizesByColor.get(c.key) || []
+                              setSelectedSize(sizes.length > 0 ? sizes[0] : '')
+                            }}
+                            title={c.name}
+                            className={`w-10 h-10 rounded-full border-[3px] transition-all flex items-center justify-center shadow-md hover:scale-110 active:scale-95 overflow-hidden ${isSelected ? 'scale-110' : 'border-gray-200'}`}
+                            style={{
+                              backgroundColor: c.hex || '#e5e7eb',
+                              borderColor: isSelected ? (c.hex && (c.hex.toLowerCase() === '#ffffff' || c.hex.toLowerCase() === '#fff') ? '#111' : (c.hex || '#111')) : (c.hex && (c.hex.toLowerCase() === '#ffffff' || c.hex.toLowerCase() === '#fff') ? '#d1d5db' : '#e5e7eb'),
+                              outline: isSelected ? `3px solid ${c.hex && (c.hex.toLowerCase() === '#ffffff' || c.hex.toLowerCase() === '#fff') ? '#111' : (c.hex || '#111')}` : 'none',
+                              outlineOffset: '2px'
+                            }}
                           >
-  <span
-    className=\"text-[8px] font-black uppercase leading-tight text-center px-1 drop-shadow-md z-10\"
-style = {{
-  color: c.hex ? getContrastYIQ(c.hex) : '#fff',
-    textShadow: c.hex && getContrastYIQ(c.hex) === '#000000' ? '0 1px 2px rgba(255,255,255,0.8)' : '0 1px 2px rgba(0,0,0,0.8)'
-}}
+                            <span
+                              className="text-[8px] font-black uppercase leading-tight text-center px-1 drop-shadow-md z-10"
+                              style={{
+                                color: c.hex ? getContrastYIQ(c.hex) : '#fff',
+                                textShadow: c.hex && getContrastYIQ(c.hex) === '#000000' ? '0 1px 2px rgba(255,255,255,0.8)' : '0 1px 2px rgba(0,0,0,0.8)'
+                              }}
                             >
-  {!c.hex && (c.name?.startsWith('#') ? 'EXT' : c.name?.slice(0, 4))}
-                            </span >
-                          </button >
+                              {!c.hex && (c.name?.startsWith('#') ? 'EXT' : c.name?.slice(0, 4))}
+                            </span>
+                          </button>
                         )
                       })}
-                    </div >
-                  </div >
+                    </div>
+                  </div>
                 )}
 
-{/* SIZE SELECTOR */ }
-{
-  availableVariantSizes.length > 0 && (
-    <div>
-      <p className=\"text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3\">
-      {sizeLabel}
-      {selectedSize && (
-        <span className=\"ml-2 text-gray-600 normal-case font-bold\">— {selectedSize}</span>
-  )
-}
-                    </p >
-  <div className=\"flex flex-wrap gap-2\">
-{
-  availableVariantSizes.map(size => {
-    const isSelected = selectedSize === size
-    const activeHex = selectedVariantColorHex || '#111'
-    const variantForStock = variants.find(v => getColorMeta(v.options?.color).key === selectedColorKey && (v.options?.size || '') === size)
-    const stockCount = variantForStock ? (variantForStock.stock ?? 0) : 0
-    const isOOS = stockCount <= 0
+                {/* SIZE SELECTOR */}
+                {availableVariantSizes.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
+                      {sizeLabel}
+                      {selectedSize && (
+                        <span className="ml-2 text-gray-600 normal-case font-bold">— {selectedSize}</span>
+                      )}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {availableVariantSizes.map(size => {
+                        const isSelected = selectedSize === size
+                        const activeHex = selectedVariantColorHex || '#111'
+                        const variantForStock = variants.find(v => getColorMeta(v.options?.color).key === selectedColorKey && (v.options?.size || '') === size)
+                        const stockCount = variantForStock ? (variantForStock.stock ?? 0) : 0
+                        const isOOS = stockCount <= 0
 
-    return (
-      <button
-        key={`vsize-${size}`}
-        type=\"button\"
-    onClick = {() => !isOOS && setSelectedSize(size)
-  }
-                            disabled = { isOOS }
-                            className = {`relative px-4 py-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center min-w-[70px] ${isOOS ? 'opacity-50 bg-gray-50 border-gray-200 cursor-not-allowed text-gray-400' : 'hover:scale-105 active:scale-95 text-slate-700 bg-white border-gray-200'}`}
-style = {(!isOOS && isSelected)
-  ? { backgroundColor: activeHex, color: getContrastYIQ(activeHex), borderColor: activeHex === '#ffffff' ? '#e5e7eb' : activeHex }
-  : undefined
+                        return (
+                          <button
+                            key={`vsize-${size}`}
+                            type="button"
+                            onClick={() => !isOOS && setSelectedSize(size)}
+                            disabled={isOOS}
+                            className={`relative px-4 py-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center min-w-[70px] ${isOOS ? 'opacity-50 bg-gray-50 border-gray-200 cursor-not-allowed text-gray-400' : 'hover:scale-105 active:scale-95 text-slate-700 bg-white border-gray-200'}`}
+                            style={(!isOOS && isSelected)
+                              ? { backgroundColor: activeHex, color: getContrastYIQ(activeHex), borderColor: activeHex === '#ffffff' ? '#e5e7eb' : activeHex }
+                              : undefined
                             }
                           >
-  <span className={`text-[11px] font-black uppercase tracking-widest ${isOOS ? 'line-through' : ''}`}>{size}</span>
-{
-  !isOOS && (
-    <span className=\"text-[8px] mt-0.5 opacity-80 lowercase tracking-wider font-semibold\">
-  { stockCount } left
-                              </span >
-                            )
-}
-                          </button >
+                            <span className={`text-[11px] font-black uppercase tracking-widest ${isOOS ? 'line-through' : ''}`}>{size}</span>
+                            {!isOOS && (
+                              <span className="text-[8px] mt-0.5 opacity-80 lowercase tracking-wider font-semibold">
+                                {stockCount} left
+                              </span>
+                            )}
+                          </button>
                         )
                       })}
-                    </div >
-                  </div >
+                    </div>
+                  </div>
                 )}
-              </div >
+              </div>
             )}
 
-{/* ─── BASE PRODUCT SIZES / SPECS ─── */ }
-{
-  (purchaseMode === 'base' || !hasVariants) && (
-    <div key=\"base-selector\" className=\"space-y-6 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300\">
-      < div className =\"flex flex-col gap-4\">
-  {/* Branded Info Card */ }
-  <div className=\"flex items-center gap-3 p-4 bg-slate-50/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 transition-all\">
-    < div className =\"flex flex-col\">
-      < span className =\"text-[11px] font-black text-slate-800 uppercase tracking-widest\">
-  { isGrocery ? 'Fresh Stock' : isElectronics ? 'Original Design' : 'Standard Edition' }
-                      </span >
-    <span className=\"text-[9px] text-slate-500 font-bold uppercase\">
-  { isGrocery ? 'Quality Assured' : isElectronics ? 'Certified Product' : 'Authentic Item' }
-                      </span >
-                    </div >
-                  </div >
+            {/* ─── BASE PRODUCT SIZES / SPECS ─── */}
+            {(purchaseMode === 'base' || !hasVariants) && (
+              <div key="base-selector" className="space-y-6 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="flex flex-col gap-4">
+                  {/* Branded Info Card */}
+                  <div className="flex items-center gap-3 p-4 bg-slate-50/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 transition-all">
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">
+                        {isGrocery ? 'Fresh Stock' : isElectronics ? 'Original Design' : 'Standard Edition'}
+                      </span>
+                      <span className="text-[9px] text-slate-500 font-bold uppercase">
+                        {isGrocery ? 'Quality Assured' : isElectronics ? 'Certified Product' : 'Authentic Item'}
+                      </span>
+                    </div>
+                  </div>
 
-    {/* Actual Specifications / Size Values */ }
-  {
-    mainSizes.length > 0 && (
-      <div className=\"space-y-2.5 px-1\">
-        < p className =\"text-[10px] font-black uppercase tracking-widest text-gray-400\">
-    { sizeLabel }
-                      </p >
-      <div className=\"flex flex-wrap gap-2\">
-    {
-      mainSizes.map(size => {
-        const isSelected = selectedBaseSize === size
-        const activeHex = baseColorHex || '#111'
-        return (
-          <button
-            key={`bsize-${size}`}
-            type=\"button\"
-        onClick = {() => setSelectedBaseSize(size)
-      }
-                              className =\"px-4 py-2 rounded-xl border-2 text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95\"
-                              style = {
-          isSelected
-          ? { backgroundColor: activeHex, color: getContrastYIQ(activeHex), borderColor: activeHex === '#ffffff' ? '#e5e7eb' : activeHex }
+                  {/* Actual Specifications / Size Values */}
+                  {mainSizes.length > 0 && (
+                    <div className="space-y-2.5 px-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        {sizeLabel}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {mainSizes.map(size => {
+                          const isSelected = selectedBaseSize === size
+                          const activeHex = baseColorHex || '#111'
+                          return (
+                            <button
+                              key={`bsize-${size}`}
+                              type="button"
+                              onClick={() => setSelectedBaseSize(size)}
+                              className="px-4 py-2 rounded-xl border-2 text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
+                              style={isSelected
+                                ? { backgroundColor: activeHex, color: getContrastYIQ(activeHex), borderColor: activeHex === '#ffffff' ? '#e5e7eb' : activeHex }
                                 : { backgroundColor: 'white', color: '#374151', borderColor: '#e5e7eb' }
                               }
                             >
-      { size }
-                            </button >
+                              {size}
+                            </button>
                           )
-  })
-}
-                      </div >
-                    </div >
+                        })}
+                      </div>
+                    </div>
                   )}
-                </div >
-              </div >
+                </div>
+              </div>
             )}
 
-{/* ─── INVENTORY STATUS ─── */ }
-<div className=\"space-y-4 pt-4 border-t border-gray-100\">
-  < div className =\"flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100\">
-    < div className =\"flex items-center gap-3\">
-      < div className = {`w-2 h-2 rounded-full ${currentStock > 0 ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
-        < span className =\"text-[10px] font-black uppercase tracking-widest text-slate-500\">
-{ currentStock > 0 ? 'In Stock' : 'Out of Stock' }
-                  </span >
-                </div >
-  { currentStock > 0 && (
-    <span className=\"text-[10px] font-black text-slate-900 border-l border-slate-200 pl-4 uppercase tracking-widest\">
-{ currentStock } units ready
-                  </span >
+            {/* ─── INVENTORY STATUS ─── */}
+            <div className="space-y-4 pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${currentStock > 0 ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    {currentStock > 0 ? 'In Stock' : 'Out of Stock'}
+                  </span>
+                </div>
+                {currentStock > 0 && (
+                  <span className="text-[10px] font-black text-slate-900 border-l border-slate-200 pl-4 uppercase tracking-widest">
+                    {currentStock} units ready
+                  </span>
                 )}
-              </div >
-            </div >
+              </div>
+            </div>
 
-  {/* ─── PURCHASE ACTIONS ─── */ }
-  < div className =\"space-y-4\">
-    < div className =\"flex gap-4\">
-      < div className =\"flex items-center bg-gray-100 rounded-xl px-2\">
-        < button
-type =\"button\"
-onClick = {() => setQuantity(Math.max(1, quantity - 1))}
-className =\"w-10 h-10 flex items-center justify-center font-bold hover:text-primary transition-colors disabled:opacity-20\"
-disabled = { quantity <= 1}
+            {/* ─── PURCHASE ACTIONS ─── */}
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="flex items-center bg-gray-100 rounded-xl px-2">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-10 h-10 flex items-center justify-center font-bold hover:text-primary transition-colors disabled:opacity-20"
+                    disabled={quantity <= 1}
                   >
-  -
-                  </button >
-  <span className=\"w-10 text-center font-black text-sm\">{quantity}</span>
-    < button
-type =\"button\"
-onClick = {() => setQuantity(Math.min(currentStock, quantity + 1))}
-className =\"w-10 h-10 flex items-center justify-center font-bold hover:text-primary transition-colors disabled:opacity-20\"
-disabled = { quantity >= currentStock}
+                    -
+                  </button>
+                  <span className="w-10 text-center font-black text-sm">{quantity}</span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
+                    className="w-10 h-10 flex items-center justify-center font-bold hover:text-primary transition-colors disabled:opacity-20"
+                    disabled={quantity >= currentStock}
                   >
-  +
-                  </button >
-                </div >
+                    +
+                  </button>
+                </div>
 
-  <Button
-    type=\"button\"
-onClick = { handleAddToCart }
-disabled = { currentStock< 1 || isAdding }
-className =\"flex-1 h-12 bg-black hover:bg-slate-800 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all active:scale-95\"
-  >
-  { isAdding? 'Adding...': (currentStock > 0 ? 'Add to Bag' : 'Sold Out') }
-                </Button >
-
-  <button
-    type=\"button\"
-onClick = { handleWishlistToggle }
-className = {`w-12 h-12 flex items-center justify-center rounded-xl border-2 transition-all ${isInWishlist ? 'bg-red-50 border-red-100 text-red-500' : 'bg-white border-gray-100 hover:border-gray-900'}`}
+                <Button
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={currentStock < 1 || isAdding}
+                  className="flex-1 h-12 bg-black hover:bg-slate-800 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all active:scale-95"
                 >
-  <Heart size={20} className={isInWishlist ? 'fill-current' : ''} />
-                </button >
-              </div >
-            </div >
-          </div >
-        </div >
-      </div >
+                  {isAdding ? 'Adding...' : (currentStock > 0 ? 'Add to Bag' : 'Sold Out')}
+                </Button>
 
-  {/* ─── REVIEWS ─── */ }
-  < div className =\"pt-10 lg:pt-8 border-t border-gray-100 space-y-10 lg:space-y-8\">
-    < section >
-    <h2 className=\"text-2xl font-black tracking-tighter uppercase mb-5 lg:mb-4\">Customer Reviews</h2>
-{
-  isReviewsLoading ? (
-    <div className=\"grid md:grid-cols-2 gap-12 py-10\">
-      < div className =\"h-32 bg-gray-100 rounded-2xl animate-pulse\" />
-        < div className =\"h-32 bg-gray-100 rounded-2xl animate-pulse\" />
-            </div >
+                <button
+                  type="button"
+                  onClick={handleWishlistToggle}
+                  className={`w-12 h-12 flex items-center justify-center rounded-xl border-2 transition-all ${isInWishlist ? 'bg-red-50 border-red-100 text-red-500' : 'bg-white border-gray-100 hover:border-gray-900'}`}
+                >
+                  <Heart size={20} className={isInWishlist ? 'fill-current' : ''} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── REVIEWS ─── */}
+      <div className="pt-10 lg:pt-8 border-t border-gray-100 space-y-10 lg:space-y-8">
+        <section>
+          <h2 className="text-2xl font-black tracking-tighter uppercase mb-5 lg:mb-4">Customer Reviews</h2>
+          {isReviewsLoading ? (
+            <div className="grid md:grid-cols-2 gap-12 py-10">
+              <div className="h-32 bg-gray-100 rounded-2xl animate-pulse" />
+              <div className="h-32 bg-gray-100 rounded-2xl animate-pulse" />
+            </div>
           ) : isReviewsError ? (
-    <div className=\"py-8 px-5 rounded-2xl border border-red-100 bg-red-50 text-sm text-red-700 flex items-center justify-between gap-4\">
-      < span > { reviewsError?.data?.message || 'Failed to load reviews.'
-}</span >
-  <Button variant=\"outline\" className=\"rounded-xl border-red-200\" onClick={refetchReviews}>Retry</Button>
-            </div >
+            <div className="py-8 px-5 rounded-2xl border border-red-100 bg-red-50 text-sm text-red-700 flex items-center justify-between gap-4">
+              <span>{reviewsError?.data?.message || 'Failed to load reviews.'}</span>
+              <Button variant="outline" className="rounded-xl border-red-200" onClick={refetchReviews}>Retry</Button>
+            </div>
           ) : (
-  <ReviewSummary
-    reviews={reviews}
-    avgRating={product.avgRating || 0}
-    reviewsCount={product.reviewsCount || 0}
-  />
-)}
-        </section >
+            <ReviewSummary
+              reviews={reviews}
+              avgRating={product.avgRating || 0}
+              reviewsCount={product.reviewsCount || 0}
+            />
+          )}
+        </section>
 
-  <section className=\"grid lg:grid-cols-3 gap-8 xl:gap-10\">
-    < div className =\"lg:col-span-2 min-w-0\">
-{
-  isReviewsLoading ? (
-    <div className=\"space-y-4\">
-      < div className =\"h-20 bg-gray-100 rounded-2xl animate-pulse\" />
-        < div className =\"h-20 bg-gray-100 rounded-2xl animate-pulse\" />
-              </div >
+        <section className="grid lg:grid-cols-3 gap-8 xl:gap-10">
+          <div className="lg:col-span-2 min-w-0">
+            {isReviewsLoading ? (
+              <div className="space-y-4">
+                <div className="h-20 bg-gray-100 rounded-2xl animate-pulse" />
+                <div className="h-20 bg-gray-100 rounded-2xl animate-pulse" />
+              </div>
             ) : !isReviewsError ? (
-    <ReviewList reviews={reviews} productId={product._id} onRefetch={refetchReviews} />
-  ) : null
-}
-          </div >
-  <div className=\"bg-gray-50 p-6 lg:p-7 rounded-3xl h-fit lg:sticky lg:top-24\">
-    < ReviewForm productId = { product._id } onSuccess = { refetchReviews } user = { user } />
-          </div >
-        </section >
-      </div >
-    </div >
+              <ReviewList reviews={reviews} productId={product._id} onRefetch={refetchReviews} />
+            ) : null}
+          </div>
+          <div className="bg-gray-50 p-6 lg:p-7 rounded-3xl h-fit lg:sticky lg:top-24">
+            <ReviewForm productId={product._id} onSuccess={refetchReviews} user={user} />
+          </div>
+        </section>
+      </div>
+    </div>
   )
 }
