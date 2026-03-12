@@ -34,9 +34,15 @@ const CLOTHING_SIZE_LABELS = {
 }
 
 // Build a hex color for button styling; fallback to #111 (near-black)
+const isHexLike = (value) => /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(String(value || ''))
+
 const resolveHex = (rawColor) => {
   if (!rawColor) return null
-  if (typeof rawColor === 'string') return rawColor.startsWith('#') ? rawColor : null
+  if (typeof rawColor === 'string') {
+    if (rawColor.startsWith('#')) return rawColor
+    if (isHexLike(rawColor)) return `#${rawColor}`
+    return null
+  }
   if (typeof rawColor === 'object' && rawColor.hex) return rawColor.hex
   return null
 }
@@ -275,14 +281,14 @@ const normalizeHex = (hex) => {
 const getColorDisplayName = (rawColor) => {
   if (!rawColor) return ''
   if (typeof rawColor === 'string') {
-    if (rawColor.startsWith('#')) {
+    if (rawColor.startsWith('#') || isHexLike(rawColor)) {
       const hex = normalizeHex(rawColor)
       return HEX_NAME_MAP[hex] || 'Custom Color'
     }
     return rawColor
   }
   const name = rawColor.name || ''
-  if (name && !name.startsWith('#')) return name
+  if (name && !name.startsWith('#') && !isHexLike(name)) return name
   const hex = normalizeHex(rawColor.hex || name)
   return HEX_NAME_MAP[hex] || 'Custom Color'
 }
@@ -688,7 +694,7 @@ export default function ProductDetails() {
             </div>
           </div>
 
-          <p className="text-gray-600 text-sm leading-relaxed max-w-md relative z-10">
+          <p className="text-gray-600 text-sm leading-relaxed max-w-md relative z-10 text-justify">
             {product.description}
           </p>
 

@@ -233,6 +233,8 @@ const HEX_NAME_MAP = {
   "#656b83": "Slate Blue",
 };
 
+const isHexLike = (value) => /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(String(value || ""))
+
 const normalizeHex = (hex) => {
   if (!hex) return "";
   let h = String(hex).trim().toLowerCase();
@@ -247,14 +249,14 @@ const getColorName = (rawColor) => {
   if (!rawColor) return "";
   if (typeof rawColor === "string") {
     if (/^[a-f0-9]{24}$/i.test(rawColor)) return "";
-    if (rawColor.startsWith("#")) {
+    if (rawColor.startsWith("#") || isHexLike(rawColor)) {
       const hex = normalizeHex(rawColor);
       return HEX_NAME_MAP[hex] || "Custom Color";
     }
     return rawColor;
   }
   const name = rawColor.name || "";
-  if (name && !name.startsWith("#")) return name;
+  if (name && !name.startsWith("#") && !isHexLike(name)) return name;
   const hex = normalizeHex(rawColor.hex || name);
   return HEX_NAME_MAP[hex] || "Custom Color";
 };
