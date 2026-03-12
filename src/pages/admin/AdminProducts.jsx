@@ -95,10 +95,20 @@ export default function AdminProducts() {
           clothingType: filters.clothingType,
         },
       })
+      const rawColors = res.data.colors || []
+      const seenColorKeys = new Set()
+      const normalizedColors = rawColors.filter(c => {
+        if (!c || (!c.name && !c.hex)) return false
+        const key = String(c.hex || c.name || c._id || '').toLowerCase()
+        if (!key || seenColorKeys.has(key)) return false
+        seenColorKeys.add(key)
+        return true
+      })
+
       const nextOptions = {
         categories: res.data.categories || [],
         brands: res.data.brands || [],
-        colors: res.data.colors || [],
+        colors: normalizedColors.slice(0, 10),
         sizeOptions: res.data.sizeOptions || [],
         sizeOptionsByClothingType: res.data.sizeOptionsByClothingType || {
           clothes: [],

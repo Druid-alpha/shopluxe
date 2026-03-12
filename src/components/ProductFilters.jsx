@@ -85,7 +85,16 @@ export default function ProductFilters({
 
       setCategories(res.data.categories || [])
       setBrands(res.data.brands || [])
-      setColors(res.data.colors || [])
+      const rawColors = res.data.colors || []
+      const seenColorKeys = new Set()
+      const normalizedColors = rawColors.filter(c => {
+        if (!c || (!c.name && !c.hex)) return false
+        const key = String(c.hex || c.name || c._id || '').toLowerCase()
+        if (!key || seenColorKeys.has(key)) return false
+        seenColorKeys.add(key)
+        return true
+      })
+      setColors(normalizedColors.slice(0, 10))
       const normalizedTypes = [...new Set((res.data.clothingTypes || []).map((t) => normalizeClothingType(t)))]
       setClothingTypes(normalizedTypes)
     } catch (err) {
