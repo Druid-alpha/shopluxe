@@ -344,7 +344,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
      AUTO-SYNC VARIANT SIZE WITH CLOTHING TYPE
   ===================================================== */
   useEffect(() => {
-    if (!clothingType) return
+    if (!clothingType || categories.length === 0) return
 
     // ONLY filter sizes if we aren't in Electronics/Grocery
     if (!isElectronics && !isGrocery) {
@@ -360,7 +360,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         }
       }))
     )
-  }, [clothingType])
+  }, [clothingType, categories])
 
   /* =====================================================
      SKU UNIQUENESS VALIDATION

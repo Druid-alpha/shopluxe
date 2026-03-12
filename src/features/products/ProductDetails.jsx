@@ -123,11 +123,19 @@ export default function ProductDetails() {
 
   const isGrocery =
     product?.category?.name?.toLowerCase().includes('groc') ||
-    (typeof product?.category === 'string' && product?.category?.toLowerCase().includes('groc'))
+    product?.category?.name?.toLowerCase().includes('food') ||
+    product?.category?.name?.toLowerCase().includes('beverage') ||
+    product?.category?.name?.toLowerCase().includes('supermarket') ||
+    (typeof product?.category === 'string' && (
+      product.category.toLowerCase().includes('groc') ||
+      product.category.toLowerCase().includes('food') ||
+      product.category.toLowerCase().includes('beverage') ||
+      product.category.toLowerCase().includes('supermarket')
+    ))
 
   const sizeLabel = isElectronics
     ? 'Specifications'
-    : (clothingType ? (CLOTHING_SIZE_LABELS[clothingType] || 'Size') : 'Size')
+    : isGrocery ? 'Size/Weight' : (clothingType ? (CLOTHING_SIZE_LABELS[clothingType] || 'Size') : 'Size')
 
   // ---- Color meta helpers ----
   const baseColor = product?.color
