@@ -451,8 +451,12 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
      UI HELPERS
   ===================================================== */
   // Show clothing type + size selectors for ANY category (shoes/bags/eyeglass/clothing all need them)
-  const isClothingLike = !!category
   const availableMainSizes = getSizesForType(clothingType)
+
+  const isElectronics =
+    categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronic') || false
+  const isGrocery =
+    categories.find(c => c._id === category)?.name?.toLowerCase().includes('groc') || false
 
   const CLOTHING_TYPE_LABELS = {
     clothes: 'Clothing Sizes (S, M, L…)',
@@ -509,8 +513,8 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
             <Input value={tags} onChange={e => setTags(e.target.value)} placeholder="luxury, limited, winter" className="rounded-xl border-gray-100" />
           </div>
 
-          {/* MAIN PRODUCT SIZES — admin picks which sizes this product is available in */}
-          {isClothingLike && (
+          {/* MAIN PRODUCT SIZES / SPECS — admin picks which sizes or specs this product is available in */}
+          {(isClothingLike || isElectronics || isGrocery) && (
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2 block">
@@ -619,55 +623,56 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
             )}
 
             {colors.length > 0 && (
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 px-1">
                 <div className="flex justify-between items-center mb-1.5">
-                  <label className="text-xs font-black uppercase tracking-widest text-gray-400 block p-0 m-0">Primary Color</label>
+                  <label className="text-xs font-black uppercase tracking-widest text-gray-400 block px-0.5">Primary Color</label>
                   {category && (
                     <button
                       type="button"
                       onClick={() => setIsColorPickerOpen(isColorPickerOpen === 'main' ? false : 'main')}
-                      className="text-[9px] font-black uppercase text-blue-500 hover:text-blue-700 block p-0 m-0"
+                      className="text-[9px] font-black uppercase text-blue-500 hover:text-blue-700 font-black tracking-tighter"
                     >
-                      {isColorPickerOpen === 'main' ? 'Cancel' : '+ New Color'}
+                      {isColorPickerOpen === 'main' ? 'Close Picker' : 'Set Custom'}
                     </button>
                   )}
                 </div>
 
                 {isColorPickerOpen === 'main' ? (
-                  <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl space-y-3">
-                    <div className="flex gap-2 items-center">
+                  <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-2xl space-y-4 animate-in fade-in slide-in-from-top-2">
+                    <div className="flex gap-3 items-center">
+                      <div className="relative group">
+                        <Input
+                          type="color"
+                          value={newColorHex}
+                          onChange={e => setNewColorHex(e.target.value)}
+                          className="w-12 h-12 p-0 border-2 border-white rounded-full overflow-hidden shadow-md cursor-pointer ring-1 ring-zinc-200"
+                        />
+                        <div className="absolute inset-0 rounded-full pointer-events-none border border-black/5"></div>
+                      </div>
                       <Input
-                        type="color"
-                        value={newColorHex}
-                        onChange={e => setNewColorHex(e.target.value)}
-                        className="w-10 h-10 p-0 border-0 rounded-lg overflow-hidden shadow-sm cursor-pointer"
-                      />
-                      <Input
-                        placeholder="Color Name (e.g. Navy Blue)"
+                        placeholder="Color Name (e.g. Midnight Black)"
                         value={newColorName}
                         onChange={e => setNewColorName(e.target.value)}
-                        className="flex-1 bg-white text-xs border-gray-200"
+                        className="flex-1 bg-white text-xs border-zinc-200 rounded-xl h-10 font-bold"
                       />
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
-                      {window.EyeDropper && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handleEyeDropper}
-                          className="flex-1 h-8 text-[9px] uppercase font-black tracking-widest border-blue-200 text-blue-600 hover:bg-blue-50 text-center"
-                        >
-                          Screen Pick
-                        </Button>
-                      )}
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleEyeDropper}
+                        className="h-10 text-[9px] uppercase font-black tracking-widest border-zinc-200 text-zinc-600 hover:bg-zinc-100 rounded-xl flex items-center justify-center gap-2"
+                      >
+                        <span className="text-sm">👁️</span> Screen Pick
+                      </Button>
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => setIsImagePickerOpen(true)}
-                        className="flex-1 h-8 text-[9px] uppercase font-black tracking-widest border-blue-200 text-blue-600 hover:bg-blue-50 text-center"
+                        className="h-10 text-[9px] uppercase font-black tracking-widest border-zinc-200 text-zinc-600 hover:bg-zinc-100 rounded-xl flex items-center justify-center gap-2"
                       >
-                        Image Pick
+                        <span className="text-sm">🖼️</span> Image Pick
                       </Button>
                     </div>
 
@@ -678,20 +683,29 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                         if (cid) setColor(cid)
                       }}
                       disabled={creatingColor || !newColorName.trim()}
-                      className="w-full h-8 text-[9px] uppercase font-black tracking-widest bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                      className="w-full h-10 text-[10px] uppercase font-black tracking-widest bg-black hover:bg-zinc-800 text-white shadow-lg rounded-xl transition-all active:scale-95"
                     >
-                      {creatingColor ? 'Creating...' : 'Create & Select Color'}
+                      {creatingColor ? 'Processing...' : 'Create & Apply Color'}
                     </Button>
                   </div>
                 ) : (
-                  <select value={color} onChange={e => setColor(e.target.value)} className="w-full h-10 px-3 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-0 focus:border-black transition-colors appearance-none bg-white">
-                    <option value="">Select color</option>
-                    {colors.map(c => (
-                      <option key={c._id} value={c._id}>
-                        {c.name} {c.hex ? `(HEX: ${c.hex})` : ''}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={color}
+                      onChange={e => setColor(e.target.value)}
+                      className="w-full h-11 pl-4 pr-10 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all appearance-none bg-white font-medium text-gray-700 shadow-sm"
+                    >
+                      <option value="">Select Base Color</option>
+                      {colors.map(c => (
+                        <option key={c._id} value={c._id}>
+                          {c.name} {c.hex ? `(${c.hex})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                      <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
