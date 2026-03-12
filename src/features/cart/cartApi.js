@@ -245,20 +245,47 @@ const normalizeHex = (hex) => {
   return h;
 };
 
+const familyFromHex = (hex) => {
+  const h = normalizeHex(hex);
+  if (!h) return "";
+  const r = parseInt(h.slice(1, 3), 16);
+  const g = parseInt(h.slice(3, 5), 16);
+  const b = parseInt(h.slice(5, 7), 16);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  if (max < 40) return "Black";
+  if (min > 220) return "White";
+  if (max - min < 20) return "Gray";
+  if (r >= g && r >= b) {
+    if (g > 160) return "Orange";
+    if (g > 120) return "Orange";
+    return "Red";
+  }
+  if (g >= r && g >= b) {
+    if (b > 140) return "Teal";
+    return "Green";
+  }
+  if (b >= r && b >= g) {
+    if (r > 140) return "Purple";
+    return "Blue";
+  }
+  return "";
+};
+
 const getColorName = (rawColor) => {
   if (!rawColor) return "";
   if (typeof rawColor === "string") {
     if (/^[a-f0-9]{24}$/i.test(rawColor)) return "";
     if (rawColor.startsWith("#") || isHexLike(rawColor)) {
       const hex = normalizeHex(rawColor);
-      return HEX_NAME_MAP[hex] || "Custom Color";
+      return HEX_NAME_MAP[hex] || familyFromHex(hex) || "Custom Color";
     }
     return rawColor;
   }
   const name = rawColor.name || "";
   if (name && !name.startsWith("#") && !isHexLike(name)) return name;
   const hex = normalizeHex(rawColor.hex || name);
-  return HEX_NAME_MAP[hex] || "Custom Color";
+  return HEX_NAME_MAP[hex] || familyFromHex(hex) || "Custom Color";
 };
 
 const buildVariantLabel = ({ variantSku, size, colorName }) => {

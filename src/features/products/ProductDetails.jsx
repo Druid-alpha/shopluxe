@@ -278,19 +278,46 @@ const normalizeHex = (hex) => {
   return h
 }
 
+const familyFromHex = (hex) => {
+  const h = normalizeHex(hex)
+  if (!h) return ''
+  const r = parseInt(h.slice(1, 3), 16)
+  const g = parseInt(h.slice(3, 5), 16)
+  const b = parseInt(h.slice(5, 7), 16)
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  if (max < 40) return 'Black'
+  if (min > 220) return 'White'
+  if (max - min < 20) return 'Gray'
+  if (r >= g && r >= b) {
+    if (g > 160) return 'Orange'
+    if (g > 120) return 'Orange'
+    return 'Red'
+  }
+  if (g >= r && g >= b) {
+    if (b > 140) return 'Teal'
+    return 'Green'
+  }
+  if (b >= r && b >= g) {
+    if (r > 140) return 'Purple'
+    return 'Blue'
+  }
+  return ''
+}
+
 const getColorDisplayName = (rawColor) => {
   if (!rawColor) return ''
   if (typeof rawColor === 'string') {
     if (rawColor.startsWith('#') || isHexLike(rawColor)) {
       const hex = normalizeHex(rawColor)
-      return HEX_NAME_MAP[hex] || 'Custom Color'
+      return HEX_NAME_MAP[hex] || familyFromHex(hex) || 'Custom Color'
     }
     return rawColor
   }
   const name = rawColor.name || ''
   if (name && !name.startsWith('#') && !isHexLike(name)) return name
   const hex = normalizeHex(rawColor.hex || name)
-  return HEX_NAME_MAP[hex] || 'Custom Color'
+  return HEX_NAME_MAP[hex] || familyFromHex(hex) || 'Custom Color'
 }
 
 const getContrastYIQ = (hex) => {
@@ -513,7 +540,7 @@ export default function ProductDetails() {
   }, [selectedColorKey, selectedSize, variants])
 
   if (isLoading) return (
-    <div className="max-w-7xl mx-auto px-4 py-12 space-y-12 animate-pulse overflow-hidden">
+    <div className="max-w-7xl mx-auto px-4 py-12 space-y-12 animate-pulse overflow-hidden overflow-x-hidden">
       <div className="flex flex-col lg:flex-row gap-12">
         <div className="lg:w-1/2 aspect-[4/5] bg-gray-200 rounded-2xl" />
         <div className="lg:w-1/2 space-y-6">
@@ -575,7 +602,7 @@ export default function ProductDetails() {
         _id: selectedVariant._id,
         sku: selectedVariant.sku,
         size: selectedVariant.options?.size || selectedSize || undefined,
-        color: selectedVariant.options?.color?.name || selectedVariant.options?.color?._id || selectedVariant.options?.color || undefined
+        color: selectedVariant.options?.color?._id || selectedVariant.options?.color || undefined
       }
       : (selectedBaseSize ? { size: selectedBaseSize } : null)
 
@@ -604,6 +631,7 @@ export default function ProductDetails() {
         variantSize: selectedVariant?.options?.size || selectedBaseSize || '',
         variantColorName: displayVariantColorName || '',
         variantColorHex: displayVariantColorHex || '',
+        productCategoryName: product?.category?.name || (typeof product?.category === 'string' ? product.category : ''),
         variantStock: selectedVariant?.stock,
         clothingType,
         addedAt: new Date().toISOString(),
@@ -654,7 +682,7 @@ export default function ProductDetails() {
   ]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12 space-y-14 lg:space-y-12">
+    <div className="max-w-7xl mx-auto px-4 py-12 space-y-14 lg:space-y-12 overflow-x-hidden">
       <div className="flex flex-col lg:flex-row gap-12 xl:gap-16">
 
         {/* ── IMAGES COLUMN ── */}
