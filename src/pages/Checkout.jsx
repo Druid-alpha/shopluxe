@@ -223,7 +223,7 @@ export default function Checkout() {
                     <p className="font-semibold text-sm text-gray-900 line-clamp-2">{item.title}</p>
                     {(item.variantLabel || typeof item.variant === 'string') && (
                       <p className="text-gray-400 text-xs uppercase mt-0.5">
-                        {item.variantLabel || item.variant}
+                        {item.variantLabel || (typeof item.variant === 'string' ? item.variant : '')}
                       </p>
                     )}
                     <p className="text-gray-500 text-xs mt-1">Qty: {item.qty}</p>
