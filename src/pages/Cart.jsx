@@ -41,13 +41,13 @@ function VariantBadges({ item }) {
     categoryName.includes('veg')
   const colorHex = item.variantColorHex || null
   const labelColor = item.variantLabel?.split(' / ')?.[0] || ''
-  const colorName = item.variantColorName || (!/^(size|spec|weight|size\/weight)\b/i.test(labelColor) ? labelColor : '')
+  let colorName = item.variantColorName || (!/^(size|spec|weight|size\/weight)\b/i.test(labelColor) ? labelColor : '')
 
   // Robust size extraction
   const rawSize = item.variantSize || item.variantLabel?.split(' / ')?.[1] || ''
   const sizeTypeLabel = isClothing
     ? (SIZE_TYPE_LABEL[item.clothingType] || 'Size')
-    : (isElectronics ? 'Spec' : (isGrocery ? 'Size/Weight' : 'Size'))
+    : (isGrocery ? 'Size/Weight' : 'Spec')
 
   // Clean up size if it already contains the prefix or category name
   const cleanSize = String(rawSize)
@@ -57,6 +57,10 @@ function VariantBadges({ item }) {
   const isDuplicate = cleanSize.toLowerCase().includes(sizeTypeLabel.toLowerCase())
 
   if (!colorName && !cleanSize && !item.variantLabel) return null
+
+  if (!colorName && colorHex) {
+    colorName = 'Color'
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-2 mt-1">
