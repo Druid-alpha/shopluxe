@@ -47,6 +47,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const [colors, setColors] = useState([])
   const [sizeOptionsByClothingType, setSizeOptionsByClothingType] = useState({ ...DEFAULT_SIZE_OPTIONS_BY_TYPE })
   const clothingTypes = ['clothes', 'shoes', 'bags', 'eyeglass']
+  const availableMainSizes = isClothingLike && clothingType ? getSizesForType(clothingType) : []
 
   /* =====================================================
      CATEGORY & UI HELPERS (Defined early for use in effects)
