@@ -282,6 +282,13 @@ const familyFromHex = (hex) => {
   return "";
 };
 
+const sanitizeColorName = (name) => {
+  if (!name) return ""
+  return String(name).replace(/\s+[0-9a-fA-F]{3,6}$/, "").trim()
+}
+
+const isSizeLike = (value) => /^(size|spec|weight|size\/weight)\b/i.test(String(value || ""))
+
 const getColorName = (rawColor) => {
   if (!rawColor) return "";
   if (typeof rawColor === "string") {
@@ -290,10 +297,10 @@ const getColorName = (rawColor) => {
       const hex = normalizeHex(rawColor);
       return HEX_NAME_MAP[hex] || familyFromHex(hex) || "Custom Color";
     }
-    return rawColor;
+    return sanitizeColorName(rawColor);
   }
   const name = rawColor.name || "";
-  if (name && !name.startsWith("#") && !isHexLike(name)) return name;
+  if (name && !name.startsWith("#") && !isHexLike(name)) return sanitizeColorName(name);
   const hex = normalizeHex(rawColor.hex || name);
   return HEX_NAME_MAP[hex] || familyFromHex(hex) || "Custom Color";
 };

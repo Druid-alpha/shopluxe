@@ -312,10 +312,12 @@ const getColorDisplayName = (rawColor) => {
       const hex = normalizeHex(rawColor)
       return HEX_NAME_MAP[hex] || familyFromHex(hex) || 'Custom Color'
     }
-    return rawColor
+    return rawColor.replace(/\s+[0-9a-fA-F]{3,6}$/, '').trim()
   }
   const name = rawColor.name || ''
-  if (name && !name.startsWith('#') && !isHexLike(name)) return name
+  if (name && !name.startsWith('#') && !isHexLike(name)) {
+    return name.replace(/\s+[0-9a-fA-F]{3,6}$/, '').trim()
+  }
   const hex = normalizeHex(rawColor.hex || name)
   return HEX_NAME_MAP[hex] || familyFromHex(hex) || 'Custom Color'
 }
