@@ -47,7 +47,6 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const [colors, setColors] = useState([])
   const [sizeOptionsByClothingType, setSizeOptionsByClothingType] = useState({ ...DEFAULT_SIZE_OPTIONS_BY_TYPE })
   const clothingTypes = ['clothes', 'shoes', 'bags', 'eyeglass']
-  const availableMainSizes = isClothingLike && clothingType ? getSizesForType(clothingType) : []
 
   /* =====================================================
      CATEGORY & UI HELPERS (Defined early for use in effects)
@@ -195,6 +194,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     const normalizedType = t === 'bag' ? 'bags' : t
     return sizeOptionsByClothingType[normalizedType] || []
   }
+  const availableMainSizes = isClothingLike && clothingType ? getSizesForType(clothingType) : []
 
   const parseBaseSizesFromTags = (rawTags = []) => {
     const marker = (rawTags || []).find(t => typeof t === 'string' && t.startsWith(BASE_SIZE_TAG_PREFIX))
