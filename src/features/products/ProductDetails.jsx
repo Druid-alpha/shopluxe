@@ -542,10 +542,10 @@ export default function ProductDetails() {
   }, [selectedColorKey, selectedSize, variants])
 
   if (isLoading) return (
-    <div className="max-w-7xl mx-auto px-4 py-12 space-y-12 animate-pulse overflow-hidden overflow-x-hidden">
-      <div className="flex flex-col lg:flex-row gap-12">
-        <div className="lg:w-1/2 aspect-[4/5] bg-gray-200 rounded-2xl" />
-        <div className="lg:w-1/2 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 py-12 space-y-10 animate-pulse overflow-hidden overflow-x-hidden">
+      <div className="flex flex-col lg:flex-row gap-8 overflow-hidden">
+        <div className="lg:w-1/2 aspect-[4/5] bg-gray-200 rounded-2xl overflow-hidden" />
+        <div className="lg:w-1/2 space-y-6 min-w-0 overflow-hidden">
           <div className="h-10 bg-gray-200 rounded w-3/4" />
           <div className="h-6 bg-gray-200 rounded w-1/4" />
           <div className="h-32 bg-gray-100 rounded-2xl" />
@@ -684,8 +684,8 @@ export default function ProductDetails() {
   ]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12 space-y-14 lg:space-y-12 overflow-x-hidden">
-      <div className="flex flex-col lg:flex-row gap-12 xl:gap-16">
+    <div className="max-w-7xl mx-auto px-4 py-12 space-y-8 lg:space-y-10 overflow-x-hidden">
+      <div className="flex flex-col lg:flex-row gap-8 xl:gap-10">
 
         {/* ── IMAGES COLUMN ── */}
         <div className="lg:w-1/2 xl:w-[52%] space-y-6">
