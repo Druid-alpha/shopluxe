@@ -111,27 +111,29 @@ export default function ProductDetails() {
     : parseBaseSizesFromTags(product?.tags || [])
 
   // Robust Category Detection
+  const categoryName = product?.category?.name?.toLowerCase() || (typeof product?.category === 'string' ? product.category.toLowerCase() : '')
+
   const isElectronics =
-    product?.category?.name?.toLowerCase().includes('electronic') ||
-    product?.category?.name?.toLowerCase().includes('gadget') ||
-    product?.category?.name?.toLowerCase().includes('appliance') ||
-    (typeof product?.category === 'string' && (
-      product.category.toLowerCase().includes('electronic') ||
-      product.category.toLowerCase().includes('gadget') ||
-      product.category.toLowerCase().includes('appliance')
-    ))
+    categoryName.includes('electronic') ||
+    categoryName.includes('gadget') ||
+    categoryName.includes('phone') ||
+    categoryName.includes('laptop') ||
+    categoryName.includes('computer') ||
+    categoryName.includes('tech') ||
+    categoryName.includes('appliance') ||
+    categoryName.includes('camera') ||
+    categoryName.includes('tablet')
 
   const isGrocery =
-    product?.category?.name?.toLowerCase().includes('groc') ||
-    product?.category?.name?.toLowerCase().includes('food') ||
-    product?.category?.name?.toLowerCase().includes('beverage') ||
-    product?.category?.name?.toLowerCase().includes('supermarket') ||
-    (typeof product?.category === 'string' && (
-      product.category.toLowerCase().includes('groc') ||
-      product.category.toLowerCase().includes('food') ||
-      product.category.toLowerCase().includes('beverage') ||
-      product.category.toLowerCase().includes('supermarket')
-    ))
+    categoryName.includes('groc') ||
+    categoryName.includes('food') ||
+    categoryName.includes('drink') ||
+    categoryName.includes('beverage') ||
+    categoryName.includes('snack') ||
+    categoryName.includes('provision') ||
+    categoryName.includes('supermarket') ||
+    categoryName.includes('fruit') ||
+    categoryName.includes('veg')
 
   const sizeLabel = isElectronics
     ? 'Specifications'
@@ -577,7 +579,7 @@ export default function ProductDetails() {
             )}
 
             {/* ─── MAIN PRODUCT SPECIFICATIONS / SIZES / SELECTION ─── */}
-            {mainSizes.length > 0 && (isElectronics || isGrocery || purchaseMode === 'base' || !hasVariants) && (
+            {mainSizes.length > 0 && (isElectronics || isGrocery || !isClothingProduct || purchaseMode === 'base' || !hasVariants) && (
               <div key="main-product-specs" className="space-y-6 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300 mb-4">
                 <div className="flex flex-col gap-4">
                   {/* Branded Info Card */}

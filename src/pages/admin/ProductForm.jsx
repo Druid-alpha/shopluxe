@@ -48,6 +48,36 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const [sizeOptionsByClothingType, setSizeOptionsByClothingType] = useState({ ...DEFAULT_SIZE_OPTIONS_BY_TYPE })
   const clothingTypes = ['clothes', 'shoes', 'bags', 'eyeglass']
 
+  /* =====================================================
+     CATEGORY & UI HELPERS (Defined early for use in effects)
+  ===================================================== */
+  const selectedCategoryObj = categories.find(c => c._id === category)
+  const categoryName = selectedCategoryObj?.name?.toLowerCase() || ''
+
+  const isElectronics =
+    categoryName.includes('electronic') ||
+    categoryName.includes('gadget') ||
+    categoryName.includes('phone') ||
+    categoryName.includes('laptop') ||
+    categoryName.includes('computer') ||
+    categoryName.includes('tech') ||
+    categoryName.includes('appliance') ||
+    categoryName.includes('camera') ||
+    categoryName.includes('tablet')
+
+  const isGrocery =
+    categoryName.includes('groc') ||
+    categoryName.includes('food') ||
+    categoryName.includes('drink') ||
+    categoryName.includes('beverage') ||
+    categoryName.includes('snack') ||
+    categoryName.includes('provision') ||
+    categoryName.includes('supermarket') ||
+    categoryName.includes('fruit') ||
+    categoryName.includes('veg')
+
+  const isClothingLike = !!category && !isElectronics && !isGrocery
+
   // ---------------- ERRORS ----------------
   const [errors, setErrors] = useState({})
 
@@ -291,7 +321,8 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     setClothingType(normalized)
 
     // ONLY filter mainSizes if we aren't in a category that uses custom specs (Electronics/Grocery)
-    if (!isElectronics && !isGrocery) {
+    // Extra safety: only filter if it LOOKS like clothing (has a type)
+    if (!isElectronics && !isGrocery && normalized) {
       setMainSizes(prev => prev.filter(s => getSizesForType(normalized).includes(s)))
     }
 
@@ -301,7 +332,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         type: normalized,
         options: {
           ...v.options,
-          size: getSizesForType(normalized).includes(v.options.size) ? v.options.size : ''
+          size: normalized && getSizesForType(normalized).includes(v.options.size) ? v.options.size : (normalized ? '' : v.options.size)
         }
       }))
     )
@@ -457,17 +488,12 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     }
   }
 
-  /* =====================================================
-     UI HELPERS
-  ===================================================== */
-  // Show clothing type + size selectors for ANY category (shoes/bags/eyeglass/clothing all need them)
-  const isClothingLike = !!category
-  const availableMainSizes = getSizesForType(clothingType)
-
-  const isElectronics =
-    categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronic') || false
-  const isGrocery =
-    categories.find(c => c._id === category)?.name?.toLowerCase().includes('groc') || false
+  const resolveHex = (colorInput) => {
+    if (!colorInput) return null
+    if (typeof colorInput === 'object') return colorInput.hex
+    const found = colors.find(c => c._id === colorInput)
+    return found ? found.hex : null
+  }
 
   const CLOTHING_TYPE_LABELS = {
     clothes: 'Clothing Sizes (S, M, L…)',
@@ -525,15 +551,15 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
           </div>
 
           {/* MAIN PRODUCT SIZES / SPECS — admin picks which sizes or specs this product is available in */}
-          {(isClothingLike || isElectronics || isGrocery) && (
+          {(isClothingLike || isElectronics || isGrocery || mainSizes.length > 0) && (
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2 block">
-                  {categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') ? 'Product Specifications' : 'Available Sizes'}
+                  {isElectronics ? 'Product Specifications' : isGrocery ? 'Size/Weight' : 'Available Sizes'}
                 </label>
                 <div className="flex gap-2 mb-3">
                   <Input
-                    placeholder={categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') ? "Add specification (e.g. 8GB RAM)" : "Add custom size (e.g. 500g)"}
+                    placeholder={isElectronics ? "Add specification (e.g. 8GB RAM)" : isGrocery ? "Add size/weight (e.g. 500g)" : "Add custom size"}
                     className="rounded-xl border-gray-100"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -546,8 +572,22 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                       }
                     }}
                   />
+                  <Button
+                    type="button"
+                    onClick={(e) => {
+                      const input = e.currentTarget.previousSibling;
+                      const val = input.value.trim();
+                      if (val && !mainSizes.includes(val)) {
+                        setMainSizes(prev => [...prev, val]);
+                        input.value = '';
+                      }
+                    }}
+                    className="rounded-xl bg-zinc-100 text-zinc-600 hover:bg-zinc-200 px-4"
+                  >
+                    Add
+                  </Button>
                 </div>
-                {availableMainSizes.length > 0 && (
+                {availableMainSizes.length > 0 && isClothingLike && (
                   <div className="flex flex-wrap gap-2">
                     {availableMainSizes.map(size => {
                       const checked = mainSizes.includes(size)
@@ -570,11 +610,13 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                   </div>
                 )}
 
-                {mainSizes.filter(s => !availableMainSizes.includes(s)).length > 0 && (
+                {mainSizes.filter(s => !availableMainSizes.includes(s) || !isClothingLike).length > 0 && (
                   <div className="mt-4">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">Custom Choices</p>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                      {isElectronics ? 'Active Specifications' : 'Active Sizes'}
+                    </p>
                     <div className="flex flex-wrap gap-2">
-                      {mainSizes.filter(s => !availableMainSizes.includes(s)).map(s => (
+                      {mainSizes.filter(s => !availableMainSizes.includes(s) || !isClothingLike).map(s => (
                         <span key={s} className="flex items-center gap-2 px-3 py-2 bg-zinc-100 text-zinc-800 text-[10px] font-black uppercase tracking-widest rounded-lg border border-zinc-200">
                           {s}
                           <Trash2 size={10} className="cursor-pointer hover:text-red-500" onClick={() => toggleMainSize(s)} />
