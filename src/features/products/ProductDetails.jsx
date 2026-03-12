@@ -562,31 +562,48 @@ export default function ProductDetails() {
               </div>
             )}
 
-            {/* ─── BASE PRODUCT SIZES / SPECS (ALWAYS VISIBLE FOR ELECTRONICS/GROCERIES) ─── */}
-            {(purchaseMode === 'base' || !hasVariants || isElectronics || isGrocery) && mainSizes.length > 0 && (
-              <div
-                key="base-selector"
-                className={`space-y-6 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300 ${isElectronics || isGrocery ? 'mb-4' : ''}`}
-              >
+            {/* ─── MAIN PRODUCT SPECIFICATIONS (ALWAYS VISIBLE FOR ELECTRONICS/GROCERIES) ─── */}
+            {(isElectronics || isGrocery) && mainSizes.length > 0 && (
+              <div key="main-info-section" className="space-y-4 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300 mb-4">
+                <div className="flex items-center justify-between px-1">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    {isElectronics ? 'Main Unit Specifications' : 'Base Product Size/Weight'}
+                  </p>
+                  <div className="px-2.5 py-1 bg-slate-100 rounded-lg text-[8px] font-black uppercase text-slate-500 tracking-tighter">
+                    Fixed Info
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 px-1">
+                  {mainSizes.map(size => (
+                    <div
+                      key={`main-spec-${size}`}
+                      className="px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-[11px] font-black uppercase tracking-widest"
+                    >
+                      {size}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ─── BASE PRODUCT SELECTION (ONLY IF NOT ELECTRONICS/GROCERY OR IF BASE MODE) ─── */}
+            {!(isElectronics || isGrocery) && (purchaseMode === 'base' || !hasVariants) && mainSizes.length > 0 && (
+              <div key="base-selector" className="space-y-6 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300">
                 <div className="flex flex-col gap-4">
                   {/* Branded Info Card */}
                   <div className="flex items-center justify-between p-4 bg-slate-50/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 transition-all">
                     <div className="flex flex-col">
                       <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">
-                        {isGrocery ? 'Fresh Stock' : isElectronics ? 'Original Design' : 'Standard Edition'}
+                        Standard Edition
                       </span>
                       <span className="text-[9px] text-slate-500 font-bold uppercase">
-                        {isGrocery ? 'Quality Assured' : isElectronics ? 'Certified Product' : 'Authentic Item'}
+                        Authentic Item
                       </span>
                     </div>
-                    {(isElectronics || isGrocery) && (
-                      <div className="px-3 py-1 bg-white/50 border border-slate-200 rounded-lg text-[9px] font-black uppercase text-slate-400 tracking-tighter">
-                        Main Unit Info
-                      </div>
-                    )}
                   </div>
 
-                  {/* Actual Specifications / Size Values */}
+                  {/* Actual Size Values */}
                   <div className="space-y-2.5 px-1">
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
                       {sizeLabel}
@@ -595,22 +612,19 @@ export default function ProductDetails() {
                       {mainSizes.map(size => {
                         const isSelected = selectedBaseSize === size
                         const activeHex = baseColorHex || '#111'
-
-                        // If it's electronics/grocery and we're in variant mode, we just show them as badges, not buttons
-                        const isReadOnly = (isElectronics || isGrocery) && purchaseMode === 'variant'
-
                         return (
-                          <div
+                          <button
                             key={`bsize-${size}`}
-                            onClick={() => !isReadOnly && setSelectedBaseSize(size)}
-                            className={`px-4 py-2 rounded-xl border-2 text-[11px] font-black uppercase tracking-widest transition-all ${isReadOnly ? '' : 'hover:scale-105 active:scale-95 cursor-pointer shadow-sm'}`}
-                            style={isSelected && !isReadOnly
+                            type="button"
+                            onClick={() => setSelectedBaseSize(size)}
+                            className="px-4 py-2 rounded-xl border-2 text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
+                            style={isSelected
                               ? { backgroundColor: activeHex, color: getContrastYIQ(activeHex), borderColor: activeHex === '#ffffff' ? '#e5e7eb' : activeHex }
-                              : { backgroundColor: isReadOnly ? '#f8fafc' : 'white', color: isReadOnly ? '#64748b' : '#374151', borderColor: isReadOnly ? '#f1f5f9' : '#e5e7eb' }
+                              : { backgroundColor: 'white', color: '#374151', borderColor: '#e5e7eb' }
                             }
                           >
                             {size}
-                          </div>
+                          </button>
                         )
                       })}
                     </div>

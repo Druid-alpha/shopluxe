@@ -658,22 +658,26 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2">
                       <Button
                         type="button"
                         variant="outline"
                         onClick={handleEyeDropper}
-                        className="h-10 text-[9px] uppercase font-black tracking-widest border-zinc-200 text-zinc-600 hover:bg-zinc-100 rounded-xl flex items-center justify-center gap-2"
+                        className="h-9 text-[8px] sm:text-[9px] uppercase font-black tracking-tight sm:tracking-widest border-zinc-200 text-zinc-600 hover:bg-zinc-100 rounded-xl flex items-center justify-center gap-1.5 px-2"
                       >
-                        <span className="text-sm">👁️</span> Screen Pick
+                        <span className="text-sm">👁️</span>
+                        <span className="hidden xs:inline">Screen Pick</span>
+                        <span className="xs:hidden">Screen</span>
                       </Button>
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => setIsImagePickerOpen(true)}
-                        className="h-10 text-[9px] uppercase font-black tracking-widest border-zinc-200 text-zinc-600 hover:bg-zinc-100 rounded-xl flex items-center justify-center gap-2"
+                        className="h-9 text-[8px] sm:text-[9px] uppercase font-black tracking-tight sm:tracking-widest border-zinc-200 text-zinc-600 hover:bg-zinc-100 rounded-xl flex items-center justify-center gap-1.5 px-2"
                       >
-                        <span className="text-sm">🖼️</span> Image Pick
+                        <span className="text-sm">🖼️</span>
+                        <span className="hidden xs:inline">Image Pick</span>
+                        <span className="xs:hidden">Image</span>
                       </Button>
                     </div>
 
@@ -791,24 +795,28 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                         />
                       </div>
 
-                      <div className="flex flex-wrap gap-2">
+                      <div className="grid grid-cols-2 gap-2 mt-2">
                         {window.EyeDropper && (
                           <Button
                             type="button"
                             variant="outline"
                             onClick={handleEyeDropper}
-                            className="flex-1 h-7 text-[8px] uppercase font-black tracking-widest border-blue-200 text-blue-600 hover:bg-blue-50"
+                            className="h-9 text-[8px] sm:text-[9px] uppercase font-black tracking-tight sm:tracking-widest border-zinc-200 text-zinc-600 hover:bg-zinc-100 rounded-xl flex items-center justify-center gap-1.5 px-2"
                           >
-                            Screen Pick
+                            <span className="text-sm">👁️</span>
+                            <span className="hidden xs:inline">Screen Pick</span>
+                            <span className="xs:hidden">Screen</span>
                           </Button>
                         )}
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => setIsImagePickerOpen(true)}
-                          className="flex-1 h-7 text-[8px] uppercase font-black tracking-widest border-blue-200 text-blue-600 hover:bg-blue-50"
+                          onClick={() => setIsImagePickerOpen(idx)}
+                          className={`h-9 text-[8px] sm:text-[9px] uppercase font-black tracking-tight sm:tracking-widest border-zinc-200 text-zinc-600 hover:bg-zinc-100 rounded-xl flex items-center justify-center gap-1.5 px-2 ${!window.EyeDropper ? 'col-span-2' : ''}`}
                         >
-                          Image Pick
+                          <span className="text-sm">🖼️</span>
+                          <span className="hidden xs:inline">Image Pick</span>
+                          <span className="xs:hidden">Image</span>
                         </Button>
                       </div>
 
@@ -819,9 +827,9 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                           if (cid) updateVariant(idx, 'color', cid)
                         }}
                         disabled={creatingColor || !newColorName.trim()}
-                        className="w-full h-8 text-[9px] uppercase font-black bg-blue-600 hover:bg-blue-700 text-white"
+                        className="w-full h-9 text-[9px] uppercase font-black bg-black hover:bg-zinc-800 text-white rounded-xl shadow-sm mt-2 transition-all active:scale-95"
                       >
-                        {creatingColor ? '...' : 'Create & Set Color'}
+                        {creatingColor ? 'Processing...' : 'Create & Apply'}
                       </Button>
                     </div>
                   ) : (
@@ -835,33 +843,32 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                 </div>
 
                 {/* SIZE — dropdown for clothing types */}
-                < div >
+                <div>
                   <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">
                     {categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') ? 'Specification' : 'Size'}
                     {clothingType && !categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') && (
                       <span className="ml-1 normal-case font-normal text-gray-300">({clothingType})</span>
                     )}
                   </label>
-                  {
-                    clothingType ? (
-                      <select
-                        value={v.options.size}
-                        onChange={e => updateVariant(idx, 'size', e.target.value)}
-                        className="w-full h-10 px-3 py-2 text-[10px] border-white bg-white rounded-xl focus:outline-none focus:ring-0"
-                      >
-                        <option value="">— Pick size —</option>
-                        {getSizesForType(clothingType).map(s => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <Input
-                        value={v.options.size}
-                        onChange={e => updateVariant(idx, 'size', e.target.value)}
-                        placeholder="e.g. One Size"
-                        className="rounded-xl border-white bg-white text-[10px]"
-                      />
-                    )}
+                  {clothingType ? (
+                    <select
+                      value={v.options.size}
+                      onChange={e => updateVariant(idx, 'size', e.target.value)}
+                      className="w-full h-10 px-3 py-2 text-[10px] border-white bg-white rounded-xl focus:outline-none focus:ring-0"
+                    >
+                      <option value="">— Pick size —</option>
+                      {getSizesForType(clothingType).map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Input
+                      value={v.options.size}
+                      onChange={e => updateVariant(idx, 'size', e.target.value)}
+                      placeholder="e.g. One Size"
+                      className="rounded-xl border-white bg-white text-[10px]"
+                    />
+                  )}
                 </div>
 
                 {/* PRICE */}
@@ -910,17 +917,15 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                     </button>
                   </div>
                 </div>
-              </div >
-            ))
-            }
-          </div >
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="border border-dashed border-gray-100 rounded-2xl py-8 text-center text-gray-300 text-xs italic">
             No variants added. Base pricing, stock, and sizes above will apply.
           </div>
-        )
-        }
-      </div >
+        )}
+      </div>
 
       <div className="flex gap-4 pt-8 border-t border-gray-50">
         <Button type="submit" className="bg-black text-white hover:bg-zinc-800 rounded-xl px-12 py-6 font-black uppercase tracking-widest text-[10px]">Publish Product</Button>
