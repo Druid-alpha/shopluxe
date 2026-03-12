@@ -113,7 +113,13 @@ export default function ProductDetails() {
   // Robust Category Detection
   const isElectronics =
     product?.category?.name?.toLowerCase().includes('electronic') ||
-    (typeof product?.category === 'string' && product?.category?.toLowerCase().includes('electronic'))
+    product?.category?.name?.toLowerCase().includes('gadget') ||
+    product?.category?.name?.toLowerCase().includes('appliance') ||
+    (typeof product?.category === 'string' && (
+      product.category.toLowerCase().includes('electronic') ||
+      product.category.toLowerCase().includes('gadget') ||
+      product.category.toLowerCase().includes('appliance')
+    ))
 
   const isGrocery =
     product?.category?.name?.toLowerCase().includes('groc') ||
@@ -562,65 +568,54 @@ export default function ProductDetails() {
               </div>
             )}
 
-            {/* ─── MAIN PRODUCT SPECIFICATIONS (ALWAYS VISIBLE FOR ELECTRONICS/GROCERIES) ─── */}
-            {(isElectronics || isGrocery) && mainSizes.length > 0 && (
-              <div key="main-info-section" className="space-y-4 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300 mb-4">
-                <div className="flex items-center justify-between px-1">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                    {isElectronics ? 'Main Unit Specifications' : 'Base Product Size/Weight'}
-                  </p>
-                  <div className="px-2.5 py-1 bg-slate-100 rounded-lg text-[8px] font-black uppercase text-slate-500 tracking-tighter">
-                    Fixed Info
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2 px-1">
-                  {mainSizes.map(size => (
-                    <div
-                      key={`main-spec-${size}`}
-                      className="px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-[11px] font-black uppercase tracking-widest"
-                    >
-                      {size}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* ─── BASE PRODUCT SELECTION (ONLY IF NOT ELECTRONICS/GROCERY OR IF BASE MODE) ─── */}
-            {!(isElectronics || isGrocery) && (purchaseMode === 'base' || !hasVariants) && mainSizes.length > 0 && (
-              <div key="base-selector" className="space-y-6 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300">
+            {/* ─── MAIN PRODUCT SPECIFICATIONS / SIZES / SELECTION ─── */}
+            {mainSizes.length > 0 && (isElectronics || isGrocery || purchaseMode === 'base' || !hasVariants) && (
+              <div key="main-product-specs" className="space-y-6 pt-6 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300 mb-4">
                 <div className="flex flex-col gap-4">
                   {/* Branded Info Card */}
                   <div className="flex items-center justify-between p-4 bg-slate-50/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 transition-all">
                     <div className="flex flex-col">
                       <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">
-                        Standard Edition
+                        {isGrocery ? 'Fresh Stock' : isElectronics ? 'Original Design' : 'Standard Edition'}
                       </span>
                       <span className="text-[9px] text-slate-500 font-bold uppercase">
-                        Authentic Item
+                        {isGrocery ? 'Quality Assured' : isElectronics ? 'Certified Product' : 'Authentic Item'}
                       </span>
+                    </div>
+                    <div className="px-3 py-1 bg-white/50 border border-slate-200 rounded-lg text-[9px] font-black uppercase text-slate-400 tracking-tighter">
+                      {isElectronics ? 'Unit Specs' : isGrocery ? 'Size/Weight' : 'Base Unit'}
                     </div>
                   </div>
 
-                  {/* Actual Size Values */}
+                  {/* Specification / Size Values */}
                   <div className="space-y-2.5 px-1">
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
                       {sizeLabel}
+                      {purchaseMode === 'base' && selectedBaseSize && (
+                        <span className="ml-2 text-slate-700 normal-case font-bold">— {selectedBaseSize}</span>
+                      )}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {mainSizes.map(size => {
                         const isSelected = selectedBaseSize === size
                         const activeHex = baseColorHex || '#111'
+
+                        // If we're in variant mode, we show them as badges (read-only) unless no variants exist
+                        const isReadOnly = purchaseMode === 'variant' && hasVariants
+
                         return (
                           <button
-                            key={`bsize-${size}`}
+                            key={`main-unit-${size}`}
                             type="button"
-                            onClick={() => setSelectedBaseSize(size)}
-                            className="px-4 py-2 rounded-xl border-2 text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
-                            style={isSelected
+                            onClick={() => !isReadOnly && setSelectedBaseSize(size)}
+                            className={`px-4 py-2 rounded-xl border-2 text-[11px] font-black uppercase tracking-widest transition-all ${isReadOnly ? 'cursor-default opacity-80' : 'hover:scale-105 active:scale-95 cursor-pointer shadow-sm'}`}
+                            style={isSelected && !isReadOnly
                               ? { backgroundColor: activeHex, color: getContrastYIQ(activeHex), borderColor: activeHex === '#ffffff' ? '#e5e7eb' : activeHex }
-                              : { backgroundColor: 'white', color: '#374151', borderColor: '#e5e7eb' }
+                              : {
+                                backgroundColor: isReadOnly ? '#f8fafc' : 'white',
+                                color: isReadOnly ? '#64748b' : '#374151',
+                                borderColor: isReadOnly ? '#f1f5f9' : '#e5e7eb'
+                              }
                             }
                           >
                             {size}

@@ -289,7 +289,12 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const handleClothingTypeChange = value => {
     const normalized = value === 'bag' ? 'bags' : value
     setClothingType(normalized)
-    setMainSizes(prev => prev.filter(s => getSizesForType(normalized).includes(s)))
+
+    // ONLY filter mainSizes if we aren't in a category that uses custom specs (Electronics/Grocery)
+    if (!isElectronics && !isGrocery) {
+      setMainSizes(prev => prev.filter(s => getSizesForType(normalized).includes(s)))
+    }
+
     setVariants(prev =>
       prev.map(v => ({
         ...v,
@@ -340,7 +345,12 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   ===================================================== */
   useEffect(() => {
     if (!clothingType) return
-    setMainSizes(prev => prev.filter(s => getSizesForType(clothingType).includes(s)))
+
+    // ONLY filter sizes if we aren't in Electronics/Grocery
+    if (!isElectronics && !isGrocery) {
+      setMainSizes(prev => prev.filter(s => getSizesForType(clothingType).includes(s)))
+    }
+
     setVariants(prev =>
       prev.map(v => ({
         ...v,
