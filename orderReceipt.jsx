@@ -16,6 +16,7 @@ export default function OrderReceipt() {
 
   const { data, isLoading, error: queryError, refetch } = useGetOrderQuery(id)
   const [generateInvoice, { isLoading: isGeneratingInvoice }] = useGenerateOrderInvoiceMutation()
+  const [isDownloading, setIsDownloading] = React.useState(false)
   const order = data?.order
 
   const getVariantMeta = (item) => {
@@ -58,6 +59,8 @@ export default function OrderReceipt() {
   }, [order?.paymentStatus, dispatch])
 
   const downloadPDF = async () => {
+    if (!order?._id) return
+    setIsDownloading(true)
     const opt = {
       margin: 0,
       filename: `ShopLuxe_Invoice_${order?._id?.slice(-6) || 'receipt'}.pdf`,
@@ -87,39 +90,24 @@ export default function OrderReceipt() {
       }
     }
 
-    if (order?.invoiceUrl) {
-      const downloaded = await downloadFromUrl(order.invoiceUrl)
-      if (!downloaded) {
-        try {
-          const refreshed = await generateInvoice(order._id).unwrap()
-          if (refreshed?.invoiceUrl) {
-            const retried = await downloadFromUrl(refreshed.invoiceUrl)
-            if (retried) {
-              refetch()
-              return
-            }
-          }
-        } catch (err) {
-          console.error('Invoice refresh failed:', err)
+    try {
+      // Always request a signed/validated invoice URL to avoid stale or blocked downloads.
+      const generated = await generateInvoice(order._id).unwrap()
+      const invoiceUrl = generated?.invoiceUrl || order?.invoiceUrl || null
+      if (invoiceUrl) {
+        const downloaded = await downloadFromUrl(invoiceUrl)
+        if (downloaded) {
+          refetch()
+          return
         }
-        html2pdf().set(opt).from(receiptRef.current).save()
       }
-    } else {
-      try {
-        const generated = await generateInvoice(order._id).unwrap()
-        if (generated?.invoiceUrl) {
-          const downloaded = await downloadFromUrl(generated.invoiceUrl)
-          if (downloaded) {
-            refetch()
-            return
-          }
-        }
-      } catch (err) {
-        console.error('Official invoice generation failed:', err)
-      }
-
-      html2pdf().set(opt).from(receiptRef.current).save()
+    } catch (err) {
+      console.error('Official invoice generation failed:', err)
+    } finally {
+      setIsDownloading(false)
     }
+
+    html2pdf().set(opt).from(receiptRef.current).save()
   }
 
   const handleLogout = async () => {
@@ -182,12 +170,12 @@ export default function OrderReceipt() {
           <div className="flex gap-3 w-full md:w-auto">
             <Button
               onClick={downloadPDF}
-              disabled={isGeneratingInvoice}
+              disabled={isGeneratingInvoice || isDownloading}
               className="flex-1 bg-black text-white hover:bg-gray-800 h-10 md:h-12 rounded-lg text-xs md:text-sm font-bold shadow-lg transition-all active:scale-95"
             >
               <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-              {isGeneratingInvoice
-                ? 'Generating Invoice...'
+              {isGeneratingInvoice || isDownloading
+                ? 'Preparing Invoice...'
                 : order.invoiceUrl
                   ? 'Download Official Invoice'
                   : 'Generate & Download PDF'}
