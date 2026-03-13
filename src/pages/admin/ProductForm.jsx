@@ -147,9 +147,36 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
 
     } catch (err) {
       console.error(err)
+      const message = err.response?.data?.message || err.message || ''
+      const existingColor = err.response?.data?.color || err.response?.data?.existingColor
+      if (existingColor?._id) {
+        setColors(prev => (prev.some(c => String(c._id) === String(existingColor._id)) ? prev : [existingColor, ...prev]))
+        setIsColorPickerOpen(false)
+        setNewColorName('')
+        setNewColorHex('#000000')
+        toast({ title: 'Color already exists — applied' })
+        return existingColor._id
+      }
+      if (message.toLowerCase().includes('exist')) {
+        try {
+          const refreshed = await axios.get('/products/filters')
+          const refreshedColors = refreshed.data?.colors || []
+          setColors(refreshedColors)
+          const matched = refreshedColors.find(c => normalizeHex(c.hex) === normalizedHex)
+          if (matched?._id) {
+            setIsColorPickerOpen(false)
+            setNewColorName('')
+            setNewColorHex('#000000')
+            toast({ title: 'Color already exists — applied' })
+            return matched._id
+          }
+        } catch (refreshErr) {
+          console.error(refreshErr)
+        }
+      }
       toast({
         title: 'Error formatting color',
-        description: err.response?.data?.message || err.message,
+        description: message,
         variant: 'destructive'
       })
       return null
@@ -538,7 +565,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
 
         {/* ── LEFT COLUMN ── */}
         <div className="space-y-4">
-          <div>
+          <div className="relative z-20">
             <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Title</label>
             <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Product Name" className="rounded-xl border-gray-100 placeholder:text-gray-300" />
             {errors.title && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.title}</p>}
