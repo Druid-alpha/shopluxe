@@ -41,9 +41,11 @@ export default function Products() {
   const [sortBy, setSortBy] = React.useState(searchParams.get('sortBy') || 'newest')
   const [mobileFilters, setMobileFilters] = React.useState(false)
   const [isResolvingCategory, setIsResolvingCategory] = React.useState(false)
+  const skipNextUrlSyncRef = React.useRef(false)
 
   // Keep local state in sync when URL params change externally (e.g. navbar/home category links).
   React.useEffect(() => {
+    skipNextUrlSyncRef.current = true
     const nextPage = Number(searchParams.get('page')) || 1
     const nextSearch = searchParams.get('search') || ''
     const nextCategory = searchParams.get('category') || ''
@@ -128,6 +130,11 @@ export default function Products() {
 
   // ---------------- Update URL ----------------
   React.useEffect(() => {
+    if (skipNextUrlSyncRef.current) {
+      skipNextUrlSyncRef.current = false
+      return
+    }
+
     const next = new URLSearchParams({
       page: page.toString(),
       search: debouncedSearch || '',
