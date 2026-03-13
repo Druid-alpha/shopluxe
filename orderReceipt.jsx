@@ -18,6 +18,22 @@ export default function OrderReceipt() {
   const [generateInvoice, { isLoading: isGeneratingInvoice }] = useGenerateOrderInvoiceMutation()
   const order = data?.order
 
+  const getVariantDisplay = (item) => {
+    if (!item) return ''
+    if (item.variantLabel) return item.variantLabel
+
+    const variantObj = item.variantPayload || item.variant
+    if (!variantObj || typeof variantObj !== 'object') return ''
+
+    const colorValue = variantObj.color
+    const colorName = typeof colorValue === 'string'
+      ? colorValue
+      : (colorValue?.name || '')
+
+    const parts = [colorName, variantObj.size].filter(Boolean)
+    return parts.join(' / ')
+  }
+
   // Poll while payment is still pending
   React.useEffect(() => {
     if (order?.paymentStatus === 'pending') {
@@ -251,14 +267,16 @@ export default function OrderReceipt() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {order.items.map((item, idx) => (
-                    <tr key={idx}>
+                  {order.items.map((item, idx) => {
+                    const variantDisplay = getVariantDisplay(item)
+                    return (
+                      <tr key={idx}>
                       <td className="py-6">
                         {/* Use item.title directly - product may not be populated */}
                         <p className="font-bold text-gray-900">{item.title || (item.product?.title) || 'Product'}</p>
-                        {item.variant && (
+                        {variantDisplay && (
                           <p className="text-[10px] text-gray-400 font-medium mt-1 uppercase tracking-tighter">
-                            Variant: {item.variant.sku || item.variant}
+                            Variant: {variantDisplay}
                           </p>
                         )}
                       </td>
@@ -267,8 +285,9 @@ export default function OrderReceipt() {
                       <td className="py-6 text-right font-bold text-gray-900 italic">
                         ₦{((item.priceAtPurchase || 0) * item.qty).toLocaleString()}
                       </td>
-                    </tr>
-                  ))}
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

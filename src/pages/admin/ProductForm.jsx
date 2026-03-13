@@ -95,10 +95,34 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const [newColorName, setNewColorName] = useState('')
   const [newColorHex, setNewColorHex] = useState('#000000')
   const [creatingColor, setCreatingColor] = useState(false)
+  const normalizeHex = (hex) => {
+    if (!hex) return ''
+    let h = String(hex).trim().toLowerCase()
+    if (!h.startsWith('#')) h = `#${h}`
+    if (h.length === 4) {
+      h = `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}`
+    }
+    return h
+  }
 
   const handleCreateCustomColor = async () => {
-    if (!newColorName.trim() || !category) {
+    if (!category) {
       toast({ title: 'Color Name & Category required', variant: 'destructive' })
+      return null
+    }
+
+    const normalizedHex = normalizeHex(newColorHex)
+    const existing = colors.find(c => normalizeHex(c.hex) === normalizedHex)
+    if (existing?._id) {
+      setIsColorPickerOpen(false)
+      setNewColorName('')
+      setNewColorHex('#000000')
+      toast({ title: 'Color already exists — applied' })
+      return existing._id
+    }
+
+    if (!newColorName.trim()) {
+      toast({ title: 'Color Name required', variant: 'destructive' })
       return null
     }
 
@@ -107,7 +131,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       // Direct axios call to the colors route we just made in adminRoutes
       const res = await axios.post('/admin/colors', {
         name: newColorName.trim(),
-        hex: newColorHex,
+        hex: normalizedHex,
         category: category
       })
 
@@ -799,8 +823,8 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                     {category && (
                       <button
                         type="button"
-                        onClick={() => setIsColorPickerOpen(idx)}
-                        className="text-[7px] font-black uppercase text-blue-500 hover:text-blue-700 shrink-0"
+                        onClick={() => setIsColorPickerOpen(isColorPickerOpen === idx ? false : idx)}
+                        className="text-[7px] font-black uppercase text-blue-500 hover:text-blue-700 shrink-0 relative z-20"
                       >
                         {isColorPickerOpen === idx ? 'Close' : '+ New'}
                       </button>
@@ -808,7 +832,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                   </div>
 
                   {isColorPickerOpen === idx ? (
-                    <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl space-y-3 relative z-10 w-[220px] shadow-2xl absolute right-0 mt-2 backdrop-blur-sm">
+                    <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl space-y-3 relative z-50 w-[220px] shadow-2xl absolute right-0 top-full mt-2 backdrop-blur-sm">
                       <div className="flex gap-2 items-center">
                         <Input
                           type="color"

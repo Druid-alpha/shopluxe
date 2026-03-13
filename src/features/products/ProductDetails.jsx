@@ -875,7 +875,7 @@ export default function ProductDetails() {
             )}
 
             {/* ─── MAIN PRODUCT SPECIFICATIONS / SIZES / SELECTION ─── */}
-            {(mainSizes.length > 0 || baseColorName) && (isElectronics || isGrocery || !isClothingProduct || purchaseMode === 'base' || !hasVariants) && (
+            {(mainSizes.length > 0 || baseColorName) && (purchaseMode === 'base' || !hasVariants) && (
               <div key="main-product-specs" className="space-y-4 pt-4 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300 mb-3">
                 <div className="flex flex-col gap-3">
                   {/* Branded Info Card */}
@@ -942,11 +942,6 @@ export default function ProductDetails() {
                           </button>
                         )
                       })}
-                      {mainSizes.length === 0 && (
-                        <span className="px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-500">
-                          No specs set
-                        </span>
-                      )}
                     </div>
                   </div>
                 </div>
