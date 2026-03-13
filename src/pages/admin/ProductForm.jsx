@@ -1,5 +1,5 @@
 // components/ProductForm.js
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -28,6 +28,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const [price, setPrice] = useState(0)
   const [stock, setStock] = useState(0)
   const [color, setColor] = useState('')
+  const [hasTouchedColor, setHasTouchedColor] = useState(false)
   const [category, setCategory] = useState('')
   const [brand, setBrand] = useState('')
   const [tags, setTags] = useState('')
@@ -95,6 +96,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const [newColorName, setNewColorName] = useState('')
   const [newColorHex, setNewColorHex] = useState('#000000')
   const [creatingColor, setCreatingColor] = useState(false)
+  const prevProductIdRef = useRef(null)
   const normalizeHex = (hex) => {
     if (!hex) return ''
     let h = String(hex).trim().toLowerCase()
@@ -274,13 +276,22 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   useEffect(() => {
     if (!editableProduct) return
 
+    const productId = editableProduct?._id || null
+    const isNewProduct = prevProductIdRef.current !== productId
+    prevProductIdRef.current = productId
+
     setTitle(editableProduct.title || '')
     setDescription(editableProduct.description || '')
     setPrice(editableProduct.price || 0)
     setStock(editableProduct.stock || 0)
     setCategory(editableProduct.category?._id || '')
     setBrand(editableProduct.brand?._id || '')
-    setColor(editableProduct.color?._id || editableProduct.color || '')
+    if (isNewProduct) {
+      setColor(editableProduct.color?._id || editableProduct.color || '')
+      setHasTouchedColor(false)
+    } else if (!hasTouchedColor) {
+      setColor(editableProduct.color?._id || editableProduct.color || '')
+    }
     const cleanedTags = stripBaseSizeTag(editableProduct.tags || [])
     setTags(cleanedTags.join(', ') || '')
     const normalizedClothingType =
@@ -311,7 +322,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       })) || []
 
     setVariants(normalizedVariants)
-  }, [editableProduct?._id, fullProductData])
+  }, [editableProduct?._id, fullProductData, hasTouchedColor])
 
   /* =====================================================
      FETCH FILTER OPTIONS
@@ -780,7 +791,10 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                       type="button"
                       onClick={async () => {
                         const cid = await handleCreateCustomColor()
-                        if (cid) setColor(cid)
+                        if (cid) {
+                          setColor(cid)
+                          setHasTouchedColor(true)
+                        }
                       }}
                       disabled={creatingColor}
                       className="w-full h-10 text-[10px] uppercase font-black tracking-widest bg-black hover:bg-zinc-800 text-white shadow-lg rounded-xl transition-all active:scale-95"
@@ -792,7 +806,10 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                   <div className="relative">
                     <select
                       value={color}
-                      onChange={e => setColor(e.target.value)}
+                      onChange={e => {
+                        setColor(e.target.value)
+                        setHasTouchedColor(true)
+                      }}
                       className="w-full h-11 pl-4 pr-10 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all appearance-none bg-white font-medium text-gray-700 shadow-sm"
                     >
                       <option value="">Select Base Color</option>
