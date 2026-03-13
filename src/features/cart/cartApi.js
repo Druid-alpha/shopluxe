@@ -366,7 +366,11 @@ export const normalizeCart = (cart) => {
         || resolveHex(baseColorObj)
         || resolveHex(item.variant?.color)
         || null
-      const variantColorValue = variantColorObj?._id || variantColorObj?.name || item.variant?.color || baseColorObj?._id || baseColorObj?.name || null
+      // Only send color in payload if it actually belongs to the cart item's variant.
+      // Base product color is display-only and should not be used for matching.
+      const variantColorValueForPayload = variantSku
+        ? (variantColorObj?._id || variantColorObj?.name || item.variant?.color || null)
+        : (item.variant?.color || null)
       const variantLabel = buildVariantLabel({
         variantSku,
         size: variantSize,
@@ -383,7 +387,7 @@ export const normalizeCart = (cart) => {
       const variantPayload = hasItemVariant ? {
         ...(variantSku ? { sku: variantSku } : {}),
         ...(variantSize ? { size: variantSize } : {}),
-        ...(variantColorValue ? { color: variantColorValue } : {})
+        ...(variantColorValueForPayload ? { color: variantColorValueForPayload } : {})
       } : null;
       const productImage =
         variantObj?.image?.url || product.images?.[0]?.url || null
