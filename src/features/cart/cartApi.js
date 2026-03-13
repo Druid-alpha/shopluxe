@@ -14,7 +14,6 @@ const getVariantKey = (variant) => {
 
 const HEX_NAME_MAP = {
   "#000000": "Midnight Black",
-  "#0f172a": "Midnight",
   "#111111": "Jet Black",
   "#1f2937": "Charcoal",
   "#374151": "Graphite",
@@ -68,7 +67,6 @@ const HEX_NAME_MAP = {
   "#34d399": "Tropical Green",
   "#14b8a6": "Teal",
   "#0d9488": "Deep Teal",
-  "#0f766e": "Lagoon",
   "#134e4a": "Evergreen",
   "#ccfbf1": "Aqua",
   "#99f6e4": "Ice Mint",
@@ -132,7 +130,6 @@ const HEX_NAME_MAP = {
   "#e4e4e7": "Porcelain White",
   "#faf0e6": "Linen",
   "#ffefd5": "Papaya",
-  "#ffe4b5": "Peach",
   "#f5deb3": "Wheat",
   "#deb887": "Sand",
   "#d2b48c": "Tan",
