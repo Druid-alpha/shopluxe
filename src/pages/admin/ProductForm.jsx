@@ -117,14 +117,32 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       toast({ title: 'Invalid hex format', description: 'Use a 6-digit hex like #1A2B3C', variant: 'destructive' })
       return null
     }
-    const existing = colors.find(c => normalizeHex(c.hex) === normalizedHex)
-    if (existing?._id) {
-      setColors(prev => (prev.some(c => String(c._id) === String(existing._id)) ? prev : [existing, ...prev]))
+    const applyExistingColor = (existingColor) => {
+      if (!existingColor?._id) return null
+      setColors(prev => (prev.some(c => String(c._id) === String(existingColor._id)) ? prev : [existingColor, ...prev]))
       setIsColorPickerOpen(false)
       setNewColorName('')
       setNewColorHex('#000000')
       toast({ title: `Color already exists in ${categoryLabel} — applied` })
-      return existing._id
+      return existingColor._id
+    }
+    const existing = colors.find(c => normalizeHex(c.hex) === normalizedHex)
+    if (existing?._id) return applyExistingColor(existing)
+
+    try {
+      const refreshedByCategory = await axios.get('/products/filters', { params: { category } })
+      const matchByCategory = (refreshedByCategory.data?.colors || []).find(c => normalizeHex(c.hex) === normalizedHex)
+      if (matchByCategory?._id) return applyExistingColor(matchByCategory)
+    } catch (err) {
+      console.error(err)
+    }
+
+    try {
+      const refreshedAll = await axios.get('/products/filters')
+      const matchAll = (refreshedAll.data?.colors || []).find(c => normalizeHex(c.hex) === normalizedHex)
+      if (matchAll?._id) return applyExistingColor(matchAll)
+    } catch (err) {
+      console.error(err)
     }
 
     if (!newColorName.trim()) {
@@ -154,38 +172,18 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       console.error(err)
       const message = err.response?.data?.message || err.message || ''
       const existingColor = err.response?.data?.color || err.response?.data?.existingColor
-      if (existingColor?._id) {
-        setColors(prev => (prev.some(c => String(c._id) === String(existingColor._id)) ? prev : [existingColor, ...prev]))
-        setIsColorPickerOpen(false)
-        setNewColorName('')
-        setNewColorHex('#000000')
-        toast({ title: `Color already exists in ${categoryLabel} — applied` })
-        return existingColor._id
-      }
+      if (existingColor?._id) return applyExistingColor(existingColor)
       if (message.toLowerCase().includes('exist')) {
         try {
           const refreshed = await axios.get('/products/filters', { params: { category } })
           const refreshedColors = refreshed.data?.colors || []
           setColors(refreshedColors)
           const matched = refreshedColors.find(c => normalizeHex(c.hex) === normalizedHex)
-          if (matched?._id) {
-            setIsColorPickerOpen(false)
-            setNewColorName('')
-            setNewColorHex('#000000')
-            toast({ title: `Color already exists in ${categoryLabel} — applied` })
-            return matched._id
-          }
+          if (matched?._id) return applyExistingColor(matched)
           const allColorsRes = await axios.get('/products/filters')
           const allColors = allColorsRes.data?.colors || []
           const matchedAll = allColors.find(c => normalizeHex(c.hex) === normalizedHex)
-          if (matchedAll?._id) {
-            setColors(prev => (prev.some(c => String(c._id) === String(matchedAll._id)) ? prev : [matchedAll, ...prev]))
-            setIsColorPickerOpen(false)
-            setNewColorName('')
-            setNewColorHex('#000000')
-            toast({ title: `Color already exists in ${categoryLabel} — applied` })
-            return matchedAll._id
-          }
+          if (matchedAll?._id) return applyExistingColor(matchedAll)
         } catch (refreshErr) {
           console.error(refreshErr)
         }
@@ -580,7 +578,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {/* ── LEFT COLUMN ── */}
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           <div className="relative z-20">
             <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Title</label>
             <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Product Name" className="rounded-xl border-gray-100 placeholder:text-gray-300" />
@@ -597,7 +595,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 md:order-1">
             <div>
               <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Price (₦)</label>
               <Input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" className="rounded-xl border-gray-100" />
@@ -609,7 +607,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
             </div>
           </div>
 
-          <div>
+          <div className="relative z-20 md:order-2">
             <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Base Stock</label>
             <Input type="number" value={stock} onChange={e => setStock(e.target.value)} placeholder="0" className="rounded-xl border-gray-100" />
           </div>
@@ -701,7 +699,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
 
         {/* ── RIGHT COLUMN ── */}
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 md:order-3">
             <div>
               <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Category</label>
               <select value={category} onChange={e => setCategory(e.target.value)} className="w-full h-10 px-3 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-0 focus:border-black transition-colors appearance-none">
@@ -745,7 +743,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
             )}
 
             {colors.length > 0 && (
-              <div className="space-y-1.5 px-1">
+              <div className="space-y-1.5 px-1 relative">
                 <div className="flex justify-between items-center mb-1.5">
                   <label className="text-xs font-black uppercase tracking-widest text-gray-400 block px-0.5">Primary Color</label>
                   {category && (
@@ -760,7 +758,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                 </div>
 
                 {isColorPickerOpen === 'main' ? (
-                  <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-2xl space-y-4 animate-in fade-in slide-in-from-top-2">
+                  <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-2xl space-y-4 animate-in fade-in slide-in-from-top-2 md:absolute md:bottom-full md:mb-3 md:left-0 md:right-0 md:z-30">
                     <div className="flex gap-3 items-center">
                       <div className="relative group">
                         <Input
