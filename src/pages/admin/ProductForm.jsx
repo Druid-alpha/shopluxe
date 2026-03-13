@@ -114,6 +114,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     const normalizedHex = normalizeHex(newColorHex)
     const existing = colors.find(c => normalizeHex(c.hex) === normalizedHex)
     if (existing?._id) {
+      setColors(prev => (prev.some(c => String(c._id) === String(existing._id)) ? prev : [existing, ...prev]))
       setIsColorPickerOpen(false)
       setNewColorName('')
       setNewColorHex('#000000')
@@ -832,7 +833,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                   </div>
 
                   {isColorPickerOpen === idx ? (
-                    <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl space-y-3 relative z-50 w-[220px] shadow-2xl absolute right-0 top-full mt-2 backdrop-blur-sm">
+                    <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl space-y-3 relative z-10 w-[220px] shadow-2xl mt-2 backdrop-blur-sm">
                       <div className="flex gap-2 items-center">
                         <Input
                           type="color"
