@@ -145,16 +145,13 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       console.error(err)
     }
 
-    if (!newColorName.trim()) {
-      toast({ title: 'Color Name required', variant: 'destructive' })
-      return null
-    }
+    const resolvedName = newColorName.trim() || normalizedHex.toUpperCase()
 
     setCreatingColor(true)
     try {
       // Direct axios call to the colors route we just made in adminRoutes
       const res = await axios.post('/admin/colors', {
-        name: newColorName.trim(),
+        name: resolvedName,
         hex: normalizedHex,
         category: category
       })
@@ -742,6 +739,9 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
               </div>
             )}
 
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             {colors.length > 0 && (
               <div className="space-y-1.5 px-1 relative">
                 <div className="flex justify-between items-center mb-1.5">
@@ -770,7 +770,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                         <div className="absolute inset-0 rounded-full pointer-events-none border border-black/5"></div>
                       </div>
                       <Input
-                        placeholder="Color Name (e.g. Midnight Black)"
+                        placeholder="Color Name (optional)"
                         value={newColorName}
                         onChange={e => setNewColorName(e.target.value)}
                         className="flex-1 bg-white text-xs border-zinc-200 rounded-xl h-10 font-bold"
@@ -782,7 +782,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                         const cid = await handleCreateCustomColor()
                         if (cid) setColor(cid)
                       }}
-                      disabled={creatingColor || !newColorName.trim()}
+                      disabled={creatingColor}
                       className="w-full h-10 text-[10px] uppercase font-black tracking-widest bg-black hover:bg-zinc-800 text-white shadow-lg rounded-xl transition-all active:scale-95"
                     >
                       {creatingColor ? 'Processing...' : 'Create & Apply Color'}
@@ -809,27 +809,27 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                 )}
               </div>
             )}
-          </div>
 
-          <div>
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3 block">Product Images</label>
-            <div className="grid grid-cols-4 gap-2 mb-3">
-              {existingImages.map((img) => (
-                <div key={img.public_id} className="relative aspect-square rounded-lg border border-gray-50 flex-shrink-0 overflow-hidden bg-gray-50 group">
-                  <img src={img.url} className="w-full h-full object-contain mix-blend-multiply" />
-                  <button type="button" onClick={() => removeExistingImage(img.public_id)} className="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity font-bold">REMOVE</button>
-                </div>
-              ))}
-              {imagePreviews.map((src, idx) => (
-                <div key={idx} className="relative aspect-square rounded-lg border border-blue-50 flex-shrink-0 overflow-hidden bg-blue-50 group">
-                  <img src={src} className="w-full h-full object-contain mix-blend-multiply" />
-                  <button type="button" onClick={() => removeNewImage(idx)} className="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity font-bold">DISCARD</button>
-                </div>
-              ))}
-              <label className="aspect-square rounded-lg border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-black hover:bg-gray-50 transition-all">
-                <Input type="file" multiple accept="image/*" onChange={handleMainImages} className="hidden" />
-                <span className="text-[20px] font-light text-gray-400">+</span>
-              </label>
+            <div>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3 block">Product Images</label>
+              <div className="grid grid-cols-4 gap-2 mb-3">
+                {existingImages.map((img) => (
+                  <div key={img.public_id} className="relative aspect-square rounded-lg border border-gray-50 flex-shrink-0 overflow-hidden bg-gray-50 group">
+                    <img src={img.url} className="w-full h-full object-contain mix-blend-multiply" />
+                    <button type="button" onClick={() => removeExistingImage(img.public_id)} className="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity font-bold">REMOVE</button>
+                  </div>
+                ))}
+                {imagePreviews.map((src, idx) => (
+                  <div key={idx} className="relative aspect-square rounded-lg border border-blue-50 flex-shrink-0 overflow-hidden bg-blue-50 group">
+                    <img src={src} className="w-full h-full object-contain mix-blend-multiply" />
+                    <button type="button" onClick={() => removeNewImage(idx)} className="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity font-bold">DISCARD</button>
+                  </div>
+                ))}
+                <label className="aspect-square rounded-lg border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-black hover:bg-gray-50 transition-all">
+                  <Input type="file" multiple accept="image/*" onChange={handleMainImages} className="hidden" />
+                  <span className="text-[20px] font-light text-gray-400">+</span>
+                </label>
+              </div>
             </div>
           </div>
         </div>
