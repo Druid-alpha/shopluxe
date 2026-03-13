@@ -245,6 +245,12 @@ const normalizeHex = (hex) => {
   return h;
 };
 
+const extractHexFromString = (value) => {
+  if (!value) return "";
+  const match = String(value).match(/#?[0-9a-fA-F]{6}|#?[0-9a-fA-F]{3}/);
+  return match ? normalizeHex(match[0]) : "";
+};
+
 const resolveHex = (raw) => {
   if (!raw) return null;
   if (typeof raw === "string") {
@@ -323,16 +329,18 @@ const getColorName = (rawColor) => {
   if (!rawColor) return "";
   if (typeof rawColor === "string") {
     if (/^[a-f0-9]{24}$/i.test(rawColor)) return "";
-    if (rawColor.startsWith("#") || isHexLike(rawColor)) {
-      const hex = normalizeHex(rawColor);
+    const extractedHex = extractHexFromString(rawColor);
+    if (extractedHex) {
+      const hex = extractedHex;
       return HEX_NAME_MAP[hex] || familyFromHex(hex) || "Custom Color";
     }
     return sanitizeColorName(rawColor);
   }
   const name = rawColor.name || "";
+  const hex = normalizeHex(rawColor.hex || "") || (isHexLike(name) ? normalizeHex(name) : "");
+  if (hex) return HEX_NAME_MAP[hex] || familyFromHex(hex) || "Custom Color";
   if (name && !name.startsWith("#") && !isHexLike(name)) return sanitizeColorName(name);
-  const hex = normalizeHex(rawColor.hex || name);
-  return HEX_NAME_MAP[hex] || familyFromHex(hex) || "Custom Color";
+  return "Custom Color";
 };
 
 const buildVariantLabel = ({ variantSku, size, colorName }) => {

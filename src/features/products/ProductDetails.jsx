@@ -278,6 +278,12 @@ const normalizeHex = (hex) => {
   return h
 }
 
+const extractHexFromString = (value) => {
+  if (!value) return ''
+  const match = String(value).match(/#?[0-9a-fA-F]{6}|#?[0-9a-fA-F]{3}/)
+  return match ? normalizeHex(match[0]) : ''
+}
+
 const hexToRgb = (hex) => {
   const h = normalizeHex(hex)
   if (!h || h.length !== 7) return null
@@ -338,18 +344,20 @@ const familyFromHex = (hex) => {
 const getColorDisplayName = (rawColor) => {
   if (!rawColor) return ''
   if (typeof rawColor === 'string') {
-    if (rawColor.startsWith('#') || isHexLike(rawColor)) {
-      const hex = normalizeHex(rawColor)
+    const extractedHex = extractHexFromString(rawColor)
+    if (extractedHex) {
+      const hex = extractedHex
       return HEX_NAME_MAP[hex] || familyFromHex(hex) || 'Custom Color'
     }
     return rawColor.replace(/\s+[0-9a-fA-F]{3,6}$/, '').trim()
   }
   const name = rawColor.name || ''
+  const hex = normalizeHex(rawColor.hex || '') || (isHexLike(name) ? normalizeHex(name) : '')
+  if (hex) return HEX_NAME_MAP[hex] || familyFromHex(hex) || 'Custom Color'
   if (name && !name.startsWith('#') && !isHexLike(name)) {
     return name.replace(/\s+[0-9a-fA-F]{3,6}$/, '').trim()
   }
-  const hex = normalizeHex(rawColor.hex || name)
-  return HEX_NAME_MAP[hex] || familyFromHex(hex) || 'Custom Color'
+  return 'Custom Color'
 }
 
 const getContrastYIQ = (hex) => {
