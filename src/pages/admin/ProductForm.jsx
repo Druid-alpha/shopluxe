@@ -111,14 +111,19 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       return null
     }
 
+    const categoryLabel = categories.find(c => String(c._id) === String(category))?.name || 'this category'
     const normalizedHex = normalizeHex(newColorHex)
+    if (!/^#[0-9a-f]{6}$/i.test(normalizedHex)) {
+      toast({ title: 'Invalid hex format', description: 'Use a 6-digit hex like #1A2B3C', variant: 'destructive' })
+      return null
+    }
     const existing = colors.find(c => normalizeHex(c.hex) === normalizedHex)
     if (existing?._id) {
       setColors(prev => (prev.some(c => String(c._id) === String(existing._id)) ? prev : [existing, ...prev]))
       setIsColorPickerOpen(false)
       setNewColorName('')
       setNewColorHex('#000000')
-      toast({ title: 'Color already exists — applied' })
+      toast({ title: `Color already exists in ${categoryLabel} — applied` })
       return existing._id
     }
 
@@ -154,12 +159,12 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         setIsColorPickerOpen(false)
         setNewColorName('')
         setNewColorHex('#000000')
-        toast({ title: 'Color already exists — applied' })
+        toast({ title: `Color already exists in ${categoryLabel} — applied` })
         return existingColor._id
       }
       if (message.toLowerCase().includes('exist')) {
         try {
-          const refreshed = await axios.get('/products/filters')
+          const refreshed = await axios.get('/products/filters', { params: { category } })
           const refreshedColors = refreshed.data?.colors || []
           setColors(refreshedColors)
           const matched = refreshedColors.find(c => normalizeHex(c.hex) === normalizedHex)
@@ -167,8 +172,19 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
             setIsColorPickerOpen(false)
             setNewColorName('')
             setNewColorHex('#000000')
-            toast({ title: 'Color already exists — applied' })
+            toast({ title: `Color already exists in ${categoryLabel} — applied` })
             return matched._id
+          }
+          const allColorsRes = await axios.get('/products/filters')
+          const allColors = allColorsRes.data?.colors || []
+          const matchedAll = allColors.find(c => normalizeHex(c.hex) === normalizedHex)
+          if (matchedAll?._id) {
+            setColors(prev => (prev.some(c => String(c._id) === String(matchedAll._id)) ? prev : [matchedAll, ...prev]))
+            setIsColorPickerOpen(false)
+            setNewColorName('')
+            setNewColorHex('#000000')
+            toast({ title: `Color already exists in ${categoryLabel} — applied` })
+            return matchedAll._id
           }
         } catch (refreshErr) {
           console.error(refreshErr)
@@ -571,7 +587,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
             {errors.title && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.title}</p>}
           </div>
 
-          <div>
+          <div className="relative z-20">
             <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Description</label>
             <Textarea
               value={description}

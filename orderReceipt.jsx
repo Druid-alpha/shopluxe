@@ -25,6 +25,9 @@ export default function OrderReceipt() {
     const variantObj = item.variantPayload || item.variant
     if (!variantObj || typeof variantObj !== 'object') return ''
 
+    const skuValue = variantObj.sku || item.variantSku || item.sku
+    if (skuValue) return `SKU: ${skuValue}`
+
     const colorValue = variantObj.color
     const colorName = typeof colorValue === 'string'
       ? colorValue
