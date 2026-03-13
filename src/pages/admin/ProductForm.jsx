@@ -147,52 +147,29 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       console.error(err)
     }
 
-    const resolvedName = newColorName.trim() || normalizedHex.toUpperCase()
-
-    setCreatingColor(true)
+    // Not found: create it automatically
     try {
-      // Direct axios call to the colors route we just made in adminRoutes
       const res = await axios.post('/admin/colors', {
-        name: resolvedName,
+        name: newColorName.trim() || normalizedHex.toUpperCase(),
         hex: normalizedHex,
         category: category
       })
-
       const newColor = res.data.color || res.data
-      setColors(prev => [...prev, newColor])
-
-      setIsColorPickerOpen(false)
-      setNewColorName('')
-      setNewColorHex('#000000')
-      toast({ title: 'New color created successfully!' })
-      return newColor._id
-
+      if (newColor?._id) return applyExistingColor(newColor)
     } catch (err) {
       console.error(err)
       const message = err.response?.data?.message || err.message || ''
-      const existingColor = err.response?.data?.color || err.response?.data?.existingColor
-      if (existingColor?._id) return applyExistingColor(existingColor)
-      if (message.toLowerCase().includes('exist')) {
-        try {
-          const refreshed = await axios.get('/products/filters', { params: { category } })
-          const refreshedColors = refreshed.data?.colors || []
-          setColors(refreshedColors)
-          const matched = refreshedColors.find(c => normalizeHex(c.hex) === normalizedHex)
-          if (matched?._id) return applyExistingColor(matched)
-          const allColorsRes = await axios.get('/products/filters')
-          const allColors = allColorsRes.data?.colors || []
-          const matchedAll = allColors.find(c => normalizeHex(c.hex) === normalizedHex)
-          if (matchedAll?._id) return applyExistingColor(matchedAll)
-        } catch (refreshErr) {
-          console.error(refreshErr)
-        }
-      }
       toast({
         title: 'Error formatting color',
         description: message,
         variant: 'destructive'
       })
       return null
+    }
+
+    setCreatingColor(true)
+    try {
+      // Direct axios call to the colors route we just made in adminRoutes
     } finally {
       setCreatingColor(false)
     }
