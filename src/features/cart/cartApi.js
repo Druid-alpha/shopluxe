@@ -255,31 +255,61 @@ const resolveHex = (raw) => {
   return null;
 };
 
-const familyFromHex = (hex) => {
+const hexToRgb = (hex) => {
   const h = normalizeHex(hex);
-  if (!h) return "";
-  const r = parseInt(h.slice(1, 3), 16);
-  const g = parseInt(h.slice(3, 5), 16);
-  const b = parseInt(h.slice(5, 7), 16);
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  if (max < 40) return "Black";
-  if (min > 220) return "White";
-  if (max - min < 20) return "Gray";
-  if (r >= g && r >= b) {
-    if (g > 160) return "Orange";
-    if (g > 120) return "Orange";
-    return "Red";
+  if (!h || h.length !== 7) return null;
+  return {
+    r: parseInt(h.slice(1, 3), 16),
+    g: parseInt(h.slice(3, 5), 16),
+    b: parseInt(h.slice(5, 7), 16),
+  };
+};
+
+const rgbToHsl = (r, g, b) => {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const delta = max - min;
+  let h = 0;
+  if (delta !== 0) {
+    if (max === rn) h = ((gn - bn) / delta) % 6;
+    else if (max === gn) h = (bn - rn) / delta + 2;
+    else h = (rn - gn) / delta + 4;
+    h = Math.round(h * 60);
+    if (h < 0) h += 360;
   }
-  if (g >= r && g >= b) {
-    if (b > 140) return "Teal";
-    return "Green";
+  const l = (max + min) / 2;
+  const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+  return { h, s, l };
+};
+
+const familyFromHex = (hex) => {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return "";
+  const { h, s, l } = rgbToHsl(rgb.r, rgb.g, rgb.b);
+
+  if (l <= 0.08) return "Black";
+  if (l >= 0.95) return "White";
+
+  if (s <= 0.08) {
+    if ((h >= 330 || h < 20) && l > 0.35) return "Pink";
+    if (h >= 20 && h < 60) return l > 0.35 ? "Beige" : "Brown";
+    if (h >= 60 && h < 170) return "Olive";
+    if (h >= 170 && h < 250) return "Blue Gray";
+    return "Gray";
   }
-  if (b >= r && b >= g) {
-    if (r > 140) return "Purple";
-    return "Blue";
-  }
-  return "";
+
+  if (h >= 330 || h < 15) return "Red";
+  if (h < 45) return "Orange";
+  if (h < 70) return "Yellow";
+  if (h < 165) return "Green";
+  if (h < 200) return "Teal";
+  if (h < 255) return "Blue";
+  if (h < 290) return "Purple";
+  if (h < 330) return "Pink";
+  return "Custom Color";
 };
 
 const sanitizeColorName = (name) => {
@@ -342,11 +372,19 @@ export const normalizeCart = (cart) => {
         size: variantSize,
         colorName: variantColorName
       })
-      const variantPayload = {
+      const hasItemVariant = (() => {
+        if (!item.variant) return false;
+        if (typeof item.variant === "string") return item.variant.trim().length > 0;
+        if (typeof item.variant === "object") {
+          return Object.values(item.variant).some(v => v !== null && v !== undefined && String(v).trim() !== "");
+        }
+        return false;
+      })();
+      const variantPayload = hasItemVariant ? {
         ...(variantSku ? { sku: variantSku } : {}),
         ...(variantSize ? { size: variantSize } : {}),
         ...(variantColorValue ? { color: variantColorValue } : {})
-      }
+      } : null;
       const productImage =
         variantObj?.image?.url || product.images?.[0]?.url || null
       const basePrice = Number(variantObj?.price ?? product.price ?? 0)

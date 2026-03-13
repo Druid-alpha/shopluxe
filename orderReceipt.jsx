@@ -25,16 +25,17 @@ export default function OrderReceipt() {
     const variantObj = item.variantPayload || item.variant
     if (!variantObj || typeof variantObj !== 'object') return ''
 
-    const skuValue = variantObj.sku || item.variantSku || item.sku
-    if (skuValue) return `SKU: ${skuValue}`
-
     const colorValue = variantObj.color
     const colorName = typeof colorValue === 'string'
       ? colorValue
       : (colorValue?.name || '')
 
     const parts = [colorName, variantObj.size].filter(Boolean)
-    return parts.join(' / ')
+    if (parts.length > 0) return parts.join(' / ')
+
+    const skuValue = variantObj.sku || item.variantSku || item.sku
+    if (skuValue) return `SKU: ${skuValue}`
+    return ''
   }
 
   // Poll while payment is still pending

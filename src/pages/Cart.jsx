@@ -165,7 +165,10 @@ export default function Cart() {
     dispatch(setCart(optimisticCart))
 
     try {
-      const data = await cartApi.updateCartItem(item.productId, newQty, item.variantPayload || item.variant);
+      const variantArg = (item.variantPayload && Object.keys(item.variantPayload).length > 0)
+        ? item.variantPayload
+        : (item.variant || null)
+      const data = await cartApi.updateCartItem(item.productId, newQty, variantArg);
       dispatch(setCart(data));
     } catch (err) {
       console.error('Failed to update item:', err);
@@ -187,7 +190,10 @@ export default function Cart() {
       return
     }
     try {
-      const data = await cartApi.removeCartItem(item.productId, item.variantPayload || item.variant);
+      const variantArg = (item.variantPayload && Object.keys(item.variantPayload).length > 0)
+        ? item.variantPayload
+        : (item.variant || null)
+      const data = await cartApi.removeCartItem(item.productId, variantArg);
       dispatch(setCart(data));
     } catch (err) {
       console.error('Failed to remove item:', err);
