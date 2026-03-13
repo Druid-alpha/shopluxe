@@ -758,7 +758,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                 </div>
 
                 {isColorPickerOpen === 'main' ? (
-                  <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-2xl space-y-4 animate-in fade-in slide-in-from-top-2">
+                  <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-2xl space-y-4 mt-2 animate-in fade-in slide-in-from-bottom-2">
                     <div className="flex gap-3 items-center">
                       <div className="relative group">
                         <Input
