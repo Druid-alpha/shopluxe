@@ -18,24 +18,28 @@ export default function OrderReceipt() {
   const [generateInvoice, { isLoading: isGeneratingInvoice }] = useGenerateOrderInvoiceMutation()
   const order = data?.order
 
-  const getVariantDisplay = (item) => {
-    if (!item) return ''
-    if (item.variantLabel) return item.variantLabel
+  const getVariantMeta = (item) => {
+    if (!item) return null
+    if (item.variantLabel) return { label: 'Variant', value: item.variantLabel }
 
     const variantObj = item.variantPayload || item.variant
-    if (!variantObj || typeof variantObj !== 'object') return ''
+    if (!variantObj || typeof variantObj !== 'object') return null
 
     const colorValue = variantObj.color
     const colorName = typeof colorValue === 'string'
       ? colorValue
       : (colorValue?.name || '')
+    const sizeValue = variantObj.size || ''
+    const parts = [colorName, sizeValue].filter(Boolean)
 
-    const parts = [colorName, variantObj.size].filter(Boolean)
-    if (parts.length > 0) return parts.join(' / ')
+    const skuValue = variantObj.sku || item.variantSku || item.sku || ''
+    const isBaseLike = !variantObj.sku && !variantObj._id
 
-    const skuValue = variantObj.sku || item.variantSku || item.sku
-    if (skuValue) return `SKU: ${skuValue}`
-    return ''
+    if (parts.length > 0) {
+      return { label: isBaseLike ? 'Main Product' : 'Variant', value: parts.join(' / ') }
+    }
+    if (skuValue) return { label: 'Variant', value: `SKU: ${skuValue}` }
+    return { label: 'Main Product', value: '' }
   }
 
   // Poll while payment is still pending
@@ -272,15 +276,15 @@ export default function OrderReceipt() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {order.items.map((item, idx) => {
-                    const variantDisplay = getVariantDisplay(item)
+                    const variantMeta = getVariantMeta(item)
                     return (
                       <tr key={idx}>
                       <td className="py-6">
                         {/* Use item.title directly - product may not be populated */}
                         <p className="font-bold text-gray-900">{item.title || (item.product?.title) || 'Product'}</p>
-                        {variantDisplay && (
+                        {variantMeta && (variantMeta.value || variantMeta.label) && (
                           <p className="text-[10px] text-gray-400 font-medium mt-1 uppercase tracking-tighter">
-                            Variant: {variantDisplay}
+                            {variantMeta.label}{variantMeta.value ? `: ${variantMeta.value}` : ''}
                           </p>
                         )}
                       </td>

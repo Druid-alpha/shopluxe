@@ -355,6 +355,7 @@ export const normalizeCart = (cart) => {
         typeof item.variant === 'string'
           ? item.variant
           : item.variant?.sku || null;
+      const variantId = item.variant?._id || null
 
       const variantObj = product.variants?.find(v => v.sku === variantSku) || null;
       const variantSize = variantObj?.options?.size || item.variant?.size || null
@@ -385,6 +386,7 @@ export const normalizeCart = (cart) => {
         return false;
       })();
       const variantPayload = hasItemVariant ? {
+        ...(variantId ? { _id: variantId } : {}),
         ...(variantSku ? { sku: variantSku } : {}),
         ...(variantSize ? { size: variantSize } : {}),
         ...(variantColorValueForPayload ? { color: variantColorValueForPayload } : {})
