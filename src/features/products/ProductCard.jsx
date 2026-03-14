@@ -43,10 +43,10 @@ export default function ProductCard({ product }) {
   const isWishlisted = wishlist.some((p) => p?._id === product?._id)
   const [isCompared, setIsCompared] = React.useState(false)
 
-  const totalStock = (product?.stock > 0)
+  const baseTotalStock = (product?.stock > 0)
     ? product.stock
     : (product?.variants?.reduce((sum, v) => sum + (v?.stock || 0), 0) || 0)
-  const isOutOfStock = totalStock < 1
+  const isOutOfStock = baseTotalStock < 1
   const maxVariantDiscount = Array.isArray(product?.variants)
     ? product.variants.reduce((max, v) => Math.max(max, Number(v?.discount || 0)), 0)
     : 0
