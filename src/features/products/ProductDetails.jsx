@@ -328,7 +328,8 @@ const familyFromHex = (hex) => {
     return 'Gray'
   }
 
-  if ((h >= 330 || h < 15) && l >= 0.7) return 'Pink'
+  if (h >= 45 && h < 70 && l < 0.4) return 'Olive'
+  if ((h >= 330 || h < 15) && l >= 0.6) return 'Pink'
   if (h >= 330 || h < 15) return 'Red'
   if (h < 45) return 'Orange'
   if (h < 70) return 'Yellow'
