@@ -72,6 +72,22 @@ export default function ProductCard({ product }) {
     ].filter((value) => typeof value === 'string' && value.trim().length > 0)
     return candidates.find((value) => value !== primaryImageUrl) || null
   }, [product, primaryImageUrl])
+
+  const galleryImages = React.useMemo(() => {
+    const candidates = [
+      primaryImageUrl,
+      ...(product.images || []).map((img) => img?.url),
+      ...(product.variants || []).map((variant) => variant?.image?.url),
+    ].filter((value) => typeof value === 'string' && value.trim().length > 0)
+    const seen = new Set()
+    const unique = []
+    candidates.forEach((url) => {
+      if (seen.has(url)) return
+      seen.add(url)
+      unique.push(url)
+    })
+    return unique
+  }, [product, primaryImageUrl])
   const [imageSrc, setImageSrc] = React.useState(primaryImageUrl)
 
   React.useEffect(() => {
@@ -230,8 +246,8 @@ export default function ProductCard({ product }) {
         {/* SALE BADGE */}
         {maxDiscount > 0 && (
           <div className="absolute top-4 left-4 z-10">
-            <span className="inline-flex items-center gap-2 bg-black text-white text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full shadow-lg">
-              Discount <span className="text-amber-300">-{maxDiscount}%</span>
+            <span className="inline-flex items-center bg-white text-gray-900 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full shadow-md border border-gray-100">
+              Sale <span className="ml-2 text-rose-600">-{maxDiscount}%</span>
             </span>
           </div>
         )}
@@ -263,6 +279,23 @@ export default function ProductCard({ product }) {
           </Button>
         </div>
       </Link>
+
+      {galleryImages.length > 1 && (
+        <div className="px-3 sm:px-5 pb-3">
+          <div className="flex items-center gap-2 overflow-hidden">
+            {galleryImages.slice(0, 5).map((url, idx) => (
+              <div key={`${product._id}-thumb-${idx}`} className="w-8 h-8 rounded-md border border-gray-100 bg-gray-50 overflow-hidden flex-shrink-0">
+                <img src={url} alt="" className="w-full h-full object-contain" />
+              </div>
+            ))}
+            {galleryImages.length > 5 && (
+              <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+                +{galleryImages.length - 5}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* PRODUCT INFO */}
       <div className="p-3 sm:p-5 space-y-2 flex-1">

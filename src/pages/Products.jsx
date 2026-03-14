@@ -251,7 +251,7 @@ export default function Products() {
             search={search}
             setSearch={setSearch}
             onSuggestion={handleSuggestion}
-            suggestions={['New arrivals', 'Sale', 'Shoes', 'Bags', 'Electronics']}
+            suggestions={[]}
           />
         </div>
 
