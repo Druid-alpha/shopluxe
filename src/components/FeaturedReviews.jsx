@@ -36,34 +36,36 @@ export default function FeaturedReviews() {
                         {loopReviews.map((review, idx) => (
                             <div key={`${review._id}-${idx}`} className="review-card">
                                 <div className="review-inner">
-                                    <div className="flex gap-1 mb-3">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star
-                                                key={i}
-                                                size={12}
-                                                className={i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-100'}
-                                            />
-                                        ))}
+                                    <div className="review-body">
+                                        <div className="flex gap-1 mb-3">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Star
+                                                    key={i}
+                                                    size={12}
+                                                    className={i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-100'}
+                                                />
+                                            ))}
+                                        </div>
+                                        {review.title && (
+                                            <h3 className="text-sm font-black uppercase tracking-tight text-gray-900 mb-3">
+                                                {review.title}
+                                            </h3>
+                                        )}
+                                        <div className="relative">
+                                            <Quote className="absolute -top-3 -left-3 text-gray-100 h-8 w-8 -z-10" />
+                                            <p className="text-gray-600 text-sm leading-relaxed italic font-medium line-clamp-4">
+                                                "{review.body || review.comment || ''}"
+                                            </p>
+                                        </div>
                                     </div>
-                                    {review.title && (
-                                        <h3 className="text-sm font-black uppercase tracking-tight text-gray-900 mb-3">
-                                            {review.title}
-                                        </h3>
-                                    )}
-                                    <div className="relative">
-                                        <Quote className="absolute -top-3 -left-3 text-gray-100 h-8 w-8 -z-10" />
-                                        <p className="text-gray-600 text-sm leading-relaxed italic font-medium line-clamp-4">
-                                            "{review.body || review.comment || ''}"
-                                        </p>
-                                    </div>
-                                    <div className="mt-5 pt-4 border-t border-gray-100">
-                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">
-                                            {review.user?.name || 'Customer'}
-                                        </p>
-                                        <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
-                                            {review.product?.title || 'Purchase'}
-                                        </p>
-                                    </div>
+                                </div>
+                                <div className="review-meta">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">
+                                        {review.user?.name || 'Customer'}
+                                    </p>
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                                        {review.product?.title || 'Purchase'}
+                                    </p>
                                 </div>
                             </div>
                         ))}
@@ -86,6 +88,8 @@ export default function FeaturedReviews() {
                 .review-card {
                     width: 280px;
                     flex: 0 0 auto;
+                    display: flex;
+                    flex-direction: column;
                 }
                 .review-inner {
                     background: white;
@@ -93,7 +97,20 @@ export default function FeaturedReviews() {
                     border-radius: 24px;
                     padding: 20px;
                     box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                }
+                .review-body {
+                    min-height: 140px;
+                }
+                .review-meta {
+                    margin-top: 12px;
+                    padding: 0 6px;
+                    min-height: 36px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-start;
                 }
                 @media (max-width: 768px) {
                     .review-card {

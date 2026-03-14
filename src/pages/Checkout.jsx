@@ -10,6 +10,9 @@ export default function Checkout() {
   const total = cart.reduce((s, item) => s + (item.price || 0) * (item.qty || 1), 0)
   const { toast } = useToast()
   const [loading, setLoading] = React.useState(false)
+  const [reservationExpiresAt, setReservationExpiresAt] = React.useState(null)
+  const [reservationRemaining, setReservationRemaining] = React.useState(null)
+  const redirectingRef = React.useRef(false)
 
   const [address, setAddress] = React.useState({
     fullName: '',
@@ -24,6 +27,60 @@ export default function Checkout() {
   }
 
   const isFormValid = address.fullName.trim() && address.phone.trim() && address.address.trim() && address.city.trim() && address.state.trim()
+
+  React.useEffect(() => {
+    const raw = window.localStorage.getItem('shopluxe_reservation')
+    if (!raw) return
+    try {
+      const parsed = JSON.parse(raw)
+      const expiresAt = Number(parsed?.expiresAt || 0)
+      if (!expiresAt || Number.isNaN(expiresAt)) {
+        window.localStorage.removeItem('shopluxe_reservation')
+        return
+      }
+      if (expiresAt <= Date.now()) {
+        window.localStorage.removeItem('shopluxe_reservation')
+        return
+      }
+      setReservationExpiresAt(expiresAt)
+    } catch {
+      window.localStorage.removeItem('shopluxe_reservation')
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (!reservationExpiresAt) return
+    const tick = () => {
+      const remainingMs = reservationExpiresAt - Date.now()
+      if (remainingMs <= 0) {
+        setReservationRemaining(null)
+        setReservationExpiresAt(null)
+        window.localStorage.removeItem('shopluxe_reservation')
+        return
+      }
+      setReservationRemaining(remainingMs)
+    }
+    tick()
+    const timer = setInterval(tick, 1000)
+    return () => clearInterval(timer)
+  }, [reservationExpiresAt])
+
+  React.useEffect(() => {
+    return () => {
+      if (redirectingRef.current) return
+      if (reservationExpiresAt) {
+        window.localStorage.removeItem('shopluxe_reservation')
+      }
+    }
+  }, [reservationExpiresAt])
+
+  const formatRemaining = (ms) => {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000))
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = totalSeconds % 60
+    if (minutes <= 0) return `${seconds}s`
+    return `${minutes}m ${seconds}s`
+  }
 
   const pay = async () => {
     if (!cart.length) return
@@ -108,8 +165,27 @@ export default function Checkout() {
       const payData = await payRes.json()
       if (!payRes.ok) throw new Error(payData.message)
 
+      if (payData?.expiresAt) {
+        const expiresAtMs = new Date(payData.expiresAt).getTime()
+        if (!Number.isNaN(expiresAtMs)) {
+          window.localStorage.setItem('shopluxe_reservation', JSON.stringify({
+            orderId: orderData.order._id,
+            expiresAt: expiresAtMs
+          }))
+          setReservationExpiresAt(expiresAtMs)
+        }
+      }
+
+      toast({
+        title: 'Reserved for 10 minutes',
+        description: 'Complete payment to secure your items.',
+      })
+
       // 3. Redirect user to Paystack hosted page
-      window.location.href = payData.authorizationUrl
+      redirectingRef.current = true
+      setTimeout(() => {
+        window.location.href = payData.authorizationUrl
+      }, 400)
 
     } catch (e) {
       toast({
@@ -311,6 +387,12 @@ export default function Checkout() {
                 </div>
               )
             })()}
+
+            {reservationRemaining && (
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-emerald-700 mb-5">
+                Reservation expires in {formatRemaining(reservationRemaining)}
+              </div>
+            )}
 
             <div className="border-t border-gray-100 pt-4 space-y-3">
               <div className="flex justify-between text-sm text-gray-500">

@@ -433,6 +433,8 @@ export default function ProductDetails() {
   const [selectedSize, setSelectedSize] = React.useState('')
   const [quantity, setQuantity] = React.useState(1)
   const [isAdding, setIsAdding] = React.useState(false)
+  const [reservationExpiresAt, setReservationExpiresAt] = React.useState(null)
+  const [reservationRemaining, setReservationRemaining] = React.useState(null)
 
   const variants = product?.variants || []
   const selectedVariant = selectedVariantIndex >= 0 ? variants[selectedVariantIndex] : null
@@ -547,6 +549,51 @@ export default function ProductDetails() {
       setMainImage(product.images?.[0]?.url || '')
     }
   }, [product, mainImage])
+
+  React.useEffect(() => {
+    const raw = window.localStorage.getItem('shopluxe_reservation')
+    if (!raw) return
+    try {
+      const parsed = JSON.parse(raw)
+      const expiresAt = Number(parsed?.expiresAt || 0)
+      if (!expiresAt || Number.isNaN(expiresAt)) {
+        window.localStorage.removeItem('shopluxe_reservation')
+        return
+      }
+      if (expiresAt <= Date.now()) {
+        window.localStorage.removeItem('shopluxe_reservation')
+        return
+      }
+      setReservationExpiresAt(expiresAt)
+    } catch {
+      window.localStorage.removeItem('shopluxe_reservation')
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (!reservationExpiresAt) return
+    const tick = () => {
+      const remainingMs = reservationExpiresAt - Date.now()
+      if (remainingMs <= 0) {
+        setReservationRemaining(null)
+        setReservationExpiresAt(null)
+        window.localStorage.removeItem('shopluxe_reservation')
+        return
+      }
+      setReservationRemaining(remainingMs)
+    }
+    tick()
+    const timer = setInterval(tick, 1000)
+    return () => clearInterval(timer)
+  }, [reservationExpiresAt])
+
+  const formatRemaining = (ms) => {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000))
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = totalSeconds % 60
+    if (minutes <= 0) return `${seconds}s`
+    return `${minutes}m ${seconds}s`
+  }
 
   // Track recently viewed products for UI strips
   React.useEffect(() => {
@@ -1092,6 +1139,12 @@ export default function ProductDetails() {
                   </span>
                 )}
               </div>
+              {reservationRemaining && (
+                <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-700">
+                  <Clock size={12} />
+                  Reservation expires in {formatRemaining(reservationRemaining)}
+                </div>
+              )}
             </div>
 
             {/* --- TRUST & SHIPPING --- */}
@@ -1201,6 +1254,12 @@ export default function ProductDetails() {
             {currentStock > 0 ? 'Add to Bag' : 'Sold Out'}
           </Button>
         </div>
+        {reservationRemaining && (
+          <div className="mt-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-700">
+            <Clock size={12} />
+            Reservation expires in {formatRemaining(reservationRemaining)}
+          </div>
+        )}
         {currentStock > 0 && (
           <div className="flex items-center gap-2 mt-2 text-[10px] text-gray-500">
             <Clock size={12} />

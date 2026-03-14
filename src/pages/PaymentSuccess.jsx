@@ -52,6 +52,7 @@ export default function PaymentSuccess() {
         // Force backend cart clear just to be absolutely sure
         try { await clearCartBackend() } catch (e) { console.error('Clear cart backend error', e) }
 
+        window.localStorage.removeItem('shopluxe_reservation')
         dispatch(clearCart())
         dispatch(orderApi.util.invalidateTags(['Order']))
         setStatus("success")

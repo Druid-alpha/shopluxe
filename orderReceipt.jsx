@@ -79,6 +79,18 @@ export default function OrderReceipt() {
     }
   }, [order?.invoiceUrl])
 
+  React.useEffect(() => {
+    if (order?.paymentStatus === 'paid' && !order?.invoiceUrl) {
+      generateInvoice(order._id).unwrap()
+        .then((res) => {
+          if (res?.invoiceUrl) setInvoiceUrl(res.invoiceUrl)
+        })
+        .catch(() => {
+          // ignore; user can retry with button
+        })
+    }
+  }, [order?.paymentStatus, order?._id, order?.invoiceUrl, generateInvoice])
+
   const downloadPDF = async () => {
     if (!order?._id) return
     if (order?.paymentStatus !== 'paid') {
@@ -99,54 +111,43 @@ export default function OrderReceipt() {
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
-    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-
-    const downloadFromUrl = async (url) => {
-      const filename = opt.filename.endsWith('.pdf') ? opt.filename : `${opt.filename}.pdf`
+    const triggerInvoiceDownload = (url) => {
       try {
-        const response = await fetch(url, { credentials: 'omit' })
-        if (!response.ok) throw new Error('Invoice fetch failed')
-        const blob = await response.blob()
-        const objectUrl = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
-        link.href = objectUrl
-        link.download = filename
+        link.href = url
+        link.target = '_blank'
+        link.rel = 'noopener noreferrer'
         document.body.appendChild(link)
         link.click()
         link.remove()
-        window.URL.revokeObjectURL(objectUrl)
         return true
       } catch (e) {
         return false
       }
     }
 
-    const downloadWithRetry = async (url, attempts = 2) => {
-      for (let i = 0; i < attempts; i += 1) {
-        const ok = await downloadFromUrl(url)
-        if (ok) return true
-        await delay(1200)
-      }
-      return false
-    }
-
     try {
       // Always request a signed/validated invoice URL to avoid stale or blocked downloads.
       const generated = await generateInvoice(order._id).unwrap()
-      const freshUrl = generated?.invoiceUrl || order?.invoiceUrl || null
+      const freshUrl = generated?.invoiceUrl || invoiceUrl || order?.invoiceUrl || null
       if (freshUrl) {
         setInvoiceUrl(freshUrl)
-        const downloaded = await downloadWithRetry(freshUrl, 2)
-        if (downloaded) {
+        const opened = triggerInvoiceDownload(freshUrl)
+        if (opened) {
           refetch()
           return
         }
+        toast({
+          title: 'Invoice download blocked',
+          description: 'Please allow popups and try again.',
+          variant: 'destructive'
+        })
       }
     } catch (err) {
       console.error('Official invoice generation failed:', err)
       toast({
         title: 'Invoice download failed',
-        description: 'Use the "Open Invoice" button to view it.',
+        description: 'Please try again in a moment.',
         variant: 'destructive'
       })
     } finally {
@@ -173,7 +174,7 @@ export default function OrderReceipt() {
   if (isLoading || !order) return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 space-y-4">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black" />
-      <p className="text-gray-500 font-medium animate-pulse text-sm">Loading your receipt…</p>
+      <p className="text-gray-500 font-medium animate-pulse text-sm">Loading your receipt...</p>
     </div>
   )
 
@@ -226,15 +227,6 @@ export default function OrderReceipt() {
                   ? 'Download Official Invoice'
                   : 'Generate & Download PDF'}
             </Button>
-            {invoiceUrl && (
-              <Button
-                onClick={() => window.open(invoiceUrl, '_blank', 'noopener,noreferrer')}
-                variant="outline"
-                className="flex-1 h-10 md:h-12 rounded-lg text-xs md:text-sm font-bold"
-              >
-                Open Invoice
-              </Button>
-            )}
           </div>
         </div>
 
@@ -292,7 +284,7 @@ export default function OrderReceipt() {
                     {order.shippingAddress?.fullName || order.user?.name || 'Valued Customer'}
                   </p>
                   {order.shippingAddress?.phone && (
-                    <p className="text-gray-500 text-sm">📞 {order.shippingAddress.phone}</p>
+                    <p className="text-gray-500 text-sm">Tel: {order.shippingAddress.phone}</p>
                   )}
                   {order.shippingAddress?.address && (
                     <p className="text-gray-500 text-sm leading-relaxed">{order.shippingAddress.address}</p>

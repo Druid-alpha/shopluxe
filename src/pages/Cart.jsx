@@ -91,7 +91,7 @@ function VariantBadges({ item }) {
       )}
       {reservedCount > 0 && (
         <span className="bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-amber-700">
-          Reserved {reservedCount} • Avail {availableCount}
+          Reserved {reservedCount} - Avail {availableCount}
         </span>
       )}
       {isReservedHigh && (
@@ -243,20 +243,79 @@ export default function Cart() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [updatingItems, setUpdatingItems] = useState({})
+  const [isLoadingCart, setIsLoadingCart] = useState(false)
+  const [reservationExpiresAt, setReservationExpiresAt] = useState(null)
+  const [reservationRemaining, setReservationRemaining] = useState(null)
 
   /* ================= LOAD CART ================= */
   useEffect(() => {
     if (!user) return
     const fetchCart = async () => {
       try {
+        setIsLoadingCart(true)
         const data = await cartApi.getCart();
         dispatch(setCart(data));
       } catch (err) {
         console.error('Failed to fetch cart:', err);
+      } finally {
+        setIsLoadingCart(false)
       }
     };
     fetchCart();
   }, [dispatch, user]);
+
+  useEffect(() => {
+    const raw = window.localStorage.getItem('shopluxe_reservation')
+    if (!raw) return
+    try {
+      const parsed = JSON.parse(raw)
+      const expiresAt = Number(parsed?.expiresAt || 0)
+      if (!expiresAt || Number.isNaN(expiresAt)) {
+        window.localStorage.removeItem('shopluxe_reservation')
+        return
+      }
+      if (expiresAt <= Date.now()) {
+        window.localStorage.removeItem('shopluxe_reservation')
+        return
+      }
+      setReservationExpiresAt(expiresAt)
+    } catch {
+      window.localStorage.removeItem('shopluxe_reservation')
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!reservationExpiresAt) return
+    const tick = () => {
+      const remainingMs = reservationExpiresAt - Date.now()
+      if (remainingMs <= 0) {
+        setReservationRemaining(null)
+        setReservationExpiresAt(null)
+        window.localStorage.removeItem('shopluxe_reservation')
+        return
+      }
+      setReservationRemaining(remainingMs)
+    }
+    tick()
+    const timer = setInterval(tick, 1000)
+    return () => clearInterval(timer)
+  }, [reservationExpiresAt])
+
+  const formatRemaining = (ms) => {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000))
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = totalSeconds % 60
+    if (minutes <= 0) return `${seconds}s`
+    return `${minutes}m ${seconds}s`
+  }
+
+  if (isLoadingCart) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-black" />
+      </div>
+    )
+  }
 
   if (!cart.length) {
     return (
@@ -275,12 +334,6 @@ export default function Cart() {
           >
             Return to Collections
           </Button>
-          <button
-            onClick={() => navigate('/products')}
-            className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-black border border-gray-200 rounded-full px-4 py-3"
-          >
-            Explore Products
-          </button>
         </div>
       </div>
     );
@@ -542,6 +595,12 @@ export default function Cart() {
                 <span>₦{total.toLocaleString()}</span>
               </div>
             </div>
+
+            {reservationRemaining && (
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-emerald-700 mt-4">
+                Reservation expires in {formatRemaining(reservationRemaining)}
+              </div>
+            )}
 
             <Button
               className="w-full text-lg h-14 bg-black hover:bg-gray-800 text-white shadow-md transition-all rounded-lg mt-4"

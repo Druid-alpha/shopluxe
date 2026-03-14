@@ -266,15 +266,15 @@ export default function AdminProducts() {
       )}
       {/* FILTERS & ACTIONS */}
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-gray-900">Filters & Inventory</h2>
-          <div className="flex gap-2">
-            <Button onClick={() => setEditingProduct({})} className="bg-black hover:bg-gray-800 rounded-xl">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button onClick={() => setEditingProduct({})} className="bg-black hover:bg-gray-800 rounded-xl w-full sm:w-auto">
               + Create Product
             </Button>
             <Button
               variant="outline"
-              className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50"
+              className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50 w-full sm:w-auto"
               onClick={async () => {
                 try {
                   await axios.post('/admin/reservations/reset-all')
@@ -291,7 +291,7 @@ export default function AdminProducts() {
             >
               Reset All Reservations
             </Button>
-            <Button variant="outline" className="rounded-xl border-red-200 text-red-600 hover:bg-red-50" onClick={handleHardDeleteAll}>
+            <Button variant="outline" className="rounded-xl border-red-200 text-red-600 hover:bg-red-50 w-full sm:w-auto" onClick={handleHardDeleteAll}>
               Purge Deleted
             </Button>
           </div>
@@ -341,7 +341,7 @@ export default function AdminProducts() {
           />
 
           <Select
-            className="text-sm"
+            className="text-sm w-full"
             placeholder="Category"
             isClearable
             options={options.categories.map(c => ({ value: c._id, label: c.name }))}
@@ -351,7 +351,7 @@ export default function AdminProducts() {
 
           {options.categories.find(c => c._id === filters.category)?.name.toLowerCase() === 'clothing' && (
             <Select
-              className="text-sm"
+              className="text-sm w-full"
               placeholder="Type"
               isClearable
               options={[
@@ -366,7 +366,7 @@ export default function AdminProducts() {
           )}
 
           <Select
-            className="text-sm"
+            className="text-sm w-full"
             placeholder="Brand"
             isClearable
             options={options.brands.map(b => ({ value: b._id, label: b.name }))}
@@ -375,7 +375,7 @@ export default function AdminProducts() {
           />
 
           <Select
-            className="text-sm"
+            className="text-sm w-full"
             placeholder="Color"
             isClearable
             options={options.colors.map(c => ({ value: c._id, label: c.name }))}
@@ -389,12 +389,12 @@ export default function AdminProducts() {
               setFilters(prev => ({ ...prev, onSale: !prev.onSale }))
               setPage(1)
             }}
-            className={`h-10 rounded-md border px-3 text-[10px] font-black uppercase tracking-widest transition-colors ${filters.onSale ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200 hover:text-black hover:border-black'}`}
+            className={`h-10 rounded-md border px-3 text-[10px] font-black uppercase tracking-widest transition-colors w-full sm:w-auto ${filters.onSale ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200 hover:text-black hover:border-black'}`}
           >
             {filters.onSale ? 'On Sale Only' : 'Show On Sale'}
           </button>
 
-          <Button variant="ghost" className="text-gray-500 hover:text-black" onClick={resetFilters}>
+          <Button variant="ghost" className="text-gray-500 hover:text-black w-full sm:w-auto" onClick={resetFilters}>
             Reset Filters
           </Button>
         </div>
@@ -402,7 +402,113 @@ export default function AdminProducts() {
 
       {/* PRODUCT TABLE */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto max-h-[70vh] relative">
+        {/* Mobile cards */}
+        <div className="lg:hidden p-4 space-y-4">
+          {products.map((p) => {
+            const hasDiscount = Number(p.discount || 0) > 0 || (p.variants || []).some(v => Number(v?.discount || 0) > 0)
+            const variantStock = (p.variants || []).reduce((sum, v) => sum + Number(v?.stock || 0), 0)
+            const variantReserved = (p.variants || []).reduce((sum, v) => sum + Number(v?.reserved || 0), 0)
+            const totalStock = Number(p.stock || 0) + variantStock
+            const totalReserved = Number(p.reserved || 0) + variantReserved
+            const availableStock = Math.max(0, totalStock - totalReserved)
+            const showReserveInfo = totalStock > 0 || totalReserved > 0
+            return (
+              <div key={p._id} className={`rounded-2xl border border-gray-100 p-4 shadow-sm ${p.isDeleted ? 'opacity-50' : ''}`}>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden">
+                    <img src={p.images?.[0]?.url || '/placeholder.png'} alt={p.title} className="w-full h-full object-contain" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-gray-900 line-clamp-1">{p.title}</p>
+                    <p className="text-[10px] text-gray-400 font-mono tracking-tighter">#{p._id.slice(-8)}</p>
+                    <p className="text-xs text-gray-500 mt-1">{p.category?.name || '-'}</p>
+                  </div>
+                  <div className="text-right text-sm font-bold text-gray-900">₦{(p.price || 0).toLocaleString()}</div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {p.featured && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-tighter w-fit">
+                      Featured
+                    </span>
+                  )}
+                  {hasDiscount && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 uppercase tracking-tighter w-fit">
+                      Discount
+                    </span>
+                  )}
+                  {p.isDeleted ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-800 uppercase tracking-tighter w-fit text-red-600">
+                      Deleted
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 uppercase tracking-tighter w-fit">
+                      Active
+                    </span>
+                  )}
+                </div>
+                {showReserveInfo && (
+                  <div className="mt-3 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    Avail {availableStock} - Reserved {totalReserved}
+                  </div>
+                )}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => handleToggleFeatured(p)}
+                    className={`p-2 rounded-lg border transition-colors ${p.featured ? 'bg-amber-50 border-amber-200 text-amber-600' : 'bg-white border-gray-200 text-gray-400 hover:text-black'}`}
+                    title={p.featured ? "Unfeature" : "Feature"}
+                  >
+                    <Star size={16} fill={p.featured ? "currentColor" : "none"} />
+                  </button>
+                  {!p.isDeleted ? (
+                    <>
+                      <button
+                        onClick={() => setEditingProduct(p)}
+                        className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:text-black hover:bg-gray-50 transition-colors"
+                        title="Edit Product"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleResetReservation(p)}
+                        className="p-2 rounded-lg border border-blue-100 text-blue-500 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+                        title="Reset Reservations"
+                      >
+                        <RefreshCw size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleSoftDelete(p._id)}
+                        className="p-2 rounded-lg border border-red-100 text-red-400 hover:text-red-700 hover:bg-red-50 transition-colors"
+                        title="Delete Product"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleRestore(p._id)}
+                        className="p-2 rounded-lg border border-green-200 text-green-600 hover:bg-green-50 transition-colors"
+                        title="Restore Product"
+                      >
+                        <RotateCcw size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleHardDelete(p._id)}
+                        className="p-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                        title="Permanently Delete"
+                      >
+                        <Trash size={16} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden lg:block overflow-x-auto max-h-[70vh] relative">
           <div className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-100 px-6 py-3 flex items-center justify-between">
             <div className="text-[10px] font-black uppercase tracking-widest text-gray-400">
               {products.length} item{products.length !== 1 ? 's' : ''} shown
@@ -446,8 +552,14 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {products.map((p) => {
+          {products.map((p) => {
                 const hasDiscount = Number(p.discount || 0) > 0 || (p.variants || []).some(v => Number(v?.discount || 0) > 0)
+                const variantStock = (p.variants || []).reduce((sum, v) => sum + Number(v?.stock || 0), 0)
+                const variantReserved = (p.variants || []).reduce((sum, v) => sum + Number(v?.reserved || 0), 0)
+                const totalStock = Number(p.stock || 0) + variantStock
+                const totalReserved = Number(p.reserved || 0) + variantReserved
+                const availableStock = Math.max(0, totalStock - totalReserved)
+                const showReserveInfo = totalStock > 0 || totalReserved > 0
                 return (
                 <tr key={p._id} className={`hover:bg-gray-50/50 transition-colors ${p.isDeleted ? 'opacity-50' : ''}`}>
                   <td className="px-6 py-4">
@@ -469,6 +581,11 @@ export default function AdminProducts() {
                     <div className="text-xs space-y-1">
                       <p><span className="text-gray-400">Cat:</span> {p.category?.name || '-'}</p>
                       <p><span className="text-gray-400">Brand:</span> {p.brand?.name || '-'}</p>
+                      {showReserveInfo && (
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                          Avail {availableStock} - Res {totalReserved}
+                        </p>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4">
