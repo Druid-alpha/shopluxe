@@ -6,6 +6,7 @@ import { ShieldCheck, MapPin, ChevronRight, Loader2 } from 'lucide-react'
 
 export default function Checkout() {
   const cart = useAppSelector(state => state.cart.items)
+  const token = useAppSelector(state => state.auth.token)
   const total = cart.reduce((s, item) => s + (item.price || 0) * (item.qty || 1), 0)
   const { toast } = useToast()
   const [loading, setLoading] = React.useState(false)
@@ -35,7 +36,10 @@ export default function Checkout() {
     try {
       const validateRes = await fetch(`${import.meta.env.VITE_API_URL}/orders/validate`, {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
       })
       const validateData = await validateRes.json()
       if (!validateRes.ok) {
@@ -55,7 +59,8 @@ export default function Checkout() {
       const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
         credentials: 'include',
         body: JSON.stringify({ shippingAddress: address })
@@ -67,7 +72,10 @@ export default function Checkout() {
           try {
             const retryValidate = await fetch(`${import.meta.env.VITE_API_URL}/orders/validate`, {
               method: 'POST',
-              credentials: 'include'
+              credentials: 'include',
+              headers: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
+              }
             })
             const retryData = await retryValidate.json()
             const firstIssue = retryData?.items?.[0]
@@ -90,7 +98,8 @@ export default function Checkout() {
       const payRes = await fetch(`${import.meta.env.VITE_API_URL}/payments/paystack/init`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
         credentials: 'include',
         body: JSON.stringify({ orderId: orderData.order._id })

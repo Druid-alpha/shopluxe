@@ -706,6 +706,7 @@ export default function ProductDetails() {
       ].filter(Boolean).join(' / ') || 'Base Product'
 
     if (!user) {
+      const baseImageForCart = product.images?.[0]?.url || mainImage
       dispatch(addGuestCart({
         productId: product._id,
         title: product.title,
@@ -713,6 +714,7 @@ export default function ProductDetails() {
         basePrice: currentPrice,
         discount: currentDiscount,
         productImage: mainImage,
+        baseProductImage: baseImageForCart,
         productStock: product.stock ?? 0,
         qty: quantity,
         variant: variantPayload || null,

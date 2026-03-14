@@ -23,6 +23,7 @@ const loadGuestCart = () => {
     const seedTime = Date.now()
     const normalized = saved.map((item, index) => ({
       ...item,
+      baseProductImage: item.baseProductImage || item.productImage || null,
       key: item.key || `${item.productId}-${getVariantKey(item.variant)}`,
       addedAt: item.addedAt || new Date(seedTime + index).toISOString(),
     }))
