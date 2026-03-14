@@ -135,18 +135,21 @@ export default function OrderReceipt() {
     }
 
     try {
-      // Ensure invoice exists (best-effort), then download via backend proxy.
-      await generateInvoice(order._id).unwrap()
-    } catch (err) {
-      console.warn('Invoice generation skipped:', err?.message || err)
-    }
-
-    try {
       const backendUrl = `${import.meta.env.VITE_API_URL}/orders/${order._id}/invoice/download`
       await downloadViaApi(backendUrl)
       refetch()
       return
     } catch (err) {
+      try {
+        // Ensure invoice exists if download failed, then retry once.
+        await generateInvoice(order._id).unwrap()
+        const backendUrl = `${import.meta.env.VITE_API_URL}/orders/${order._id}/invoice/download`
+        await downloadViaApi(backendUrl)
+        refetch()
+        return
+      } catch (retryErr) {
+        console.error('Official invoice download failed:', retryErr)
+      }
       console.error('Official invoice download failed:', err)
       toast({
         title: 'Invoice download failed',
