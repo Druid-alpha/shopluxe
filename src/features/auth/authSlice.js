@@ -11,19 +11,9 @@ const getStoredUser = () => {
   }
 }
 
-const getStoredToken = () => {
-  try {
-    const stored = localStorage.getItem('token')
-    if (!stored || stored === 'undefined') return null
-    return stored
-  } catch {
-    return null
-  }
-}
-
 const initialState = {
   user: getStoredUser(), // MUST be the user object, not { user: {...} }
-  token: getStoredToken(),
+  token: null,
   loading: false,
   error: null,
 }
@@ -38,13 +28,11 @@ const authSlice = createSlice({
     },
     setToken: (state, action) => {
       state.token = action.payload
-      localStorage.setItem('token', action.payload)
     },
     logout: (state) => {
       state.user = null
       state.token = null
       localStorage.removeItem('user')
-      localStorage.removeItem('token')
     },
   },
 })

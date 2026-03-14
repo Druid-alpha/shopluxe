@@ -1,15 +1,12 @@
-import * as React from 'react'
-import { useAppDispatch, useAppSelector } from '@/app/hooks'
+﻿import * as React from 'react'
+import { useAppSelector } from '@/app/hooks'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import { useNavigate } from 'react-router-dom'
-import { ShieldCheck, MapPin, User, Phone, ChevronRight, Loader2 } from 'lucide-react'
+import { ShieldCheck, MapPin, ChevronRight, Loader2 } from 'lucide-react'
 
 export default function Checkout() {
   const cart = useAppSelector(state => state.cart.items)
-  const token = useAppSelector(state => state.auth.token)
   const total = cart.reduce((s, item) => s + (item.price || 0) * (item.qty || 1), 0)
-  const navigate = useNavigate()
   const { toast } = useToast()
   const [loading, setLoading] = React.useState(false)
 
@@ -36,12 +33,24 @@ export default function Checkout() {
     setLoading(true)
 
     try {
-      // 1️⃣ Create order with shipping address
+      const validateRes = await fetch(`${import.meta.env.VITE_API_URL}/orders/validate`, {
+        method: 'POST',
+        credentials: 'include'
+      })
+      const validateData = await validateRes.json()
+      if (!validateRes.ok) {
+        const firstIssue = validateData?.items?.[0]
+        const details = firstIssue?.title
+          ? `${firstIssue.title} (${firstIssue.message})`
+          : (validateData.message || 'Stock validation failed')
+        throw new Error(details)
+      }
+
+      // 1. Create order with shipping address
       const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
+          'Content-Type': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({ shippingAddress: address })
@@ -50,12 +59,11 @@ export default function Checkout() {
       const orderData = await orderRes.json()
       if (!orderRes.ok) throw new Error(orderData.message)
 
-      // 2️⃣ Initialize Paystack transaction
+      // 2. Initialize Paystack transaction
       const payRes = await fetch(`${import.meta.env.VITE_API_URL}/payments/paystack/init`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
+          'Content-Type': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({ orderId: orderData.order._id })
@@ -64,7 +72,7 @@ export default function Checkout() {
       const payData = await payRes.json()
       if (!payRes.ok) throw new Error(payData.message)
 
-      // 3️⃣ Redirect user to Paystack hosted page
+      // 3. Redirect user to Paystack hosted page
       window.location.href = payData.authorizationUrl
 
     } catch (e) {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useSearchParams, useNavigate } from "react-router-dom"
-import { useAppDispatch, useAppSelector } from "@/app/hooks"
+import { useAppDispatch } from "@/app/hooks"
 import { clearCart } from "@/features/cart/cartSlice"
 import { clearCartBackend } from "@/features/cart/cartApi"
 import { useToast } from "@/hooks/use-toast"
@@ -14,10 +14,6 @@ export default function PaymentSuccess() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { toast } = useToast()
-  // Get token from Redux state; fall back to localStorage in case Redux was
-  // cleared during Paystack's full-page redirect
-  const reduxToken = useAppSelector(state => state.auth?.token)
-  const token = reduxToken || localStorage.getItem('token') || sessionStorage.getItem('token')
   const [status, setStatus] = useState("verifying")
   const [errorMsg, setErrorMsg] = useState("")
   const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight })
@@ -43,10 +39,7 @@ export default function PaymentSuccess() {
         const res = await fetch(
           `${import.meta.env.VITE_API_URL}/payments/verify/${reference}`,
           {
-            credentials: "include",
-            headers: {
-              ...(token ? { Authorization: `Bearer ${token}` } : {})
-            }
+            credentials: "include"
           }
         )
         const data = await res.json()

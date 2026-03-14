@@ -88,6 +88,8 @@ export default function OrderReceipt() {
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
     const openDownloadWindow = () => {
       try {
         const win = window.open('', '_blank', 'noopener,noreferrer')
@@ -120,6 +122,15 @@ export default function OrderReceipt() {
       }
     }
 
+    const downloadWithRetry = async (url, attempts = 2) => {
+      for (let i = 0; i < attempts; i += 1) {
+        const ok = await downloadFromUrl(url)
+        if (ok) return true
+        await delay(1200)
+      }
+      return false
+    }
+
     const downloadWindow = openDownloadWindow()
 
     try {
@@ -132,7 +143,7 @@ export default function OrderReceipt() {
           refetch()
           return
         }
-        const downloaded = await downloadFromUrl(invoiceUrl)
+        const downloaded = await downloadWithRetry(invoiceUrl, 2)
         if (downloaded) {
           refetch()
           return
