@@ -1154,9 +1154,9 @@ export default function ProductDetails() {
                 </button>
               </div>
               {currentStock > 0 && (
-                <div className="hidden sm:flex items-center gap-2 mt-3 text-[10px] text-gray-500">
+                <div className="hidden sm:inline-flex items-center gap-2 mt-3 text-[10px] font-black uppercase tracking-widest text-amber-700 bg-amber-50/70 border border-amber-100 px-3 py-1.5 rounded-full">
                   <Clock size={12} />
-                  Reserve stock for 10 minutes at checkout.
+                  Reserve 10 min at checkout
                 </div>
               )}
             </div>

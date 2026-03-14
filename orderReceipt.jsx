@@ -23,6 +23,7 @@ export default function OrderReceipt() {
   })
   const [generateInvoice, { isLoading: isGeneratingInvoice }] = useGenerateOrderInvoiceMutation()
   const [isDownloading, setIsDownloading] = React.useState(false)
+  const [invoiceUrl, setInvoiceUrl] = React.useState(null)
   const order = data?.order
   const timelineSteps = ['pending', 'paid', 'processing', 'shipped', 'delivered']
   const statusIndex = timelineSteps.indexOf(order?.status || 'pending')
@@ -72,6 +73,12 @@ export default function OrderReceipt() {
     }
   }, [order?.paymentStatus, dispatch])
 
+  React.useEffect(() => {
+    if (order?.invoiceUrl) {
+      setInvoiceUrl(order.invoiceUrl)
+    }
+  }, [order?.invoiceUrl])
+
   const downloadPDF = async () => {
     if (!order?._id) return
     if (order?.paymentStatus !== 'paid') {
@@ -93,18 +100,6 @@ export default function OrderReceipt() {
     };
 
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-
-    const openDownloadWindow = () => {
-      try {
-        const win = window.open('', '_blank', 'noopener,noreferrer')
-        if (win) {
-          win.document.title = 'Preparing invoice...'
-        }
-        return win
-      } catch {
-        return null
-      }
-    }
 
     const downloadFromUrl = async (url) => {
       const filename = opt.filename.endsWith('.pdf') ? opt.filename : `${opt.filename}.pdf`
@@ -135,19 +130,13 @@ export default function OrderReceipt() {
       return false
     }
 
-    const downloadWindow = openDownloadWindow()
-
     try {
       // Always request a signed/validated invoice URL to avoid stale or blocked downloads.
       const generated = await generateInvoice(order._id).unwrap()
-      const invoiceUrl = generated?.invoiceUrl || order?.invoiceUrl || null
-      if (invoiceUrl) {
-        if (downloadWindow && !downloadWindow.closed) {
-          downloadWindow.location = invoiceUrl
-          refetch()
-          return
-        }
-        const downloaded = await downloadWithRetry(invoiceUrl, 2)
+      const freshUrl = generated?.invoiceUrl || order?.invoiceUrl || null
+      if (freshUrl) {
+        setInvoiceUrl(freshUrl)
+        const downloaded = await downloadWithRetry(freshUrl, 2)
         if (downloaded) {
           refetch()
           return
@@ -155,12 +144,13 @@ export default function OrderReceipt() {
       }
     } catch (err) {
       console.error('Official invoice generation failed:', err)
+      toast({
+        title: 'Invoice download failed',
+        description: 'Use the "Open Invoice" button to view it.',
+        variant: 'destructive'
+      })
     } finally {
       setIsDownloading(false)
-    }
-
-    if (downloadWindow && !downloadWindow.closed) {
-      downloadWindow.close()
     }
 
     html2pdf().set(opt).from(receiptRef.current).save()
@@ -232,10 +222,19 @@ export default function OrderReceipt() {
               <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" />
               {isGeneratingInvoice || isDownloading
                 ? 'Preparing Invoice...'
-                : order.invoiceUrl
+                : invoiceUrl
                   ? 'Download Official Invoice'
                   : 'Generate & Download PDF'}
             </Button>
+            {invoiceUrl && (
+              <Button
+                onClick={() => window.open(invoiceUrl, '_blank', 'noopener,noreferrer')}
+                variant="outline"
+                className="flex-1 h-10 md:h-12 rounded-lg text-xs md:text-sm font-bold"
+              >
+                Open Invoice
+              </Button>
+            )}
           </div>
         </div>
 
