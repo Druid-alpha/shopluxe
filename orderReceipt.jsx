@@ -7,14 +7,20 @@ import { useAppDispatch } from '@/app/hooks'
 import { logout } from '@/features/auth/authSlice'
 import { productApi } from '@/features/products/productApi'
 import { useGenerateOrderInvoiceMutation, useGetOrderQuery } from '@/features/orders/orderApi'
+import { useToast } from '@/hooks/use-toast'
 
 export default function OrderReceipt() {
   const { id } = useParams()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
+  const { toast } = useToast()
   const receiptRef = React.useRef(null)
 
-  const { data, isLoading, error: queryError, refetch } = useGetOrderQuery(id)
+  const { data, isLoading, error: queryError, refetch } = useGetOrderQuery(id, {
+    refetchOnMountOrArgChange: true,
+    refetchOnReconnect: true,
+    refetchOnFocus: true
+  })
   const [generateInvoice, { isLoading: isGeneratingInvoice }] = useGenerateOrderInvoiceMutation()
   const [isDownloading, setIsDownloading] = React.useState(false)
   const order = data?.order
@@ -51,6 +57,10 @@ export default function OrderReceipt() {
     }
   }, [order?.paymentStatus, refetch])
 
+  React.useEffect(() => {
+    if (id) refetch()
+  }, [id, refetch])
+
   // Invalidate product cache once paid so stock reflects
   React.useEffect(() => {
     if (order?.paymentStatus === 'paid') {
@@ -60,6 +70,14 @@ export default function OrderReceipt() {
 
   const downloadPDF = async () => {
     if (!order?._id) return
+    if (order?.paymentStatus !== 'paid') {
+      toast({
+        title: 'Payment pending',
+        description: 'Invoice is available after payment confirmation.',
+        variant: 'destructive'
+      })
+      return
+    }
     setIsDownloading(true)
     const opt = {
       margin: 0,

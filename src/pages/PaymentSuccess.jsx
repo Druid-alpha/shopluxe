@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from "@/app/hooks"
 import { clearCart } from "@/features/cart/cartSlice"
 import { clearCartBackend } from "@/features/cart/cartApi"
 import { useToast } from "@/hooks/use-toast"
+import { orderApi } from "@/features/orders/orderApi"
 import { CheckCircle2, XCircle, Loader2, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Confetti from "react-confetti"
@@ -55,10 +56,11 @@ export default function PaymentSuccess() {
         try { await clearCartBackend() } catch (e) { console.error('Clear cart backend error', e) }
 
         dispatch(clearCart())
+        dispatch(orderApi.util.invalidateTags(['Order']))
         setStatus("success")
 
         setTimeout(() => {
-          navigate(`/orders/${data.order._id}`)
+          navigate(`/orders/${data.order._id}`, { replace: true })
         }, 2000)
 
       } catch (err) {

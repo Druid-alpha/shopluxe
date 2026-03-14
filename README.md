@@ -2,6 +2,66 @@
 
 React + Vite ecommerce client for ShopLuxe. This app is designed to run with the ShopLuxe backend in the sibling folder `../shop-luxe-BE`.
 
+## Project Overview
+
+ShopLuxe is a full-stack ecommerce platform with a React/Vite frontend and a Node/Express/MongoDB backend. The frontend focuses on a premium retail browsing experience with category filters, product detail variants, wishlist, cart, and checkout. The backend provides authentication, product catalog, cart/order flows, and payment verification.
+
+Core user flow:
+- Browse products and filter by category/brand/price/color.
+- Select variants (size/color) in product details and add to cart.
+- Checkout with shipping details and Paystack payment verification.
+- View order receipt and download invoice.
+
+Core admin flow:
+- Manage products, variants, pricing, stock, and images.
+- Manage orders and fulfillment status.
+
+## Architecture
+
+Frontend (this repo):
+- React 19 + Vite 7 SPA with React Router for navigation.
+- Redux Toolkit + RTK Query for server state (auth, cart, orders, products).
+- Tailwind CSS UI with Framer Motion page transitions.
+
+Backend (sibling repo `../shop-luxe-BE`):
+- Node.js + Express REST API.
+- MongoDB via Mongoose models.
+- Paystack payments and Cloudinary for media/invoice storage.
+
+Key boundaries:
+- Frontend talks to `/api/*` routes.
+- Auth uses cookies plus bearer token for protected requests.
+- Orders and payments are verified server-side; receipts are derived from server data.
+
+High-level diagram:
+
+```
+Browser (React/Vite)
+  |
+  |  HTTPS (REST JSON)
+  v
+Vercel (Frontend)
+  |
+  |  SPA assets + /api proxy
+  v
+Vercel Serverless (api/index.js)
+  |
+  |  Express API
+  v
+Backend API (Express)
+  |         |            |
+  |         |            +--> Paystack (payments/verify + webhook)
+  |         |
+  |         +--> Cloudinary (images + invoice PDFs)
+  |
+  +--> MongoDB (products, users, carts, orders)
+```
+
+Auth/token flow:
+- Access token stored in `localStorage` and attached as `Authorization: Bearer <token>`.
+- Cookies are included for refresh/session with `credentials: include`.
+- Protected routes fetch profile data and redirect to `/login` if missing.
+
 ## Repository Scope
 
 This repository (`myapp`) is the frontend only.
@@ -104,6 +164,43 @@ Main backend route groups mounted under `/api`:
 - `/admin`
 - `/payments`
 
+## API Contracts (High Level)
+
+Auth:
+- `POST /api/auth/login` -> returns user + access token, sets cookies
+- `POST /api/auth/refresh` -> refreshes access token
+- `GET /api/users/profile` -> current user profile
+
+Products:
+- `GET /api/products` -> list products (filterable, paginated)
+- `GET /api/products/:id` -> product details with variants and reviews
+- `GET /api/products/filters` -> filter options (categories, brands, colors, sizes)
+
+Cart:
+- `GET /api/cart` -> current cart (populated product + variant info)
+- `POST /api/cart/add` -> add item (productId, qty, optional variant)
+- `PUT /api/cart/update` -> update item qty (productId, qty, optional variant)
+- `DELETE /api/cart/remove` -> remove item (productId, optional variant)
+- `POST /api/cart/sync` -> merge guest cart into user cart
+
+Orders:
+- `POST /api/orders` -> create order from cart and shipping address
+- `GET /api/orders/:id` -> order detail for receipt
+- `POST /api/orders/:id/invoice` -> signed invoice URL
+
+Payments:
+- `POST /api/payments/paystack/init` -> initialize Paystack transaction
+- `GET /api/payments/verify/:reference` -> verify payment and update order
+- `POST /api/payments/paystack/webhook` -> Paystack webhook
+
+Admin (examples):
+- `GET /api/admin/products`
+- `POST /api/products/admin`
+- `PUT /api/products/admin/:id`
+- `PATCH /api/orders/:id/status`
+
+Note: payload shapes are defined in the backend controllers and Mongoose schemas.
+
 Paystack webhook endpoint:
 - `POST /api/payments/paystack/webhook`
 
@@ -123,6 +220,60 @@ Frontend `vercel.json` rewrites:
 Backend `vercel.json` uses:
 - `api/index.js` as serverless function
 - rewrite `/api/(.*)` -> `/api/index.js`
+
+## Data Models (Backend)
+
+Product:
+- `title`, `description`, `price`, `discount`, `stock`
+- `category`, `brand`, `color`, `images`
+- `variants[]` with `sku`, `options` (size, color), `price`, `discount`, `stock`
+
+Cart Item:
+- `product` reference
+- `qty`
+- `variant` object (optional, includes sku/size/color)
+- `addedAt`
+
+Order:
+- `user`, `items[]`, `totalAmount`, `status`, `paymentStatus`
+- `items[]` includes `product`, `title`, `qty`, `priceAtPurchase`, `variant`
+- `shippingAddress`
+
+User:
+- `name`, `email`, `password`, `role`
+- `cart[]`, `wishlist[]`, `refreshTokens[]`
+
+Color:
+- `name`, `hex`, `category`
+
+Exact schema definitions live in the backend repo models.
+
+## Payment And Invoice Flow
+
+- Payment verification runs in `src/pages/PaymentSuccess.jsx`, clears cart, and redirects to `/orders/:id`.
+- Invoice download requests a signed invoice URL from `/orders/:id/invoice` and falls back to a client-side PDF if needed.
+- Order receipt uses RTK Query and refetches on mount and focus to avoid stale status after payment.
+
+## Troubleshooting
+
+- If the receipt shows "Awaiting Payment Confirmation" after a successful Paystack redirect, wait a few seconds. The receipt view refetches automatically.
+- If invoice download fails once, retry after confirmation is visible or use the fallback PDF export.
+- Make sure `VITE_API_URL` points to the backend `/api` base in dev and prod.
+
+## Deployment
+
+Frontend:
+- Vite build output deployed with Vercel.
+- Uses `vercel.json` rewrites to support SPA routing and `/api` proxy.
+
+Backend:
+- Express app deployed as Vercel serverless handler (`api/index.js`).
+- Exposes `/api/*` routes and the Paystack webhook.
+- Cloudinary stores invoices and product media.
+
+Environment:
+- Frontend uses `VITE_API_URL` to point at backend `/api`.
+- Backend expects `CLIENT_URL` for CORS and Paystack callback URL.
 
 ## Current Implementation Notes
 
