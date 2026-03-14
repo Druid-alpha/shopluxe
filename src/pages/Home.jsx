@@ -2,7 +2,7 @@
 import { useNavigate, Link } from 'react-router-dom'
 import Slider from 'react-slick'
 import { ArrowRight, Truck, ShieldCheck, Clock } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 
 import { useGetFeaturedProductsQuery, useGetProductsQuery } from '@/features/products/productApi'
 import ProductCard from '@/features/products/ProductCard'
@@ -15,37 +15,56 @@ import grocery from '../assets/grocery.jpg'
 import phone from '../assets/phone.jpg'
 import delivery from '../assets/delivery.jpg'
 
-// --- Animation Variants ---
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15 }
-  }
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
-}
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.9 },
-  show: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" } }
-}
-
-const slideInLeft = {
-  hidden: { opacity: 0, x: -50 },
-  show: { opacity: 1, x: 0, transition: { duration: 0.6, ease: "easeOut" } }
-}
-
-const slideInRight = {
-  hidden: { opacity: 0, x: 50 },
-  show: { opacity: 1, x: 0, transition: { duration: 0.6, ease: "easeOut" } }
-}
-
 export default function Home() {
   const navigate = useNavigate()
+  const prefersReducedMotion = useReducedMotion()
+  const [isMobile, setIsMobile] = React.useState(false)
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return
+    const media = window.matchMedia('(max-width: 768px)')
+    const sync = () => setIsMobile(media.matches)
+    sync()
+    if (media.addEventListener) {
+      media.addEventListener('change', sync)
+      return () => media.removeEventListener('change', sync)
+    }
+    media.addListener(sync)
+    return () => media.removeListener(sync)
+  }, [])
+
+  const reduceMotion = prefersReducedMotion || isMobile
+
+  // --- Animation Variants (lighter on mobile) ---
+  const staggerContainer = React.useMemo(() => ({
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: reduceMotion ? 0.05 : 0.15 }
+    }
+  }), [reduceMotion])
+
+  const fadeUp = React.useMemo(() => ({
+    hidden: { opacity: 0, y: reduceMotion ? 0 : 30 },
+    show: { opacity: 1, y: 0, transition: { duration: reduceMotion ? 0.2 : 0.6, ease: "easeOut" } }
+  }), [reduceMotion])
+
+  const scaleIn = React.useMemo(() => ({
+    hidden: { opacity: 0, scale: reduceMotion ? 1 : 0.9 },
+    show: { opacity: 1, scale: 1, transition: { duration: reduceMotion ? 0.2 : 0.5, ease: "easeOut" } }
+  }), [reduceMotion])
+
+  const slideInLeft = React.useMemo(() => ({
+    hidden: { opacity: 0, x: reduceMotion ? 0 : -50 },
+    show: { opacity: 1, x: 0, transition: { duration: reduceMotion ? 0.2 : 0.6, ease: "easeOut" } }
+  }), [reduceMotion])
+
+  const slideInRight = React.useMemo(() => ({
+    hidden: { opacity: 0, x: reduceMotion ? 0 : 50 },
+    show: { opacity: 1, x: 0, transition: { duration: reduceMotion ? 0.2 : 0.6, ease: "easeOut" } }
+  }), [reduceMotion])
+
+  const motionViewport = reduceMotion ? { once: true, amount: 0.2 } : { once: true, margin: "-100px" }
   const [stableFeaturedProducts, setStableFeaturedProducts] = React.useState(() => {
     try {
       const cached = JSON.parse(localStorage.getItem('homeFeaturedProducts') || '[]')
@@ -167,7 +186,7 @@ export default function Home() {
                 <motion.div
                   initial="hidden"
                   whileInView="show"
-                  viewport={{ once: true }}
+                  viewport={{ once: true, amount: reduceMotion ? 0.2 : 0.5 }}
                   variants={staggerContainer}
                   className="max-w-2xl"
                 >
@@ -205,7 +224,7 @@ export default function Home() {
         <motion.section
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={motionViewport}
           variants={staggerContainer}
           className="pb-10"
         >
@@ -238,7 +257,7 @@ export default function Home() {
           <motion.div
             initial="hidden"
             whileInView="show"
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={motionViewport}
             variants={fadeUp}
             className="flex justify-between items-end mb-10"
           >
@@ -254,7 +273,7 @@ export default function Home() {
           <motion.div
             initial="hidden"
             whileInView="show"
-            viewport={{ once: true, margin: "-50px" }}
+            viewport={reduceMotion ? { once: true, amount: 0.2 } : { once: true, margin: "-50px" }}
             variants={staggerContainer}
             className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4"
           >
@@ -297,7 +316,7 @@ export default function Home() {
           <motion.div
             initial="hidden"
             whileInView="show"
-            viewport={{ once: true, margin: "-48px" }}
+            viewport={reduceMotion ? { once: true, amount: 0.2 } : { once: true, margin: "-48px" }}
             variants={staggerContainer}
             className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
           >
@@ -324,7 +343,7 @@ export default function Home() {
         <motion.section
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={motionViewport}
           className="grid md:grid-cols-2 gap-12 items-center mb-24 overflow-hidden"
         >
           <motion.div variants={slideInLeft} className="relative group rounded-3xl overflow-hidden shadow-2xl max-h-[400px] lg:max-h-[450px] w-full max-w-xl mx-auto">

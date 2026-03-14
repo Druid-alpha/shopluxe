@@ -27,6 +27,7 @@ export default function AdminProducts() {
     brand: '',
     color: '',
     clothingType: '',
+    onSale: false,
   })
   const [searchInput, setSearchInput] = useState('')
   const [options, setOptions] = useState({
@@ -53,6 +54,7 @@ export default function AdminProducts() {
       brand: filters.brand || undefined,
       color: filters.color || undefined,
       clothingType: filters.clothingType || undefined,
+      onSale: filters.onSale ? true : undefined,
     },
     { refetchOnMountOrArgChange: true }
   )
@@ -148,7 +150,7 @@ export default function AdminProducts() {
 
   const resetFilters = () => {
     setSearchInput('')
-    setFilters({ search: '', category: '', brand: '', color: '', clothingType: '' })
+    setFilters({ search: '', category: '', brand: '', color: '', clothingType: '', onSale: false })
     setPage(1)
   }
 
@@ -267,7 +269,8 @@ export default function AdminProducts() {
             { label: 'Category', value: options.categories.find(c => c._id === filters.category)?.name || filters.category },
             { label: 'Brand', value: options.brands.find(b => b._id === filters.brand)?.name || filters.brand },
             { label: 'Color', value: options.colors.find(c => c._id === filters.color)?.name || filters.color },
-            { label: 'Type', value: filters.clothingType }
+            { label: 'Type', value: filters.clothingType },
+            { label: 'Sale', value: filters.onSale ? 'On Sale' : '' }
           ].filter(item => item.value)
 
           if (activeFilters.length === 0) return null
@@ -346,6 +349,17 @@ export default function AdminProducts() {
             onChange={opt => handleFilterChange('color', opt?.value)}
           />
 
+          <button
+            type="button"
+            onClick={() => {
+              setFilters(prev => ({ ...prev, onSale: !prev.onSale }))
+              setPage(1)
+            }}
+            className={`h-10 rounded-md border px-3 text-[10px] font-black uppercase tracking-widest transition-colors ${filters.onSale ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200 hover:text-black hover:border-black'}`}
+          >
+            {filters.onSale ? 'On Sale Only' : 'Show On Sale'}
+          </button>
+
           <Button variant="ghost" className="text-gray-500 hover:text-black" onClick={resetFilters}>
             Reset Filters
           </Button>
@@ -379,7 +393,9 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {products.map((p) => (
+              {products.map((p) => {
+                const hasDiscount = Number(p.discount || 0) > 0 || (p.variants || []).some(v => Number(v?.discount || 0) > 0)
+                return (
                 <tr key={p._id} className={`hover:bg-gray-50/50 transition-colors ${p.isDeleted ? 'opacity-50' : ''}`}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
@@ -413,6 +429,11 @@ export default function AdminProducts() {
                       {p.featured && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-tighter w-fit">
                           Featured
+                        </span>
+                      )}
+                      {hasDiscount && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 uppercase tracking-tighter w-fit">
+                          Discount
                         </span>
                       )}
                       {p.isDeleted ? (
@@ -474,7 +495,7 @@ export default function AdminProducts() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>

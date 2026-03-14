@@ -239,7 +239,7 @@ export default function Checkout() {
                     <img
                       src={item.productImage || 'https://via.placeholder.com/56'}
                       alt={item.title}
-                      className="object-contain w-full h-full mix-blend-multiply"
+                      className="object-contain w-full h-full"
                     />
                   </div>
                   <div className="flex-1 min-w-0">

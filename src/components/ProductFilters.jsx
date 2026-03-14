@@ -17,7 +17,10 @@ export default function ProductFilters({
   clothingType,
   setClothingType,
   availability,
-  setAvailability
+  setAvailability,
+  saleOnly,
+  setSaleOnly,
+  onClearAll
 }) {
   const MAX_PRICE = 5000000
   const isObjectId = React.useCallback((value) => /^[a-fA-F0-9]{24}$/.test(String(value || '')), [])
@@ -41,6 +44,7 @@ export default function ProductFilters({
   const [clothingTypes, setClothingTypes] = React.useState([])
   const [loading, setLoading] = React.useState(false)
   const [openSections, setOpenSections] = React.useState({
+    sale: true,
     categories: true,
     types: true,
     brands: true,
@@ -165,17 +169,34 @@ export default function ProductFilters({
     <div className={`space-y-2 ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
 
       {/* CLEAR ALL */}
-      {(category || brand || color || minPrice > 0 || maxPrice < MAX_PRICE || availability || clothingType) && (
+      {(category || brand || color || minPrice > 0 || maxPrice < MAX_PRICE || availability || clothingType || saleOnly) && (
         <button
           onClick={() => {
             setCategory(''); setBrand(null); setColor(null);
             setMinPrice(0); setMaxPrice(MAX_PRICE); setAvailability(null); setClothingType(null);
+            if (setSaleOnly) setSaleOnly(false);
+            if (onClearAll) onClearAll()
           }}
           className="w-full py-2 mb-4 text-[10px] font-black uppercase tracking-widest text-white bg-black hover:bg-zinc-800 transition-colors rounded-none"
         >
           Clear All Filters
         </button>
       )}
+
+      {/* SALE */}
+      <div className="border-b border-gray-100">
+        <SectionHeader title="Sale" section="sale" isOpen={openSections.sale} />
+        {openSections.sale && (
+          <div className="py-6">
+            <button
+              onClick={() => setSaleOnly && setSaleOnly(!saleOnly)}
+              className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-colors ${saleOnly ? 'bg-black text-white border-black' : 'bg-white text-gray-400 border-gray-200 hover:text-black hover:border-black'}`}
+            >
+              {saleOnly ? 'On Sale Only' : 'Show On Sale'}
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* CATEGORIES */}
       <div className="border-b border-gray-100">

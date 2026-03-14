@@ -40,6 +40,9 @@ export default function Products() {
   const [clothingType, setClothingType] = React.useState(normalizeClothingType(searchParams.get('clothingType') || ''))
   const [availability, setAvailability] = React.useState(searchParams.get('availability') || null)
   const [sortBy, setSortBy] = React.useState(searchParams.get('sortBy') || 'newest')
+  const [saleOnly, setSaleOnly] = React.useState(
+    ['1', 'true', 'yes'].includes(String(searchParams.get('sale') || '').toLowerCase())
+  )
   const [mobileFilters, setMobileFilters] = React.useState(false)
   const [isResolvingCategory, setIsResolvingCategory] = React.useState(false)
   const skipNextUrlSyncRef = React.useRef(false)
@@ -57,6 +60,7 @@ export default function Products() {
     const nextClothingType = normalizeClothingType(searchParams.get('clothingType') || '')
     const nextAvailability = searchParams.get('availability') || null
     const nextSortBy = searchParams.get('sortBy') || 'newest'
+    const nextSaleOnly = ['1', 'true', 'yes'].includes(String(searchParams.get('sale') || '').toLowerCase())
 
     setPage((prev) => (prev === nextPage ? prev : nextPage))
     setSearch((prev) => (prev === nextSearch ? prev : nextSearch))
@@ -69,6 +73,7 @@ export default function Products() {
     setClothingType((prev) => (prev === nextClothingType ? prev : nextClothingType))
     setAvailability((prev) => (prev === nextAvailability ? prev : nextAvailability))
     setSortBy((prev) => (prev === nextSortBy ? prev : nextSortBy))
+    setSaleOnly((prev) => (prev === nextSaleOnly ? prev : nextSaleOnly))
   }, [searchParams, normalizeClothingType])
 
   React.useEffect(() => {
@@ -118,16 +123,16 @@ export default function Products() {
   }, [clothingType])
 
   // ---------------- Reset page on filter changes ONLY ----------------
-  const prevFiltersRef = React.useRef({ debouncedSearch, category, brand, color, clothingType, minPrice, maxPrice, availability, sortBy })
+  const prevFiltersRef = React.useRef({ debouncedSearch, category, brand, color, clothingType, minPrice, maxPrice, availability, sortBy, saleOnly })
   React.useEffect(() => {
-    const currentFilters = { debouncedSearch, category, brand, color, clothingType, minPrice, maxPrice, availability, sortBy }
+    const currentFilters = { debouncedSearch, category, brand, color, clothingType, minPrice, maxPrice, availability, sortBy, saleOnly }
     const filtersChanged = Object.keys(currentFilters).some(key => currentFilters[key] !== prevFiltersRef.current[key])
 
     if (filtersChanged) {
       setPage(1)
       prevFiltersRef.current = currentFilters
     }
-  }, [debouncedSearch, category, brand, color, clothingType, minPrice, maxPrice, availability, sortBy])
+  }, [debouncedSearch, category, brand, color, clothingType, minPrice, maxPrice, availability, sortBy, saleOnly])
 
   // ---------------- Update URL ----------------
   React.useEffect(() => {
@@ -147,6 +152,7 @@ export default function Products() {
       maxPrice: String(maxPrice),
       availability: availability || '',
       sortBy,
+      sale: saleOnly ? '1' : '',
     })
 
     const current = searchParams.toString()
@@ -156,7 +162,7 @@ export default function Products() {
       const isPageChangeOnly = current.replace(/page=\d+/, '') === target.replace(/page=\d+/, '')
       setSearchParams(next, { replace: !isPageChangeOnly })
     }
-  }, [page, debouncedSearch, category, clothingType, brand, color, minPrice, maxPrice, availability, sortBy, normalizeClothingType, searchParams, setSearchParams])
+  }, [page, debouncedSearch, category, clothingType, brand, color, minPrice, maxPrice, availability, sortBy, saleOnly, normalizeClothingType, searchParams, setSearchParams])
 
   // ---------------- Mobile scroll lock ----------------
   React.useEffect(() => {
@@ -177,9 +183,57 @@ export default function Products() {
     maxPrice,
     availability: availability || undefined,
     sortBy,
+    onSale: saleOnly ? true : undefined,
   }, { skip: isResolvingCategory })
 
   const totalPages = data?.pages ?? 1
+  const filteredProducts = React.useMemo(() => {
+    const list = data?.products || []
+    if (!saleOnly) return list
+    return list.filter((p) => Number(p?.discount || 0) > 0)
+  }, [data?.products, saleOnly])
+
+  const handleSuggestion = (raw) => {
+    const value = String(raw || '').trim().toLowerCase()
+    if (!value) return
+
+    if (value.includes('sale')) {
+      setSaleOnly(true)
+      setSearch('')
+      return
+    }
+
+    if (saleOnly) setSaleOnly(false)
+
+    if (value.includes('latest') || value.includes('new')) {
+      setSortBy('newest')
+      setSearch('')
+      return
+    }
+
+    if (value.includes('bags')) {
+      setCategory('clothing')
+      setClothingType('bags')
+      setSearch('')
+      return
+    }
+
+    if (value.includes('shoes')) {
+      setCategory('clothing')
+      setClothingType('shoes')
+      setSearch('')
+      return
+    }
+
+    if (value.includes('electronics')) {
+      setCategory('electronics')
+      setClothingType('')
+      setSearch('')
+      return
+    }
+
+    setSearch(raw)
+  }
 
   return (
     <section className="p-6 max-w-7xl mx-auto">
@@ -196,6 +250,7 @@ export default function Products() {
           <ProductSearch
             search={search}
             setSearch={setSearch}
+            onSuggestion={handleSuggestion}
             suggestions={['New arrivals', 'Sale', 'Shoes', 'Bags', 'Electronics']}
           />
         </div>
@@ -226,6 +281,8 @@ export default function Products() {
             maxPrice={maxPrice} setMaxPrice={setMaxPrice}
             clothingType={clothingType} setClothingType={setClothingType}
             availability={availability} setAvailability={setAvailability}
+            saleOnly={saleOnly} setSaleOnly={setSaleOnly}
+            onClearAll={() => setSaleOnly(false)}
           />
         </aside>
 
@@ -240,8 +297,8 @@ export default function Products() {
                   <div className="h-4 bg-gray-200 rounded w-1/2" />
                 </div>
               ))
-              : data?.products?.length > 0
-                ? data.products.map((product) => (
+              : filteredProducts?.length > 0
+                ? filteredProducts.map((product) => (
                   <div key={product._id} className="lg:break-inside-avoid lg:mb-6 h-full">
                     <ProductCard product={product} />
                   </div>
@@ -261,6 +318,7 @@ export default function Products() {
                       setSortBy('newest')
                       setMinPrice(0)
                       setMaxPrice(MAX_PRICE)
+                      setSaleOnly(false)
                     }}>Clear All Filters</Button>
                   </div>
                 )}
@@ -303,6 +361,8 @@ export default function Products() {
             maxPrice={maxPrice} setMaxPrice={setMaxPrice}
             clothingType={clothingType} setClothingType={setClothingType}
             availability={availability} setAvailability={setAvailability}
+            saleOnly={saleOnly} setSaleOnly={setSaleOnly}
+            onClearAll={() => setSaleOnly(false)}
           />
         </div>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import {
     useGetAdminReviewsQuery,
-    useDeleteReviewMutation,
+    useDeleteReviewAdminMutation,
     useToggleFeaturedReviewMutation
 } from '@/features/products/productApi'
 import { Button } from '@/components/ui/button'
@@ -24,8 +24,20 @@ export default function AdminReviews() {
     const [page, setPage] = useState(1)
     const [filtersOpen, setFiltersOpen] = useState(false)
     const [reviewToDelete, setReviewToDelete] = useState(null)
-    const { data, isLoading, refetch } = useGetAdminReviewsQuery(page)
-    const [deleteReview] = useDeleteReviewMutation()
+    const [filters, setFilters] = useState({
+        search: '',
+        rating: '',
+        verified: '',
+        featured: ''
+    })
+    const [appliedFilters, setAppliedFilters] = useState({
+        search: '',
+        rating: '',
+        verified: '',
+        featured: ''
+    })
+    const { data, isLoading, refetch } = useGetAdminReviewsQuery({ page, ...appliedFilters })
+    const [deleteReview] = useDeleteReviewAdminMutation()
     const [toggleFeatured] = useToggleFeaturedReviewMutation()
 
     const handleToggleFeature = async (id) => {
@@ -43,7 +55,7 @@ export default function AdminReviews() {
         try {
             await deleteReview(reviewToDelete).unwrap()
             setReviewToDelete(null)
-            toast({ title: 'Review deleted successfully' })
+            toast({ title: 'Review permanently deleted' })
             refetch()
         } catch (err) {
             setReviewToDelete(null)
@@ -61,7 +73,39 @@ export default function AdminReviews() {
         </div>
     )
 
+    const hasActiveFilters = Object.values(appliedFilters).some(Boolean)
     const totalPages = data?.pages || 1
+    const filteredReviews = (data?.reviews || []).filter((review) => {
+        if (!review) return false
+        const search = appliedFilters.search?.trim().toLowerCase()
+        const matchesSearch = !search || [
+            review.user?.name,
+            review.user?.email,
+            review.title,
+            review.body,
+            review.comment,
+            review.product?.title
+        ].some((val) => String(val || '').toLowerCase().includes(search))
+
+        const rating = appliedFilters.rating ? Number(appliedFilters.rating) : null
+        const matchesRating = rating ? Number(review.rating) === rating : true
+
+        const matchesVerified =
+            appliedFilters.verified === 'verified'
+                ? review.isVerified === true
+                : appliedFilters.verified === 'guest'
+                    ? review.isVerified !== true
+                    : true
+
+        const matchesFeatured =
+            appliedFilters.featured === 'featured'
+                ? review.isFeatured === true
+                : appliedFilters.featured === 'not_featured'
+                    ? review.isFeatured !== true
+                    : true
+
+        return matchesSearch && matchesRating && matchesVerified && matchesFeatured
+    })
 
     return (
         <div className="space-y-6">
@@ -79,7 +123,7 @@ export default function AdminReviews() {
                         {filtersOpen ? 'Hide Filters' : 'Show Filters'}
                     </button>
                     <div className="bg-black text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">
-                        {data?.total || 0} Total Reviews
+                        {hasActiveFilters ? `${filteredReviews.length} Filtered` : `${data?.total || 0} Total Reviews`}
                     </div>
                 </div>
             </div>
@@ -91,47 +135,76 @@ export default function AdminReviews() {
                             type="text"
                             placeholder="Search by user or title"
                             className="h-10 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
-                            disabled
+                            value={filters.search}
+                            onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
                         />
                         <select
                             className="h-10 rounded-xl border border-gray-200 px-3 text-sm bg-white"
-                            disabled
+                            value={filters.rating}
+                            onChange={(e) => setFilters((prev) => ({ ...prev, rating: e.target.value }))}
                         >
-                            <option>Rating (All)</option>
-                            <option>5 stars</option>
-                            <option>4 stars</option>
-                            <option>3 stars</option>
-                            <option>2 stars</option>
-                            <option>1 star</option>
+                            <option value="">Rating (All)</option>
+                            <option value="5">5 stars</option>
+                            <option value="4">4 stars</option>
+                            <option value="3">3 stars</option>
+                            <option value="2">2 stars</option>
+                            <option value="1">1 star</option>
                         </select>
                         <select
                             className="h-10 rounded-xl border border-gray-200 px-3 text-sm bg-white"
-                            disabled
+                            value={filters.verified}
+                            onChange={(e) => setFilters((prev) => ({ ...prev, verified: e.target.value }))}
                         >
-                            <option>Verified (All)</option>
-                            <option>Verified</option>
-                            <option>Guest</option>
+                            <option value="">Verified (All)</option>
+                            <option value="verified">Verified</option>
+                            <option value="guest">Guest</option>
                         </select>
                         <select
                             className="h-10 rounded-xl border border-gray-200 px-3 text-sm bg-white"
-                            disabled
+                            value={filters.featured}
+                            onChange={(e) => setFilters((prev) => ({ ...prev, featured: e.target.value }))}
                         >
-                            <option>Featured (All)</option>
-                            <option>Featured</option>
-                            <option>Not Featured</option>
+                            <option value="">Featured (All)</option>
+                            <option value="featured">Featured</option>
+                            <option value="not_featured">Not Featured</option>
                         </select>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
-                        <Button variant="outline" className="rounded-xl" disabled>Apply Filters</Button>
-                        <Button variant="outline" className="rounded-xl" disabled>Reset</Button>
+                        <Button
+                            variant="outline"
+                            className="rounded-xl"
+                            onClick={() => {
+                                setAppliedFilters({
+                                    search: filters.search.trim(),
+                                    rating: filters.rating,
+                                    verified: filters.verified,
+                                    featured: filters.featured
+                                })
+                                setPage(1)
+                            }}
+                        >
+                            Apply Filters
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="rounded-xl"
+                            onClick={() => {
+                                const cleared = { search: '', rating: '', verified: '', featured: '' }
+                                setFilters(cleared)
+                                setAppliedFilters(cleared)
+                                setPage(1)
+                            }}
+                        >
+                            Reset
+                        </Button>
                     </div>
                 </div>
             )}
 
             <div className="grid gap-5">
                 <AnimatePresence mode="popLayout">
-                    {data?.reviews?.length > 0 ? (
-                        data.reviews.map((review, idx) => (
+                    {filteredReviews?.length > 0 ? (
+                        filteredReviews.map((review, idx) => (
                             <motion.div
                                 key={review._id}
                                 initial={{ opacity: 0, y: 10 }}
@@ -220,14 +293,27 @@ export default function AdminReviews() {
                         ))
                     ) : (
                         <div className="text-center py-20 bg-white border border-gray-100 rounded-2xl">
-                            <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">No reviews found in the system.</p>
+                            <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">
+                                {hasActiveFilters ? 'No reviews match these filters.' : 'No reviews found in the system.'}
+                            </p>
                             <div className="mt-5 flex items-center justify-center gap-3">
                                 <Button variant="outline" className="rounded-xl" onClick={() => refetch()}>
                                     Refresh
                                 </Button>
-                                <Button variant="outline" className="rounded-xl" disabled>
-                                    Filters (Coming Soon)
-                                </Button>
+                                {hasActiveFilters && (
+                                    <Button
+                                        variant="outline"
+                                        className="rounded-xl"
+                                        onClick={() => {
+                                            const cleared = { search: '', rating: '', verified: '', featured: '' }
+                                            setFilters(cleared)
+                                            setAppliedFilters(cleared)
+                                            setPage(1)
+                                        }}
+                                    >
+                                        Reset Filters
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     )}

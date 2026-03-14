@@ -47,8 +47,12 @@ export default function ProductCard({ product }) {
     ? product.stock
     : (product?.variants?.reduce((sum, v) => sum + (v?.stock || 0), 0) || 0)
   const isOutOfStock = totalStock < 1
-  const discountedPrice = product?.discount > 0
-    ? Math.round((product?.price || 0) * (1 - product.discount / 100))
+  const maxVariantDiscount = Array.isArray(product?.variants)
+    ? product.variants.reduce((max, v) => Math.max(max, Number(v?.discount || 0)), 0)
+    : 0
+  const maxDiscount = Math.max(Number(product?.discount || 0), maxVariantDiscount)
+  const discountedPrice = maxDiscount > 0
+    ? Math.round((product?.price || 0) * (1 - maxDiscount / 100))
     : (product?.price || 0)
   const primaryImageUrl = React.useMemo(() => {
     const candidates = [
@@ -224,13 +228,10 @@ export default function ProductCard({ product }) {
       {/* PRODUCT IMAGE */}
       <Link to={`/products/${product._id}`} className="block relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-slate-50 via-white to-amber-50">
         {/* SALE BADGE */}
-        {product.discount > 0 && (
-          <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5 animate-in fade-in zoom-in duration-500">
-            <span className="bg-white/70 backdrop-blur-lg text-slate-900 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 shadow-[0_8px_20px_rgba(255,255,255,0.3),0_4px_12px_rgba(0,0,0,0.1)] rounded-xl border border-white/50 border-t-white/80">
-              Sale
-            </span>
-            <span className="bg-rose-500/80 backdrop-blur-lg text-white text-[10px] font-black uppercase tracking-[0.1em] px-2.5 py-1.2 shadow-[0_10px_20px_rgba(244,63,94,0.4)] rounded-xl text-center border border-white/30 border-t-white/50">
-              -{product.discount}%
+        {maxDiscount > 0 && (
+          <div className="absolute top-4 left-4 z-10">
+            <span className="inline-flex items-center gap-2 bg-black text-white text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full shadow-lg">
+              Discount <span className="text-amber-300">-{maxDiscount}%</span>
             </span>
           </div>
         )}

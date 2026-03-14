@@ -392,7 +392,7 @@ export default function Cart() {
                     <img
                       src={item.productImage || 'https://via.placeholder.com/150'}
                       alt={item.title}
-                      className="w-full h-full object-contain mix-blend-multiply transition-transform group-hover:scale-105 duration-500"
+                      className="w-full h-full object-contain transition-transform group-hover:scale-105 duration-500"
                     />
                   </div>
 

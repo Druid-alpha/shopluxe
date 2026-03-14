@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import Slider from 'react-slick'
 
 export default function FeaturedReviews() {
+    const [isMobile, setIsMobile] = React.useState(false)
     const { data, isLoading } = useGetFeaturedReviewsQuery(undefined, {
         refetchOnMountOrArgChange: true,
         refetchOnFocus: true,
@@ -14,22 +15,38 @@ export default function FeaturedReviews() {
         (review) => review?.isFeatured === true
     )
 
+    React.useEffect(() => {
+        if (typeof window === 'undefined') return
+        const media = window.matchMedia('(max-width: 768px)')
+        const sync = () => setIsMobile(media.matches)
+        sync()
+        if (media.addEventListener) {
+            media.addEventListener('change', sync)
+            return () => media.removeEventListener('change', sync)
+        }
+        media.addListener(sync)
+        return () => media.removeListener(sync)
+    }, [])
+
     const settings = {
         dots: true,
         infinite: true,
-        speed: 800,
+        speed: isMobile ? 500 : 800,
         slidesToShow: 1,
         slidesToScroll: 1,
         autoplay: true,
         autoplaySpeed: 5000,
-        arrows: true,
-        fade: true,
+        arrows: !isMobile,
+        fade: false,
+        adaptiveHeight: true,
+        swipeToSlide: true,
+        touchThreshold: 12,
         responsive: [
             {
                 breakpoint: 768,
                 settings: {
                     arrows: false,
-                    centerMode: true,
+                    centerMode: false,
                     centerPadding: '0px',
                 }
             }

@@ -3,7 +3,7 @@ import React from 'react'
 import { Input } from './ui/input'
 import { Button } from './ui/button'
 
-export default function ProductSearch({ search, setSearch, onSearch, suggestions = [] }) {
+export default function ProductSearch({ search, setSearch, onSearch, suggestions = [], onSuggestion }) {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault()
@@ -39,7 +39,13 @@ export default function ProductSearch({ search, setSearch, onSearch, suggestions
             <button
               key={s}
               type="button"
-              onClick={() => setSearch(s)}
+              onClick={() => {
+                if (onSuggestion) {
+                  onSuggestion(s)
+                  return
+                }
+                setSearch(s)
+              }}
               className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-gray-200 text-gray-500 hover:text-black hover:border-black transition-all"
             >
               {s}

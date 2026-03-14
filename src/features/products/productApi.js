@@ -33,6 +33,7 @@ export const productApi = api.injectEndpoints({
         maxPrice,
         availability,
         sortBy,
+        onSale,
       } = {}) => {
         const values = typeof availability === "string"
           ? availability.split(",").map((v) => v.trim()).filter(Boolean)
@@ -61,6 +62,7 @@ export const productApi = api.injectEndpoints({
           availability,
           inStock,
           sortBy,
+          onSale,
         }),
       }
       },
@@ -135,6 +137,27 @@ export const productApi = api.injectEndpoints({
       invalidatesTags: ["Review"],
     }),
 
+    deleteReviewAdmin: builder.mutation({
+      async queryFn(reviewId, _api, _extraOptions, baseQuery) {
+        const primary = await baseQuery({
+          url: `/reviews/admin/${reviewId}`,
+          method: "DELETE",
+          credentials: "include",
+        })
+        if (!primary.error) return { data: primary.data }
+
+        const fallback = await baseQuery({
+          url: `/reviews/${reviewId}`,
+          method: "DELETE",
+          credentials: "include",
+        })
+        if (!fallback.error) return { data: fallback.data }
+
+        return { error: primary.error || fallback.error }
+      },
+      invalidatesTags: ["Review"],
+    }),
+
     toggleHelpful: builder.mutation({
       query: (reviewId) => ({
         url: `/reviews/${reviewId}/helpful`,
@@ -144,9 +167,9 @@ export const productApi = api.injectEndpoints({
     }),
 
     getAdminReviews: builder.query({
-      query: (page = 1) => ({
+      query: ({ page = 1, search, rating, verified, featured } = {}) => ({
         url: "/reviews/admin/all",
-        params: { page },
+        params: cleanParams({ page, search, rating, verified, featured }),
         credentials: "include",
       }),
       providesTags: ["Review"],
@@ -330,6 +353,7 @@ export const {
   useAddReviewMutation,
   useUpdateReviewMutation,
   useDeleteReviewMutation,
+  useDeleteReviewAdminMutation,
   useToggleHelpfulMutation,
   useGetAdminReviewsQuery,
   useGetFeaturedReviewsQuery,
