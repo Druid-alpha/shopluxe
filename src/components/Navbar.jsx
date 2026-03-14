@@ -88,6 +88,15 @@ export default function Navbar() {
     setMobileOpen(false)
   }, [location.pathname])
 
+  React.useEffect(() => {
+    document.body.dataset.mobileNavOpen = mobileOpen ? '1' : '0'
+    window.dispatchEvent(new CustomEvent('shopluxe:mobile-nav', { detail: { open: mobileOpen } }))
+    return () => {
+      document.body.dataset.mobileNavOpen = '0'
+      window.dispatchEvent(new CustomEvent('shopluxe:mobile-nav', { detail: { open: false } }))
+    }
+  }, [mobileOpen])
+
   const adminLinks = [
     { name: 'Dashboard', path: '/admin' },
     { name: 'Products', path: '/admin/products' },

@@ -113,15 +113,15 @@ export default function OrderReceipt() {
 
     const triggerInvoiceDownload = (url) => {
       try {
-        const link = document.createElement('a')
-        link.href = url
-        link.target = '_blank'
-        link.rel = 'noopener noreferrer'
-        document.body.appendChild(link)
-        link.click()
-        link.remove()
+        const opened = window.open(url, '_blank', 'noopener,noreferrer')
+        if (opened) return true
+      } catch {
+        // ignore
+      }
+      try {
+        window.location.assign(url)
         return true
-      } catch (e) {
+      } catch {
         return false
       }
     }
@@ -132,7 +132,10 @@ export default function OrderReceipt() {
       const freshUrl = generated?.invoiceUrl || invoiceUrl || order?.invoiceUrl || null
       if (freshUrl) {
         setInvoiceUrl(freshUrl)
-        const opened = triggerInvoiceDownload(freshUrl)
+        let opened = triggerInvoiceDownload(freshUrl)
+        if (!opened && order?.invoiceUrl && order.invoiceUrl !== freshUrl) {
+          opened = triggerInvoiceDownload(order.invoiceUrl)
+        }
         if (opened) {
           refetch()
           return
@@ -145,6 +148,14 @@ export default function OrderReceipt() {
       }
     } catch (err) {
       console.error('Official invoice generation failed:', err)
+      const fallbackUrl = invoiceUrl || order?.invoiceUrl || null
+      if (fallbackUrl) {
+        const opened = triggerInvoiceDownload(fallbackUrl)
+        if (opened) {
+          refetch()
+          return
+        }
+      }
       toast({
         title: 'Invoice download failed',
         description: 'Please try again in a moment.',

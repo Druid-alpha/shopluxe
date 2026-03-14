@@ -58,14 +58,14 @@ export default function FeaturedReviews() {
                                             </p>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="review-meta">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">
-                                        {review.user?.name || 'Customer'}
-                                    </p>
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
-                                        {review.product?.title || 'Purchase'}
-                                    </p>
+                                    <div className="review-meta">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">
+                                            {review.user?.name || 'Customer'}
+                                        </p>
+                                        <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                                            {review.product?.title || 'Purchase'}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -106,11 +106,8 @@ export default function FeaturedReviews() {
                 }
                 .review-meta {
                     margin-top: 12px;
-                    padding: 0 6px;
-                    min-height: 36px;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: flex-start;
+                    padding-top: 12px;
+                    border-top: 1px solid #f3f4f6;
                 }
                 @media (max-width: 768px) {
                     .review-card {

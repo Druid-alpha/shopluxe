@@ -435,6 +435,7 @@ export default function ProductDetails() {
   const [isAdding, setIsAdding] = React.useState(false)
   const [reservationExpiresAt, setReservationExpiresAt] = React.useState(null)
   const [reservationRemaining, setReservationRemaining] = React.useState(null)
+  const [isNavOpen, setIsNavOpen] = React.useState(false)
 
   const variants = product?.variants || []
   const selectedVariant = selectedVariantIndex >= 0 ? variants[selectedVariantIndex] : null
@@ -549,6 +550,18 @@ export default function ProductDetails() {
       setMainImage(product.images?.[0]?.url || '')
     }
   }, [product, mainImage])
+
+  React.useEffect(() => {
+    const updateFromBody = () => {
+      setIsNavOpen(document.body.dataset.mobileNavOpen === '1')
+    }
+    updateFromBody()
+    const handler = (event) => {
+      setIsNavOpen(!!event?.detail?.open)
+    }
+    window.addEventListener('shopluxe:mobile-nav', handler)
+    return () => window.removeEventListener('shopluxe:mobile-nav', handler)
+  }, [])
 
   React.useEffect(() => {
     const raw = window.localStorage.getItem('shopluxe_reservation')
@@ -1054,21 +1067,6 @@ export default function ProductDetails() {
             {(mainSizes.length > 0 || baseColorName) && (purchaseMode === 'base' || !hasVariants) && (
               <div key="main-product-specs" className="space-y-4 pt-4 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300 mb-3">
                 <div className="flex flex-col gap-3">
-                  {/* Branded Info Card */}
-                  <div className="flex items-center justify-between p-3 bg-slate-50/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 transition-all">
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">
-                        {isGrocery ? 'Fresh Stock' : isElectronics ? 'Original Design' : 'Standard Edition'}
-                      </span>
-                      <span className="text-[9px] text-slate-500 font-bold uppercase">
-                        {isGrocery ? 'Quality Assured' : isElectronics ? 'Certified Product' : 'Authentic Item'}
-                      </span>
-                    </div>
-                    <div className="px-3 py-1 bg-white/50 border border-slate-200 rounded-lg text-[9px] font-black uppercase text-slate-400 tracking-tighter">
-                      {isElectronics ? 'Unit Specs' : isGrocery ? 'Size/Weight' : 'Base Unit'}
-                    </div>
-                  </div>
-
                   {/* Specification / Size Values */}
                   <div className="space-y-2 px-1">
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
@@ -1218,7 +1216,7 @@ export default function ProductDetails() {
       </div>
 
       {/* Sticky mobile add-to-cart bar */}
-      <div className="fixed bottom-0 left-0 right-0 sm:hidden z-50 border-t border-gray-200 bg-white/95 backdrop-blur-lg px-4 py-3">
+      <div className={`fixed bottom-0 left-0 right-0 sm:hidden z-30 border-t border-gray-200 bg-white/95 backdrop-blur-lg px-4 py-3 transition-opacity duration-200 ${isNavOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Total</p>

@@ -406,6 +406,13 @@ export default function AdminProducts() {
         <div className="lg:hidden p-4 space-y-4">
           {products.map((p) => {
             const hasDiscount = Number(p.discount || 0) > 0 || (p.variants || []).some(v => Number(v?.discount || 0) > 0)
+            const skuCounts = (p.variants || []).reduce((acc, v) => {
+              const sku = String(v?.sku || '').trim()
+              if (!sku) return acc
+              acc[sku] = (acc[sku] || 0) + 1
+              return acc
+            }, {})
+            const duplicateSkus = Object.keys(skuCounts).filter(k => skuCounts[k] > 1)
             const variantStock = (p.variants || []).reduce((sum, v) => sum + Number(v?.stock || 0), 0)
             const variantReserved = (p.variants || []).reduce((sum, v) => sum + Number(v?.reserved || 0), 0)
             const totalStock = Number(p.stock || 0) + variantStock
@@ -443,6 +450,11 @@ export default function AdminProducts() {
                   ) : (
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 uppercase tracking-tighter w-fit">
                       Active
+                    </span>
+                  )}
+                  {duplicateSkus.length > 0 && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 uppercase tracking-tighter w-fit">
+                      Duplicate SKU
                     </span>
                   )}
                 </div>
@@ -554,6 +566,13 @@ export default function AdminProducts() {
             <tbody className="divide-y divide-gray-50">
           {products.map((p) => {
                 const hasDiscount = Number(p.discount || 0) > 0 || (p.variants || []).some(v => Number(v?.discount || 0) > 0)
+                const skuCounts = (p.variants || []).reduce((acc, v) => {
+                  const sku = String(v?.sku || '').trim()
+                  if (!sku) return acc
+                  acc[sku] = (acc[sku] || 0) + 1
+                  return acc
+                }, {})
+                const duplicateSkus = Object.keys(skuCounts).filter(k => skuCounts[k] > 1)
                 const variantStock = (p.variants || []).reduce((sum, v) => sum + Number(v?.stock || 0), 0)
                 const variantReserved = (p.variants || []).reduce((sum, v) => sum + Number(v?.reserved || 0), 0)
                 const totalStock = Number(p.stock || 0) + variantStock
@@ -613,6 +632,11 @@ export default function AdminProducts() {
                       ) : (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 uppercase tracking-tighter w-fit">
                           Active
+                        </span>
+                      )}
+                      {duplicateSkus.length > 0 && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 uppercase tracking-tighter w-fit">
+                          Duplicate SKU
                         </span>
                       )}
                     </div>

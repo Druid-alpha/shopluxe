@@ -88,35 +88,123 @@ export default function AdminOrders() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Order Management</h2>
           <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mt-1">
             Last updated: {lastUpdated || 'Just now'}
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="gap-2"
-        >
-          <RefreshCcw size={14} className={isFetching ? "animate-spin" : ""} />
-          {isFetching ? "Refreshing..." : "Refresh"}
-        </Button>
-        <button
-          type="button"
-          onClick={() => setShowReservedOnly(prev => !prev)}
-          className={`h-8 px-4 rounded-full border text-[10px] font-black uppercase tracking-widest transition-colors ${showReservedOnly ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200 hover:text-black hover:border-black'}`}
-          title="Show only pending payment (reserved) orders"
-        >
-          {showReservedOnly ? 'Reserved Only' : 'All Orders'}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="gap-2"
+          >
+            <RefreshCcw size={14} className={isFetching ? "animate-spin" : ""} />
+            {isFetching ? "Refreshing..." : "Refresh"}
+          </Button>
+          <button
+            type="button"
+            onClick={() => setShowReservedOnly(prev => !prev)}
+            className={`h-8 px-4 rounded-full border text-[10px] font-black uppercase tracking-widest transition-colors ${showReservedOnly ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200 hover:text-black hover:border-black'}`}
+            title="Show only pending payment (reserved) orders"
+          >
+            {showReservedOnly ? 'Reserved Only' : 'All Orders'}
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto max-h-[70vh] relative">
+        {/* Mobile cards */}
+        <div className="lg:hidden p-4 space-y-4">
+          {filteredOrders.map((order) => {
+            const isReserved = order?.paymentStatus === 'pending'
+            const expiresAt = order?.expiresAt ? new Date(order.expiresAt) : null
+            const minutesLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - nowTick) / 60000)) : null
+            return (
+              <div key={order._id} className="rounded-2xl border border-gray-100 p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-black text-gray-900">#{String(order._id || '').slice(-8).toUpperCase()}</p>
+                    <p className="text-[10px] text-gray-400 font-mono">{new Date(order.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <span className={`inline-flex items-center justify-center h-7 px-3 text-[10px] font-bold uppercase rounded-full ${order.paymentStatus === 'paid'
+                    ? 'bg-green-100 text-green-700'
+                    : order.paymentStatus === 'failed'
+                      ? 'bg-red-100 text-red-700'
+                      : order.paymentStatus === 'refunded'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-amber-100 text-amber-700'
+                    }`}>
+                    {order.paymentStatus || 'pending'}
+                  </span>
+                </div>
+
+                <div className="mt-3 text-sm font-semibold text-gray-900">{order.user?.name || 'Guest'}</div>
+                <div className="text-xs text-gray-400">{order.user?.email || 'N/A'}</div>
+
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {order.items?.map((item, idx) => (
+                    <span key={idx} className="bg-gray-100 px-2 py-0.5 rounded text-[10px] font-medium text-gray-700 border border-gray-200">
+                      {item.title || 'Product'} x{item.qty}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="mt-3 flex items-center justify-between">
+                  {isReserved ? (
+                    <div className="flex flex-col gap-1">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-100 w-fit">
+                        Reserved
+                      </span>
+                      {minutesLeft !== null && (
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                          Expires in {minutesLeft} min
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-gray-300">-</span>
+                  )}
+                  <span className="text-sm font-bold text-gray-900">₦{order.totalAmount?.toLocaleString()}</span>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <Select
+                    value={orderStatusOptions.includes(order.status) ? order.status : undefined}
+                    onValueChange={(val) => handleStatusUpdate(order._id, val)}
+                    disabled={isUpdating}
+                  >
+                    <SelectTrigger className="h-9 w-full text-[11px] font-bold uppercase rounded-lg border-gray-200">
+                      <SelectValue placeholder={order.status || 'pending'} />
+                    </SelectTrigger>
+                    <SelectContent side="bottom">
+                      {orderStatusOptions.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => setOrderToDelete(order._id)}
+                  >
+                    <Trash2 size={18} />
+                  </Button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden lg:block overflow-x-auto max-h-[70vh] relative">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 z-10 bg-gray-50">
               <tr className="border-b border-gray-100 text-xs text-gray-500 font-bold uppercase tracking-widest">
@@ -232,7 +320,7 @@ export default function AdminOrders() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right align-middle">
-                    <span className="font-bold text-gray-900">NGN {order.totalAmount?.toLocaleString()}</span>
+                    <span className="font-bold text-gray-900">₦{order.totalAmount?.toLocaleString()}</span>
                   </td>
                   <td className="px-6 py-4 text-right align-middle">
                     <Button

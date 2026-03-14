@@ -234,6 +234,18 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     return `${normalize(catName)}-${normalize(brandName)}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`
   }
 
+  const generateUniqueSku = (existingSkus) => {
+    const set = existingSkus instanceof Set ? existingSkus : new Set(existingSkus || [])
+    let sku = ''
+    let tries = 0
+    do {
+      sku = generateSKU()
+      tries += 1
+    } while (set.has(sku) && tries < 20)
+    set.add(sku)
+    return sku
+  }
+
   const getSizesForType = type => {
     const t = String(type || '').toLowerCase()
     const normalizedType = t === 'bag' ? 'bags' : t
@@ -343,10 +355,11 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
      VARIANT HANDLERS
   ===================================================== */
   const addVariant = () => {
+    const existingSkus = new Set(variants.map(v => String(v?.sku || '').trim()).filter(Boolean))
     setVariants(prev => [
       ...prev,
       {
-        sku: generateSKU(),
+        sku: generateUniqueSku(existingSkus),
         type: clothingType || '',
         options: { color: '', size: '' },
         price: 0,
@@ -454,6 +467,38 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
      SKU UNIQUENESS VALIDATION
   ===================================================== */
   const isSkuUnique = sku => variants.filter(v => v.sku === sku).length === 1
+  const duplicateSkus = React.useMemo(() => {
+    const counts = new Map()
+    variants.forEach(v => {
+      const sku = String(v?.sku || '').trim()
+      if (!sku) return
+      counts.set(sku, (counts.get(sku) || 0) + 1)
+    })
+    return Array.from(counts.entries()).filter(([, count]) => count > 1).map(([sku]) => sku)
+  }, [variants])
+
+  const fixDuplicateSkus = () => {
+    if (duplicateSkus.length === 0) return
+    const used = new Set()
+    const next = variants.map(v => {
+      const rawSku = String(v?.sku || '').trim()
+      if (!rawSku || used.has(rawSku)) {
+        const sku = generateUniqueSku(used)
+        return { ...v, sku }
+      }
+      used.add(rawSku)
+      return v
+    })
+    setVariants(next)
+    setErrors(prev => {
+      if (!prev) return prev
+      const cleaned = { ...prev }
+      Object.keys(cleaned).forEach(key => {
+        if (key.startsWith('sku_')) delete cleaned[key]
+      })
+      return cleaned
+    })
+  }
 
   /* =====================================================
      CLIENT VALIDATION
@@ -843,11 +888,23 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
               Each variant = a different colour. Customer picks colour -> then picks 1 size -> adds to cart.
             </p>
           </div>
-          <Button type="button" onClick={addVariant} variant="outline" className="rounded-xl text-[10px] uppercase font-black tracking-widest border-black hover:bg-black hover:text-white">+ Add Variant</Button>
+          <div className="flex items-center gap-2">
+            {duplicateSkus.length > 0 && (
+              <Button type="button" onClick={fixDuplicateSkus} variant="outline" className="rounded-xl text-[10px] uppercase font-black tracking-widest border-red-200 text-red-600 hover:bg-red-50">
+                Fix Duplicates
+              </Button>
+            )}
+            <Button type="button" onClick={addVariant} variant="outline" className="rounded-xl text-[10px] uppercase font-black tracking-widest border-black hover:bg-black hover:text-white">+ Add Variant</Button>
+          </div>
         </div>
 
         {variants.length > 0 ? (
           <div className="space-y-4">
+            {duplicateSkus.length > 0 && (
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-700">
+                Duplicate SKU(s): {duplicateSkus.join(', ')}. Each variant must have a unique SKU.
+              </div>
+            )}
             {variants.map((v, idx) => (
               <div key={idx} className="bg-gray-50 p-6 rounded-2xl grid grid-cols-1 md:grid-cols-6 gap-4 items-end relative group">
                 {/* SKU */}
