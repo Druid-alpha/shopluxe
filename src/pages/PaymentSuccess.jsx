@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react"
 import { useSearchParams, useNavigate } from "react-router-dom"
-import { useAppDispatch } from "@/app/hooks"
+import { useAppDispatch, useAppSelector } from "@/app/hooks"
 import { clearCart } from "@/features/cart/cartSlice"
 import { clearCartBackend } from "@/features/cart/cartApi"
 import { useToast } from "@/hooks/use-toast"
@@ -12,6 +12,7 @@ import Confetti from "react-confetti"
 export default function PaymentSuccess() {
   const [params] = useSearchParams()
   const dispatch = useAppDispatch()
+  const token = useAppSelector(state => state.auth.token)
   const navigate = useNavigate()
   const { toast } = useToast()
   const [status, setStatus] = useState("verifying")
@@ -39,7 +40,10 @@ export default function PaymentSuccess() {
         const res = await fetch(
           `${import.meta.env.VITE_API_URL}/payments/verify/${reference}`,
           {
-            credentials: "include"
+            credentials: "include",
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {})
+            }
           }
         )
         const data = await res.json()
