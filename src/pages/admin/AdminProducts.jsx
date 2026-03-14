@@ -14,7 +14,7 @@ import {
 } from '@/features/products/productApi'
 import ProductForm from './ProductForm'
 import Modal from './Modal'
-import { Star, Edit, Trash2, RotateCcw, Trash } from 'lucide-react'
+import { Star, Edit, Trash2, RotateCcw, Trash, RefreshCw } from 'lucide-react'
 
 export default function AdminProducts() {
   const [toggleFeatured] = useToggleFeaturedMutation()
@@ -230,6 +230,21 @@ export default function AdminProducts() {
       toast({
         title: 'Error',
         description: err?.data?.message || 'Hard delete all failed',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleResetReservation = async (product) => {
+    if (!product?._id) return
+    try {
+      await axios.post('/admin/reservations/reset-product', { productId: product._id })
+      toast({ title: 'Reservation reset', description: product.title })
+      refetch()
+    } catch (err) {
+      toast({
+        title: 'Reset failed',
+        description: err?.response?.data?.message || 'Could not reset reservations',
         variant: 'destructive',
       })
     }
@@ -465,6 +480,13 @@ export default function AdminProducts() {
                             title="Edit Product"
                           >
                             <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleResetReservation(p)}
+                            className="p-2 rounded-lg border border-blue-100 text-blue-500 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+                            title="Reset Reservations"
+                          >
+                            <RefreshCw size={16} />
                           </button>
                           <button
                             onClick={() => handleSoftDelete(p._id)}
