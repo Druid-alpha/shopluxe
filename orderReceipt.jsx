@@ -127,35 +127,26 @@ export default function OrderReceipt() {
     }
 
     try {
-      // Always request a signed/validated invoice URL to avoid stale or blocked downloads.
-      const generated = await generateInvoice(order._id).unwrap()
-      const freshUrl = generated?.invoiceUrl || invoiceUrl || order?.invoiceUrl || null
-      if (freshUrl) {
-        setInvoiceUrl(freshUrl)
-        let opened = triggerInvoiceDownload(freshUrl)
-        if (!opened && order?.invoiceUrl && order.invoiceUrl !== freshUrl) {
-          opened = triggerInvoiceDownload(order.invoiceUrl)
-        }
-        if (opened) {
-          refetch()
-          return
-        }
-        toast({
-          title: 'Invoice download blocked',
-          description: 'Please allow popups and try again.',
-          variant: 'destructive'
-        })
-      }
+      // Ensure invoice exists (best-effort), then download via backend proxy.
+      await generateInvoice(order._id).unwrap()
     } catch (err) {
-      console.error('Official invoice generation failed:', err)
-      const fallbackUrl = invoiceUrl || order?.invoiceUrl || null
-      if (fallbackUrl) {
-        const opened = triggerInvoiceDownload(fallbackUrl)
-        if (opened) {
-          refetch()
-          return
-        }
+      console.warn('Invoice generation skipped:', err?.message || err)
+    }
+
+    try {
+      const backendUrl = `${import.meta.env.VITE_API_URL}/orders/${order._id}/invoice/download`
+      const opened = triggerInvoiceDownload(backendUrl)
+      if (opened) {
+        refetch()
+        return
       }
+      toast({
+        title: 'Invoice download blocked',
+        description: 'Please allow popups and try again.',
+        variant: 'destructive'
+      })
+    } catch (err) {
+      console.error('Official invoice download failed:', err)
       toast({
         title: 'Invoice download failed',
         description: 'Please try again in a moment.',

@@ -249,7 +249,7 @@ export default function ProductCard({ product }) {
       </div>
 
       {/* PRODUCT IMAGE */}
-      <Link to={`/products/${product._id}`} className="block relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-slate-50 via-white to-amber-50">
+      <Link to={`/products/${product._id}`} className="block relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-slate-50 via-white to-amber-50 min-h-[260px]">
         {/* SALE BADGE */}
         {maxDiscount > 0 && (
           <div className="absolute top-4 left-4 z-10">
@@ -301,8 +301,8 @@ export default function ProductCard({ product }) {
         </div>
       </Link>
 
-      {galleryImages.length > 1 && (
-        <div className="px-3 sm:px-5 pb-3">
+      <div className="px-3 sm:px-5 pb-3 min-h-[44px]">
+        {galleryImages.length > 1 ? (
           <div className="flex items-center gap-2 overflow-hidden">
             {galleryImages.slice(0, 5).map((url, idx) => (
               <div key={`${product._id}-thumb-${idx}`} className="w-8 h-8 rounded-md border border-gray-100 bg-gray-50 overflow-hidden flex-shrink-0">
@@ -315,11 +315,11 @@ export default function ProductCard({ product }) {
               </span>
             )}
           </div>
-        </div>
-      )}
+        ) : null}
+      </div>
 
       {/* PRODUCT INFO */}
-      <div className="p-3 sm:p-5 space-y-2 flex-1">
+      <div className="p-3 sm:p-5 space-y-2 flex-1 min-h-[88px]">
         <div className="flex justify-between items-start gap-2 min-w-0">
           <Link to={`/products/${product._id}`} className="flex-1 min-w-0">
             <h3 className="text-xs sm:text-sm font-bold text-gray-900 line-clamp-2 break-words group-hover:text-primary transition-colors">
