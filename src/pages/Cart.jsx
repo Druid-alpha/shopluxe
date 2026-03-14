@@ -126,6 +126,7 @@ function VariantEditor({ item, onChange, disabled }) {
   const initialColorKey = (item.variantColorHex || item.variantColorName || '').toLowerCase()
   const [colorKey, setColorKey] = useState(initialColorKey || colorOptions[0]?.key || '')
   const [size, setSize] = useState(item.variantSize || '')
+  const hasBaseOption = Number(item.productStock || 0) > 0
 
   const sizesByColor = new Map()
   variants.forEach(v => {
@@ -164,6 +165,22 @@ function VariantEditor({ item, onChange, disabled }) {
 
   return (
     <div className="flex flex-col gap-2 pt-2">
+      {hasBaseOption && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => {
+              setColorKey('')
+              setSize('')
+              onChange(null)
+            }}
+            className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${!item.variant ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-200 hover:border-black'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            Main Product
+          </button>
+        </div>
+      )}
       {colorOptions.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           {colorOptions.map((c) => {
@@ -339,19 +356,28 @@ export default function Cart() {
   };
 
   const changeVariant = async (item, nextVariant) => {
-    if (!nextVariant?.sku) return
+    const isBaseSelection = !nextVariant
     const updatingKey = `${item.key}-variant`
     if (updatingItems[updatingKey]) return
     setUpdatingItems(prev => ({ ...prev, [updatingKey]: true }))
 
-    const nextMeta = {
-      size: nextVariant.size || '',
-      colorName: nextVariant.colorName || '',
-      colorHex: nextVariant.colorHex || null,
-      imageUrl: nextVariant.imageUrl || null,
-      basePrice: Number(nextVariant.price ?? item.basePrice ?? 0),
-      discount: Number(nextVariant.discount ?? item.discount ?? 0)
-    }
+    const nextMeta = isBaseSelection
+      ? {
+        size: '',
+        colorName: '',
+        colorHex: null,
+        imageUrl: item.productImage || null,
+        basePrice: Number(item.basePrice ?? 0),
+        discount: Number(item.discount ?? 0)
+      }
+      : {
+        size: nextVariant.size || '',
+        colorName: nextVariant.colorName || '',
+        colorHex: nextVariant.colorHex || null,
+        imageUrl: nextVariant.imageUrl || null,
+        basePrice: Number(nextVariant.price ?? item.basePrice ?? 0),
+        discount: Number(nextVariant.discount ?? item.discount ?? 0)
+      }
     const finalPrice = nextMeta.discount > 0
       ? Math.round(nextMeta.basePrice * (1 - nextMeta.discount / 100))
       : nextMeta.basePrice
@@ -360,7 +386,7 @@ export default function Cart() {
     if (!user) {
       dispatch(updateGuestCartVariant({
         key: item.key,
-        nextVariant: { sku: nextVariant.sku, size: nextVariant.size, color: nextVariant.colorName },
+        nextVariant: isBaseSelection ? null : { sku: nextVariant.sku, size: nextVariant.size, color: nextVariant.colorName },
         nextMeta
       }))
       setUpdatingItems(prev => ({ ...prev, [updatingKey]: false }))
@@ -371,7 +397,7 @@ export default function Cart() {
       const oldVariantArg = (item.variantPayload && Object.keys(item.variantPayload).length > 0)
         ? item.variantPayload
         : (item.variant || null)
-      await cartApi.addToCart(item.productId, item.qty, { sku: nextVariant.sku })
+      await cartApi.addToCart(item.productId, item.qty, isBaseSelection ? null : { sku: nextVariant.sku })
       const data = await cartApi.removeCartItem(item.productId, oldVariantArg)
       dispatch(setCart(data))
       toast({ title: 'Variant updated' })
