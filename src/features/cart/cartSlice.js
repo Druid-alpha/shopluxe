@@ -96,7 +96,7 @@ const cartSlice = createSlice({
               variantSize: nextMeta?.size || '',
               variantColorName: nextMeta?.colorName || '',
               variantColorHex: nextMeta?.colorHex || null,
-              productImage: nextMeta?.imageUrl || item.productImage,
+              productImage: nextMeta?.imageUrl || item.baseProductImage || item.productImage,
               price: Number(nextMeta?.finalPrice ?? item.price),
               basePrice: Number(nextMeta?.basePrice ?? item.basePrice),
               discount: Number(nextMeta?.discount ?? item.discount)

@@ -157,6 +157,7 @@ export default function ProductCard({ product }) {
         basePrice: product.price || 0,
         discount: product.discount || 0,
         productImage: primaryImageUrl,
+        baseProductImage: primaryImageUrl,
         productStock: totalStock,
         qty: 1,
         variant: null,

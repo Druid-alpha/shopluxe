@@ -401,6 +401,7 @@ export const normalizeCart = (cart) => {
       } : null;
       const productImage =
         variantObj?.image?.url || product.images?.[0]?.url || null
+      const baseProductImage = product.images?.[0]?.url || null
       const productVariants = Array.isArray(product.variants)
         ? product.variants.map(v => ({
           sku: v.sku,
@@ -444,6 +445,7 @@ export const normalizeCart = (cart) => {
         productStock: product.stock,
         clothingType: product.clothingType || null,
         productImage,
+        baseProductImage,
         addedAt
       };
     })

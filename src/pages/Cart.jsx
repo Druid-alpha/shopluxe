@@ -367,7 +367,7 @@ export default function Cart() {
         size: '',
         colorName: '',
         colorHex: null,
-        imageUrl: item.productImage || null,
+        imageUrl: item.baseProductImage || item.productImage || null,
         basePrice: Number(item.basePrice ?? 0),
         discount: Number(item.discount ?? 0)
       }
