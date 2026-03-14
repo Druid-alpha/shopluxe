@@ -128,7 +128,10 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       toast({ title: `Color already exists in ${categoryLabel} — applied` })
       return existingColor._id
     }
-    const existing = colors.find(c => normalizeHex(c.hex) === normalizedHex)
+    const existing = colors.find(c =>
+      normalizeHex(c.hex) === normalizedHex &&
+      String(c.category?._id || c.category || '') === String(category)
+    )
     if (existing?._id) return applyExistingColor(existing)
 
     try {
@@ -322,11 +325,13 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       setBrands([])
       setClothingType('')
       setBrand('')
+      setColors([])
       return
     }
     axios.get('/products/filters', { params: { category } })
       .then(res => {
         setBrands(res.data.brands || [])
+        setColors(res.data.colors || [])
         setSizeOptionsByClothingType(res.data.sizeOptionsByClothingType || DEFAULT_SIZE_OPTIONS_BY_TYPE)
         const stillValid = res.data.brands?.some(b => b._id === brand)
         if (!stillValid) setBrand('')
