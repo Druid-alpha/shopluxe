@@ -88,6 +88,18 @@ export default function OrderReceipt() {
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
+    const openDownloadWindow = () => {
+      try {
+        const win = window.open('', '_blank', 'noopener,noreferrer')
+        if (win) {
+          win.document.title = 'Preparing invoice...'
+        }
+        return win
+      } catch {
+        return null
+      }
+    }
+
     const downloadFromUrl = async (url) => {
       const filename = opt.filename.endsWith('.pdf') ? opt.filename : `${opt.filename}.pdf`
       try {
@@ -108,11 +120,18 @@ export default function OrderReceipt() {
       }
     }
 
+    const downloadWindow = openDownloadWindow()
+
     try {
       // Always request a signed/validated invoice URL to avoid stale or blocked downloads.
       const generated = await generateInvoice(order._id).unwrap()
       const invoiceUrl = generated?.invoiceUrl || order?.invoiceUrl || null
       if (invoiceUrl) {
+        if (downloadWindow && !downloadWindow.closed) {
+          downloadWindow.location = invoiceUrl
+          refetch()
+          return
+        }
         const downloaded = await downloadFromUrl(invoiceUrl)
         if (downloaded) {
           refetch()
@@ -123,6 +142,10 @@ export default function OrderReceipt() {
       console.error('Official invoice generation failed:', err)
     } finally {
       setIsDownloading(false)
+    }
+
+    if (downloadWindow && !downloadWindow.closed) {
+      downloadWindow.close()
     }
 
     html2pdf().set(opt).from(receiptRef.current).save()
