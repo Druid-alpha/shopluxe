@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Download, ChevronLeft, LogOut, CheckCircle2, Clock } from 'lucide-react'
 import html2pdf from 'html2pdf.js'
-import { useAppDispatch } from '@/app/hooks'
+import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { logout } from '@/features/auth/authSlice'
 import { productApi } from '@/features/products/productApi'
 import { useGenerateOrderInvoiceMutation, useGetOrderQuery } from '@/features/orders/orderApi'
@@ -13,6 +13,7 @@ export default function OrderReceipt() {
   const { id } = useParams()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
+  const token = useAppSelector(state => state.auth.token)
   const { toast } = useToast()
   const receiptRef = React.useRef(null)
 
@@ -111,19 +112,26 @@ export default function OrderReceipt() {
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
-    const triggerInvoiceDownload = (url) => {
-      try {
-        const opened = window.open(url, '_blank', 'noopener,noreferrer')
-        if (opened) return true
-      } catch {
-        // ignore
-      }
-      try {
-        window.location.assign(url)
-        return true
-      } catch {
-        return false
-      }
+    const downloadViaApi = async (url) => {
+      const filename = opt.filename.endsWith('.pdf') ? opt.filename : `${opt.filename}.pdf`
+      const res = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      })
+      if (!res.ok) throw new Error(`Download failed: ${res.status}`)
+      const blob = await res.blob()
+      const objectUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = objectUrl
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(objectUrl)
+      return true
     }
 
     try {
@@ -135,16 +143,9 @@ export default function OrderReceipt() {
 
     try {
       const backendUrl = `${import.meta.env.VITE_API_URL}/orders/${order._id}/invoice/download`
-      const opened = triggerInvoiceDownload(backendUrl)
-      if (opened) {
-        refetch()
-        return
-      }
-      toast({
-        title: 'Invoice download blocked',
-        description: 'Please allow popups and try again.',
-        variant: 'destructive'
-      })
+      await downloadViaApi(backendUrl)
+      refetch()
+      return
     } catch (err) {
       console.error('Official invoice download failed:', err)
       toast({
