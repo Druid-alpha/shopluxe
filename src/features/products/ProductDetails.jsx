@@ -843,6 +843,38 @@ export default function ProductDetails() {
               </span>
             ))}
           </div>
+          {(Number(product?.totalReserved || 0) > 0 || Number(product?.availableStock || 0) >= 0) && (
+            <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50/60 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-amber-700">
+              <div className="flex items-center justify-between">
+                <span>Available</span>
+                <span>{Number(product?.availableStock || 0)}</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between text-amber-600">
+                <span>Reserved</span>
+                <span>{Number(product?.totalReserved || 0)}</span>
+              </div>
+              <div className="mt-3 h-1.5 w-full rounded-full bg-amber-100">
+                <div
+                  className="h-1.5 rounded-full bg-amber-500"
+                  style={{
+                    width: `${Math.min(100, Math.max(0, (Number(product?.availableStock || 0) / Math.max(1, Number(product?.availableStock || 0) + Number(product?.totalReserved || 0))) * 100))}%`
+                  }}
+                />
+              </div>
+              {(() => {
+                const total = Number(product?.availableStock || 0) + Number(product?.totalReserved || 0)
+                const isHigh = total > 0
+                  && Number(product?.totalReserved || 0) >= Math.ceil(total * 0.7)
+                  && Number(product?.availableStock || 0) < 5
+                if (!isHigh) return null
+                return (
+                  <div className="mt-3 inline-flex items-center bg-rose-50 text-rose-700 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-rose-100">
+                    High Reserved
+                  </div>
+                )
+              })()}
+            </div>
+          )}
 
           {/* --- PURCHASE MODE TOGGLE --- */}
           {hasVariants && (mainSizes.length > 0 || !product.sizes?.length) && (
@@ -1130,7 +1162,7 @@ export default function ProductDetails() {
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Total</p>
             <p className="text-lg font-black text-slate-900 leading-none">
-              NGN {discountedCurrentPrice?.toLocaleString?.() ?? 0}
+              ₦{discountedCurrentPrice?.toLocaleString?.() ?? 0}
             </p>
           </div>
           <div className="flex items-center bg-gray-100 rounded-xl px-2">
@@ -1164,7 +1196,7 @@ export default function ProductDetails() {
         {currentStock > 0 && (
           <div className="flex items-center gap-2 mt-2 text-[10px] text-gray-500">
             <Clock size={12} />
-            Reserve stock for 15 minutes at checkout.
+            Reserve stock for 10 minutes at checkout.
           </div>
         )}
       </div>

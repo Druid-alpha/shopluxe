@@ -51,6 +51,12 @@ export default function ProductCard({ product }) {
     ? product.variants.reduce((max, v) => Math.max(max, Number(v?.discount || 0)), 0)
     : 0
   const maxDiscount = Math.max(Number(product?.discount || 0), maxVariantDiscount)
+  const totalReserved = Number(product?.totalReserved || 0)
+  const totalStock = Number(product?.totalStock || 0)
+  const availableStock = Math.max(0, totalStock - totalReserved)
+  const isReservedHigh = totalStock > 0
+    && totalReserved >= Math.ceil(totalStock * 0.7)
+    && availableStock < 5
   const discountedPrice = maxDiscount > 0
     ? Math.round((product?.price || 0) * (1 - maxDiscount / 100))
     : (product?.price || 0)
@@ -248,6 +254,20 @@ export default function ProductCard({ product }) {
           <div className="absolute top-4 left-4 z-10">
             <span className="inline-flex items-center bg-white text-gray-900 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full shadow-md border border-gray-100">
               Sale <span className="ml-2 text-rose-600">-{maxDiscount}%</span>
+            </span>
+          </div>
+        )}
+        {Number(product?.totalReserved || 0) > 0 && (
+          <div className="absolute top-4 right-4 z-10">
+            <span className="inline-flex items-center bg-amber-50 text-amber-700 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-amber-100">
+              Reserved {product.totalReserved}
+            </span>
+          </div>
+        )}
+        {isReservedHigh && (
+          <div className="absolute top-14 right-4 z-10">
+            <span className="inline-flex items-center bg-rose-50 text-rose-700 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-rose-100">
+              High Reserved
             </span>
           </div>
         )}

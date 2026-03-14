@@ -58,6 +58,12 @@ function VariantBadges({ item }) {
     .replace(new RegExp(`^${sizeTypeLabel}:?\\s*`, 'i'), '')
     .trim()
   const isDuplicate = cleanSize.toLowerCase().includes(sizeTypeLabel.toLowerCase())
+  const reservedCount = Number(item.productReserved || 0)
+  const totalCount = Number(item.productStock || 0)
+  const availableCount = Math.max(0, totalCount - reservedCount)
+  const isReservedHigh = totalCount > 0
+    && reservedCount >= Math.ceil(totalCount * 0.7)
+    && availableCount < 5
 
   if (!colorName && !cleanSize && !item.variantLabel) return null
 
@@ -81,6 +87,16 @@ function VariantBadges({ item }) {
       {cleanSize && (
         <span className="bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500">
           {isDuplicate ? cleanSize : `${sizeTypeLabel}: ${cleanSize}`}
+        </span>
+      )}
+      {reservedCount > 0 && (
+        <span className="bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-amber-700">
+          Reserved {reservedCount} • Avail {availableCount}
+        </span>
+      )}
+      {isReservedHigh && (
+        <span className="bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-rose-700">
+          High Reserved
         </span>
       )}
       {!colorName && !cleanSize && item.variantLabel && (
@@ -410,9 +426,9 @@ export default function Cart() {
                       </div>
                       <div className="text-right">
                         <p className="font-black text-lg text-slate-900">
-                          NGN {((item.price || 0) * (item.qty || 1)).toLocaleString()}
+                          ₦{((item.price || 0) * (item.qty || 1)).toLocaleString()}
                         </p>
-                        <p className="text-[10px] font-bold text-gray-300 tracking-widest uppercase">NGN {(item.price || 0).toLocaleString()} /ea</p>
+                        <p className="text-[10px] font-bold text-gray-300 tracking-widest uppercase">₦{(item.price || 0).toLocaleString()} /ea</p>
                       </div>
                     </div>
 
@@ -458,9 +474,26 @@ export default function Cart() {
             <h2 className="text-xl font-bold text-gray-900 border-b border-gray-200 pb-4">Order Summary</h2>
 
             <div className="space-y-4 text-sm">
+              {(() => {
+                const totalAvailable = sortedCart.reduce((sum, item) => sum + Math.max(0, Number(item.productStock || 0) - Number(item.productReserved || 0)), 0)
+                const totalReserved = sortedCart.reduce((sum, item) => sum + Number(item.productReserved || 0), 0)
+                if (totalAvailable + totalReserved <= 0) return null
+                const pct = Math.min(100, Math.max(0, (totalAvailable / Math.max(1, totalAvailable + totalReserved)) * 100))
+                return (
+                  <div className="rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-amber-700">
+                    <div className="flex items-center justify-between">
+                      <span>{totalAvailable} available</span>
+                      <span>{totalReserved} reserved</span>
+                    </div>
+                    <div className="mt-2 h-1.5 w-full rounded-full bg-amber-100">
+                      <div className="h-1.5 rounded-full bg-amber-500" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                )
+              })()}
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal ({sortedCart.length} item{sortedCart.length !== 1 ? 's' : ''})</span>
-                <span className="font-medium text-gray-900">NGN {total.toLocaleString()}</span>
+                <span className="font-medium text-gray-900">₦{total.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Shipping estimate</span>
@@ -468,11 +501,11 @@ export default function Cart() {
               </div>
               <div className="flex justify-between text-gray-600 pb-4 border-b border-gray-200">
                 <span>Tax</span>
-                <span className="font-medium text-gray-900">NGN 0</span>
+                <span className="font-medium text-gray-900">₦0</span>
               </div>
               <div className="flex justify-between text-lg font-bold text-gray-900 pt-2">
                 <span>Total</span>
-                <span>NGN {total.toLocaleString()}</span>
+                <span>₦{total.toLocaleString()}</span>
               </div>
             </div>
 

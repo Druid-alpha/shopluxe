@@ -426,6 +426,7 @@ export const normalizeCart = (cart) => {
         productId: product._id || product.id,
         title: product.title || 'Product',
         productCategoryName: product?.category?.name || (typeof product?.category === 'string' ? product.category : ''),
+        productReserved: product?.reserved ?? 0,
         price: finalPrice,
         basePrice,
         discount,

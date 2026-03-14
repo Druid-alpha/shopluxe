@@ -40,8 +40,13 @@ export default function Checkout() {
       const validateData = await validateRes.json()
       if (!validateRes.ok) {
         const firstIssue = validateData?.items?.[0]
+        const extras = []
+        if (Number.isFinite(firstIssue?.available)) extras.push(`Available: ${firstIssue.available}`)
+        if (Number.isFinite(firstIssue?.reserved)) extras.push(`Reserved: ${firstIssue.reserved}`)
+        if (Number.isFinite(firstIssue?.stock)) extras.push(`Stock: ${firstIssue.stock}`)
+        const extraText = extras.length ? ` (${extras.join(' | ')})` : ''
         const details = firstIssue?.title
-          ? `${firstIssue.title} (${firstIssue.message})`
+          ? `${firstIssue.title} - ${firstIssue.message}${extraText}`
           : (validateData.message || 'Stock validation failed')
         throw new Error(details)
       }
@@ -57,7 +62,29 @@ export default function Checkout() {
       })
 
       const orderData = await orderRes.json()
-      if (!orderRes.ok) throw new Error(orderData.message)
+      if (!orderRes.ok) {
+        if (orderRes.status === 409) {
+          try {
+            const retryValidate = await fetch(`${import.meta.env.VITE_API_URL}/orders/validate`, {
+              method: 'POST',
+              credentials: 'include'
+            })
+            const retryData = await retryValidate.json()
+            const firstIssue = retryData?.items?.[0]
+            if (firstIssue) {
+              const extras = []
+              if (Number.isFinite(firstIssue?.available)) extras.push(`Available: ${firstIssue.available}`)
+              if (Number.isFinite(firstIssue?.reserved)) extras.push(`Reserved: ${firstIssue.reserved}`)
+              if (Number.isFinite(firstIssue?.stock)) extras.push(`Stock: ${firstIssue.stock}`)
+              const extraText = extras.length ? ` (${extras.join(' | ')})` : ''
+              throw new Error(`${firstIssue.title} - ${firstIssue.message}${extraText}`)
+            }
+          } catch {
+            // fall back to orderData below
+          }
+        }
+        throw new Error(orderData.message)
+      }
 
       // 2. Initialize Paystack transaction
       const payRes = await fetch(`${import.meta.env.VITE_API_URL}/payments/paystack/init`, {
@@ -219,7 +246,7 @@ export default function Checkout() {
                 </>
               ) : (
                 <>
-                  Finalize Payment - NGN {total.toLocaleString()}
+                  Finalize Payment - ₦{total.toLocaleString()}
                   <ChevronRight size={18} />
                 </>
               )}
@@ -252,16 +279,34 @@ export default function Checkout() {
                     <p className="text-gray-500 text-xs mt-1">Qty: {item.qty}</p>
                   </div>
                   <div className="font-semibold text-sm text-gray-900 whitespace-nowrap">
-                    NGN {((item.price || 0) * (item.qty || 1)).toLocaleString()}
+                    ₦{((item.price || 0) * (item.qty || 1)).toLocaleString()}
                   </div>
                 </div>
               ))}
             </div>
 
+            {(() => {
+              const totalAvailable = cart.reduce((sum, item) => sum + Math.max(0, Number(item.productStock || 0) - Number(item.productReserved || 0)), 0)
+              const totalReserved = cart.reduce((sum, item) => sum + Number(item.productReserved || 0), 0)
+              if (totalAvailable + totalReserved <= 0) return null
+              const pct = Math.min(100, Math.max(0, (totalAvailable / Math.max(1, totalAvailable + totalReserved)) * 100))
+              return (
+                <div className="rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-amber-700 mb-5">
+                  <div className="flex items-center justify-between">
+                    <span>{totalAvailable} available</span>
+                    <span>{totalReserved} reserved</span>
+                  </div>
+                  <div className="mt-2 h-1.5 w-full rounded-full bg-amber-100">
+                    <div className="h-1.5 rounded-full bg-amber-500" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              )
+            })()}
+
             <div className="border-t border-gray-100 pt-4 space-y-3">
               <div className="flex justify-between text-sm text-gray-500">
                 <span>Subtotal</span>
-                <span className="font-medium text-gray-900">NGN {total.toLocaleString()}</span>
+                <span className="font-medium text-gray-900">₦{total.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm text-gray-500">
                 <span>Shipping</span>
@@ -269,7 +314,7 @@ export default function Checkout() {
               </div>
               <div className="flex justify-between text-base font-bold text-gray-900 pt-3 border-t border-gray-100">
                 <span>Total to Pay</span>
-                <span>NGN {total.toLocaleString()}</span>
+                <span>₦{total.toLocaleString()}</span>
               </div>
             </div>
           </div>

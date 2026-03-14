@@ -272,6 +272,25 @@ export default function AdminProducts() {
             <Button onClick={() => setEditingProduct({})} className="bg-black hover:bg-gray-800 rounded-xl">
               + Create Product
             </Button>
+            <Button
+              variant="outline"
+              className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50"
+              onClick={async () => {
+                try {
+                  await axios.post('/admin/reservations/reset-all')
+                  toast({ title: 'All reservations reset' })
+                  refetch()
+                } catch (err) {
+                  toast({
+                    title: 'Reset failed',
+                    description: err?.response?.data?.message || 'Could not reset all reservations',
+                    variant: 'destructive',
+                  })
+                }
+              }}
+            >
+              Reset All Reservations
+            </Button>
             <Button variant="outline" className="rounded-xl border-red-200 text-red-600 hover:bg-red-50" onClick={handleHardDeleteAll}>
               Purge Deleted
             </Button>
@@ -391,6 +410,25 @@ export default function AdminProducts() {
             <div className="flex gap-2">
               <Button onClick={() => setEditingProduct({})} className="bg-black hover:bg-gray-800 rounded-xl h-9 px-4 text-[10px] font-black uppercase tracking-widest">
                 + Create Product
+              </Button>
+              <Button
+                variant="outline"
+                className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50 h-9 px-4 text-[10px] font-black uppercase tracking-widest"
+                onClick={async () => {
+                  try {
+                    await axios.post('/admin/reservations/reset-all')
+                    toast({ title: 'All reservations reset' })
+                    refetch()
+                  } catch (err) {
+                    toast({
+                      title: 'Reset failed',
+                      description: err?.response?.data?.message || 'Could not reset all reservations',
+                      variant: 'destructive',
+                    })
+                  }
+                }}
+              >
+                Reset All Reservations
               </Button>
               <Button variant="outline" className="rounded-xl border-red-200 text-red-600 hover:bg-red-50 h-9 px-4 text-[10px] font-black uppercase tracking-widest" onClick={handleHardDeleteAll}>
                 Purge Deleted
