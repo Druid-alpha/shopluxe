@@ -136,6 +136,10 @@ export default function OrderReceipt() {
 
     try {
       const backendUrl = `${import.meta.env.VITE_API_URL}/orders/${order._id}/invoice/download`
+      toast({
+        title: 'Download started',
+        description: 'Your invoice is being prepared.',
+      })
       await downloadViaApi(backendUrl)
       refetch()
       return
@@ -144,6 +148,10 @@ export default function OrderReceipt() {
         // Ensure invoice exists if download failed, then retry once.
         await generateInvoice(order._id).unwrap()
         const backendUrl = `${import.meta.env.VITE_API_URL}/orders/${order._id}/invoice/download`
+        toast({
+          title: 'Download started',
+          description: 'Your invoice is being prepared.',
+        })
         await downloadViaApi(backendUrl)
         refetch()
         return
