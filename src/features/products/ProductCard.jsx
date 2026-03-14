@@ -237,7 +237,7 @@ export default function ProductCard({ product }) {
         </button>
       </div>
 
-      <div className="absolute top-4 left-4 z-10">
+      <div className="absolute top-12 left-4 sm:top-4 z-10">
         <button
           onClick={handleCompare}
           className={`p-2 rounded-full bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm transition-all duration-300 ${isCompared ? 'text-black' : 'text-gray-400 hover:text-black'}`}
@@ -252,7 +252,7 @@ export default function ProductCard({ product }) {
         {/* SALE BADGE */}
         {maxDiscount > 0 && (
           <div className="absolute top-4 left-4 z-10">
-            <span className="inline-flex items-center bg-white text-gray-900 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full shadow-md border border-gray-100">
+            <span className="inline-flex items-center bg-white text-gray-900 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full shadow-md border border-gray-100 sm:px-3 sm:py-1.5 sm:text-[9px] px-2 py-1 text-[8px]">
               Sale <span className="ml-2 text-rose-600">-{maxDiscount}%</span>
             </span>
           </div>

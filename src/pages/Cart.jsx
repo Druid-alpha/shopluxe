@@ -357,6 +357,7 @@ export default function Cart() {
 
   const changeVariant = async (item, nextVariant) => {
     const isBaseSelection = !nextVariant
+    if (isBaseSelection && !item.variant && !item.variantPayload) return
     const updatingKey = `${item.key}-variant`
     if (updatingItems[updatingKey]) return
     setUpdatingItems(prev => ({ ...prev, [updatingKey]: true }))
@@ -397,9 +398,16 @@ export default function Cart() {
       const oldVariantArg = (item.variantPayload && Object.keys(item.variantPayload).length > 0)
         ? item.variantPayload
         : (item.variant || null)
-      await cartApi.addToCart(item.productId, item.qty, isBaseSelection ? null : { sku: nextVariant.sku })
-      const data = await cartApi.removeCartItem(item.productId, oldVariantArg)
-      dispatch(setCart(data))
+      if (isBaseSelection) {
+        // Remove variant first, then add base item.
+        await cartApi.removeCartItem(item.productId, oldVariantArg)
+        const data = await cartApi.addToCart(item.productId, item.qty, null)
+        dispatch(setCart(data))
+      } else {
+        await cartApi.addToCart(item.productId, item.qty, { sku: nextVariant.sku })
+        const data = await cartApi.removeCartItem(item.productId, oldVariantArg)
+        dispatch(setCart(data))
+      }
       toast({ title: 'Variant updated' })
     } catch (err) {
       toast({

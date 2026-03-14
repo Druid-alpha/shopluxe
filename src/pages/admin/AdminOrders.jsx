@@ -23,6 +23,8 @@ export default function AdminOrders() {
   const { toast } = useToast()
   const orderStatusOptions = ['pending', 'processing', 'shipped', 'delivered']
   const [lastUpdated, setLastUpdated] = React.useState(null)
+  const [showReservedOnly, setShowReservedOnly] = React.useState(false)
+  const [nowTick, setNowTick] = React.useState(Date.now())
 
   // Use RTK Query for fetching orders with polling
   const { data, isLoading, isError, isFetching, refetch } = useGetAllOrdersQuery(undefined, {
@@ -34,9 +36,17 @@ export default function AdminOrders() {
   const [orderToDelete, setOrderToDelete] = React.useState(null)
 
   const orders = data?.orders || []
+  const filteredOrders = showReservedOnly
+    ? orders.filter(o => o?.paymentStatus === 'pending')
+    : orders
   React.useEffect(() => {
     if (data) setLastUpdated(new Date().toLocaleString())
   }, [data])
+
+  React.useEffect(() => {
+    const timer = setInterval(() => setNowTick(Date.now()), 60 * 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   const handleStatusUpdate = async (id, newValue) => {
     try {
@@ -95,6 +105,14 @@ export default function AdminOrders() {
           <RefreshCcw size={14} className={isFetching ? "animate-spin" : ""} />
           {isFetching ? "Refreshing..." : "Refresh"}
         </Button>
+        <button
+          type="button"
+          onClick={() => setShowReservedOnly(prev => !prev)}
+          className={`h-8 px-4 rounded-full border text-[10px] font-black uppercase tracking-widest transition-colors ${showReservedOnly ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200 hover:text-black hover:border-black'}`}
+          title="Show only pending payment (reserved) orders"
+        >
+          {showReservedOnly ? 'Reserved Only' : 'All Orders'}
+        </button>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -105,13 +123,18 @@ export default function AdminOrders() {
                 <th className="px-6 py-4">Order Details</th>
                 <th className="px-6 py-4">Customer</th>
                 <th className="px-6 py-4">Items</th>
+                <th className="px-6 py-4">Reserve</th>
                 <th className="px-6 py-4">Labels</th>
                 <th className="px-6 py-4 text-right">Total</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {orders.map((order) => (
+              {filteredOrders.map((order) => {
+                const isReserved = order?.paymentStatus === 'pending'
+                const expiresAt = order?.expiresAt ? new Date(order.expiresAt) : null
+                const minutesLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - nowTick) / 60000)) : null
+                return (
                 <tr key={order._id} className="h-16 hover:bg-gray-50/60 transition-colors">
                   <td className="px-6 py-4 align-middle">
                     <div className="flex flex-col gap-1">
@@ -161,6 +184,22 @@ export default function AdminOrders() {
                     </div>
                   </td>
                   <td className="px-6 py-4 align-middle">
+                    {isReserved ? (
+                      <div className="flex flex-col gap-1">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-100 w-fit">
+                          Reserved
+                        </span>
+                        {minutesLeft !== null && (
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                            Expires in {minutesLeft} min
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-gray-300">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 align-middle">
                     <div className="flex flex-col gap-2">
                       <span className={`inline-flex items-center justify-center h-8 w-28 text-[10px] font-bold uppercase rounded-lg ${order.paymentStatus === 'paid'
                         ? 'bg-green-100 text-green-700'
@@ -206,11 +245,11 @@ export default function AdminOrders() {
                     </Button>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>
-        {orders.length === 0 && (
+        {filteredOrders.length === 0 && (
           <div className="p-12 text-center text-gray-500">
             <p className="text-sm font-semibold">No orders found.</p>
             <div className="mt-4 flex items-center justify-center">

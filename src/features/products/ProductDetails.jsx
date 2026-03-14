@@ -1151,6 +1151,12 @@ export default function ProductDetails() {
                   <Heart size={20} className={isInWishlist ? 'fill-current' : ''} />
                 </button>
               </div>
+              {currentStock > 0 && (
+                <div className="hidden sm:flex items-center gap-2 mt-3 text-[10px] text-gray-500">
+                  <Clock size={12} />
+                  Reserve stock for 10 minutes at checkout.
+                </div>
+              )}
             </div>
           </div>
         </div>
