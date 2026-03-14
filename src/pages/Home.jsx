@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import Slider from 'react-slick'
 import { ArrowRight, Truck, ShieldCheck, Clock } from 'lucide-react'
@@ -8,6 +8,7 @@ import { useGetFeaturedProductsQuery, useGetProductsQuery } from '@/features/pro
 import ProductCard from '@/features/products/ProductCard'
 import { Button } from '@/components/ui/button'
 import FeaturedReviews from '@/components/FeaturedReviews'
+import RecentlyViewed from '@/components/RecentlyViewed'
 
 import home from '../assets/women.jpg'
 import grocery from '../assets/grocery.jpg'
@@ -173,7 +174,7 @@ export default function Home() {
                   <motion.span variants={fadeUp} className="text-xs md:text-sm font-black uppercase tracking-[0.3em] text-white/70 mb-4 block">
                     Limited Edition
                   </motion.span>
-                  <motion.h1 variants={fadeUp} className="text-5xl md:text-8xl font-black tracking-tighter mb-6 leading-none">
+                  <motion.h1 variants={fadeUp} className="text-5xl md:text-8xl font-black tracking-tighter mb-6 leading-none font-display">
                     {slide.title.split(' ').map((word, i) => (
                       <span key={i} className={i === 1 ? 'text-gray-400 block' : 'block'}>{word}</span>
                     ))}
@@ -209,7 +210,7 @@ export default function Home() {
           className="pb-10"
         >
           <motion.div variants={fadeUp} className="flex justify-between items-end mb-12 border-b pb-6">
-            <h2 className="text-2xl md:text-3xl font-black tracking-tighter uppercase">Categories</h2>
+            <h2 className="text-2xl md:text-3xl font-black tracking-tighter uppercase font-display">Categories</h2>
             <Link to="/products" className="text-xs font-bold uppercase tracking-widest border-b-2 border-black pb-1 hover:text-gray-500 hover:border-gray-500 transition-all">View All</Link>
           </motion.div>
 
@@ -242,7 +243,7 @@ export default function Home() {
             className="flex justify-between items-end mb-10"
           >
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Featured Products</h2>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight font-display">Featured Products</h2>
               <div className="h-1 w-20 bg-black mt-4 rounded-full"></div>
             </div>
             <Button variant="ghost" className="hidden md:flex font-semibold" onClick={() => navigate('/products')}>
@@ -288,6 +289,9 @@ export default function Home() {
           </div>
         </section>
 
+        {/* RECENTLY VIEWED */}
+        <RecentlyViewed title="Recently Viewed" />
+
         {/* VALUE PROPOSITION GRID */}
         <section className="py-12 border-t border-b border-gray-100">
           <motion.div
@@ -298,7 +302,7 @@ export default function Home() {
             className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
           >
             {[
-              { icon: Truck, title: 'Free Shipping', desc: 'On all orders over ₦50,000' },
+              { icon: Truck, title: 'Free Shipping', desc: 'On all orders over NGN 50,000' },
               { icon: ShieldCheck, title: 'Secure Checkout', desc: '100% protected payments' },
               { icon: Clock, title: '24/7 Support', desc: 'Dedicated friendly assistance' }
             ].map((feature, i) => (
@@ -334,7 +338,7 @@ export default function Home() {
 
           <motion.div variants={slideInRight} className="space-y-6 md:pl-8">
             <span className="text-sm font-bold tracking-widest text-gray-500 uppercase">Premium Service</span>
-            <h2 className="text-4xl lg:text-5xl font-extrabold leading-tight">
+            <h2 className="text-4xl lg:text-5xl font-extrabold leading-tight font-display">
               Fast, Reliable & <br />
               <span className="text-gray-400">Secure Delivery.</span>
             </h2>
@@ -353,3 +357,4 @@ export default function Home() {
     </div>
   )
 }
+

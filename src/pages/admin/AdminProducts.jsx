@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+﻿import React, { useEffect, useRef, useState } from 'react'
 import Select from 'react-select'
 import axios from '@/lib/axios'
 import { Button } from '@/components/ui/button'
@@ -261,6 +261,39 @@ export default function AdminProducts() {
           </div>
         </div>
 
+        {(() => {
+          const activeFilters = [
+            { label: 'Search', value: filters.search },
+            { label: 'Category', value: options.categories.find(c => c._id === filters.category)?.name || filters.category },
+            { label: 'Brand', value: options.brands.find(b => b._id === filters.brand)?.name || filters.brand },
+            { label: 'Color', value: options.colors.find(c => c._id === filters.color)?.name || filters.color },
+            { label: 'Type', value: filters.clothingType }
+          ].filter(item => item.value)
+
+          if (activeFilters.length === 0) return null
+
+          return (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Active Filters</span>
+              {activeFilters.map(item => (
+                <span
+                  key={item.label}
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-gray-500"
+                >
+                  {item.label}: {item.value}
+                </span>
+              ))}
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-black border border-gray-200 rounded-full px-3 py-1"
+              >
+                Clear All
+              </button>
+            </div>
+          )
+        })()}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           <input
             type="text"
@@ -321,10 +354,23 @@ export default function AdminProducts() {
 
       {/* PRODUCT TABLE */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[70vh] relative">
+          <div className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-100 px-6 py-3 flex items-center justify-between">
+            <div className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+              {products.length} item{products.length !== 1 ? 's' : ''} shown
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => setEditingProduct({})} className="bg-black hover:bg-gray-800 rounded-xl h-9 px-4 text-[10px] font-black uppercase tracking-widest">
+                + Create Product
+              </Button>
+              <Button variant="outline" className="rounded-xl border-red-200 text-red-600 hover:bg-red-50 h-9 px-4 text-[10px] font-black uppercase tracking-widest" onClick={handleHardDeleteAll}>
+                Purge Deleted
+              </Button>
+            </div>
+          </div>
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100 italic text-xs text-gray-500">
+            <thead className="sticky top-12 z-10 bg-gray-50">
+              <tr className="border-b border-gray-100 text-xs text-gray-500 font-bold uppercase tracking-widest">
                 <th className="px-6 py-4 font-medium uppercase tracking-wider">Product</th>
                 <th className="px-6 py-4 font-medium uppercase tracking-wider">Info</th>
                 <th className="px-6 py-4 font-medium uppercase tracking-wider">Price</th>
@@ -352,12 +398,12 @@ export default function AdminProducts() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-xs space-y-1">
-                      <p><span className="text-gray-400">Cat:</span> {p.category?.name || '—'}</p>
-                      <p><span className="text-gray-400">Brand:</span> {p.brand?.name || '—'}</p>
+                      <p><span className="text-gray-400">Cat:</span> {p.category?.name || '-'}</p>
+                      <p><span className="text-gray-400">Brand:</span> {p.brand?.name || '-'}</p>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm font-bold text-gray-900 italic">₦{(p.price || 0).toLocaleString()}</div>
+                    <div className="text-sm font-bold text-gray-900 italic">NGN {(p.price || 0).toLocaleString()}</div>
                     {p.variants?.length > 0 && (
                       <div className="text-[10px] text-gray-400 mt-0.5">{p.variants.length} Variants</div>
                     )}
@@ -433,7 +479,13 @@ export default function AdminProducts() {
           </table>
         </div>
         {products.length === 0 && (
-          <div className="p-12 text-center text-gray-500 italic">No products matched your filters.</div>
+          <div className="p-12 text-center text-gray-500">
+            <p className="text-sm font-semibold">No products matched your filters.</p>
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <Button variant="outline" className="rounded-xl" onClick={resetFilters}>Clear Filters</Button>
+              <Button className="bg-black hover:bg-gray-800 rounded-xl" onClick={() => setEditingProduct({})}>Create Product</Button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -460,3 +512,5 @@ export default function AdminProducts() {
     </div>
   )
 }
+
+

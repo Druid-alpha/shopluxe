@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import {
   useGetAllOrdersQuery,
   useUpdateOrderStatusMutation,
@@ -22,6 +22,7 @@ import {
 export default function AdminOrders() {
   const { toast } = useToast()
   const orderStatusOptions = ['pending', 'processing', 'shipped', 'delivered']
+  const [lastUpdated, setLastUpdated] = React.useState(null)
 
   // Use RTK Query for fetching orders with polling
   const { data, isLoading, isError, isFetching, refetch } = useGetAllOrdersQuery(undefined, {
@@ -33,6 +34,9 @@ export default function AdminOrders() {
   const [orderToDelete, setOrderToDelete] = React.useState(null)
 
   const orders = data?.orders || []
+  React.useEffect(() => {
+    if (data) setLastUpdated(new Date().toLocaleString())
+  }, [data])
 
   const handleStatusUpdate = async (id, newValue) => {
     try {
@@ -75,7 +79,12 @@ export default function AdminOrders() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Order Management</h2>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Order Management</h2>
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mt-1">
+            Last updated: {lastUpdated || 'Just now'}
+          </p>
+        </div>
         <Button
           variant="outline"
           size="sm"
@@ -89,10 +98,10 @@ export default function AdminOrders() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[70vh] relative">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100 text-xs text-gray-500 font-bold uppercase tracking-widest">
+            <thead className="sticky top-0 z-10 bg-gray-50">
+              <tr className="border-b border-gray-100 text-xs text-gray-500 font-bold uppercase tracking-widest">
                 <th className="px-6 py-4">Order Details</th>
                 <th className="px-6 py-4">Customer</th>
                 <th className="px-6 py-4">Items</th>
@@ -103,18 +112,18 @@ export default function AdminOrders() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {orders.map((order) => (
-                <tr key={order._id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4">
+                <tr key={order._id} className="h-16 hover:bg-gray-50/60 transition-colors">
+                  <td className="px-6 py-4 align-middle">
                     <div className="flex flex-col gap-1">
                       <span className="text-sm font-bold text-gray-900 leading-none">#{String(order._id || '').slice(-8).toUpperCase()}</span>
                       <span className="text-[10px] text-gray-400 font-mono">{new Date(order.createdAt).toLocaleDateString()}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 align-middle">
                     <div className="text-sm font-semibold text-gray-900">{order.user?.name || 'Guest'}</div>
                     <div className="text-xs text-gray-400">{order.user?.email || 'N/A'}</div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 align-middle">
                     <div className="flex flex-wrap gap-1.5 max-w-xs">
                       {order.items?.map((item, idx) => {
                         const hasVariant = item.variant?.color || item.variant?.size
@@ -122,7 +131,7 @@ export default function AdminOrders() {
                         return (
                           <div key={idx} className="flex flex-col gap-1">
                             <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px] font-medium text-gray-700 border border-gray-200">
-                              {item.title || 'Product'} ×{item.qty}
+                              {item.title || 'Product'} x{item.qty}
                             </span>
                             {hasVariant && (
                               <div className="flex flex-wrap gap-1">
@@ -151,7 +160,7 @@ export default function AdminOrders() {
                       })}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 align-middle">
                     <div className="flex flex-col gap-2">
                       <span className={`inline-flex items-center justify-center h-8 w-28 text-[10px] font-bold uppercase rounded-lg ${order.paymentStatus === 'paid'
                         ? 'bg-green-100 text-green-700'
@@ -183,10 +192,10 @@ export default function AdminOrders() {
                       </Select>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="font-bold text-gray-900">₦{order.totalAmount?.toLocaleString()}</span>
+                  <td className="px-6 py-4 text-right align-middle">
+                    <span className="font-bold text-gray-900">NGN {order.totalAmount?.toLocaleString()}</span>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-right align-middle">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -202,7 +211,12 @@ export default function AdminOrders() {
           </table>
         </div>
         {orders.length === 0 && (
-          <div className="p-12 text-center text-gray-500 italic">No orders found.</div>
+          <div className="p-12 text-center text-gray-500">
+            <p className="text-sm font-semibold">No orders found.</p>
+            <div className="mt-4 flex items-center justify-center">
+              <Button variant="outline" className="rounded-xl" onClick={() => refetch()}>Refresh</Button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -225,3 +239,5 @@ export default function AdminOrders() {
     </div>
   )
 }
+
+

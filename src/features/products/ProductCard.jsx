@@ -1,8 +1,8 @@
-import * as React from 'react'
+﻿import * as React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { Button } from '@/components/ui/button'
-import { Heart } from 'lucide-react'
+import { Heart, Scale } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { addGuestCart } from '../cart/cartSlice'
 import { toggleGuestWishlist } from '../wishlist/wishlistSlice'
@@ -15,17 +15,33 @@ import {
 import PriceDisplay from '@/components/PriceDisplay'
 import StarRating from './StarRating'
 
+const buildProductVariants = (product) => {
+  if (!product?.variants?.length) return []
+  return product.variants.map(v => ({
+    sku: v.sku,
+    size: v.options?.size || '',
+    colorName: v.options?.color?.name || '',
+    colorHex: v.options?.color?.hex || null,
+    stock: v.stock ?? 0,
+    price: Number(v.price ?? 0),
+    discount: Number(v.discount ?? 0),
+    imageUrl: v.image?.url || null
+  }))
+}
+
 export default function ProductCard({ product }) {
   const dispatch = useAppDispatch()
   const { toast } = useToast()
   const navigate = useNavigate()
   const [isAdding, setIsAdding] = React.useState(false)
+  const [wishlistLoading, setWishlistLoading] = React.useState(false)
 
   const { data } = useGetWishlistQuery()
   const [toggleWishlist] = useToggleWishlistMutation()
   const wishlist = data?.wishlist || []
 
   const isWishlisted = wishlist.some((p) => p?._id === product?._id)
+  const [isCompared, setIsCompared] = React.useState(false)
 
   const totalStock = (product?.stock > 0)
     ? product.stock
@@ -45,11 +61,61 @@ export default function ProductCard({ product }) {
     ]
     return candidates.find((value) => typeof value === 'string' && value.trim().length > 0) || '/placeholder.png'
   }, [product])
+  const secondaryImageUrl = React.useMemo(() => {
+    const candidates = [
+      ...(product.images || []).map((img) => img?.url),
+      ...(product.variants || []).map((variant) => variant?.image?.url),
+    ].filter((value) => typeof value === 'string' && value.trim().length > 0)
+    return candidates.find((value) => value !== primaryImageUrl) || null
+  }, [product, primaryImageUrl])
   const [imageSrc, setImageSrc] = React.useState(primaryImageUrl)
 
   React.useEffect(() => {
     setImageSrc(primaryImageUrl)
   }, [primaryImageUrl, product?._id])
+
+  React.useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('compareProducts') || '[]')
+      const exists = Array.isArray(stored) && stored.some(p => p?._id === product?._id)
+      setIsCompared(exists)
+    } catch {
+      setIsCompared(false)
+    }
+  }, [product?._id])
+
+  const handleCompare = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    try {
+      const stored = JSON.parse(localStorage.getItem('compareProducts') || '[]')
+      const list = Array.isArray(stored) ? stored.filter(Boolean) : []
+      const exists = list.some(p => p?._id === product?._id)
+      let next = list
+      if (exists) {
+        next = list.filter(p => p?._id !== product?._id)
+      } else {
+        const totalStock = (product?.stock || 0) + (product?.variants?.reduce((s, v) => s + (v?.stock || 0), 0) || 0)
+        const snapshot = {
+          _id: product._id,
+          title: product.title,
+          price: product.price,
+          discount: product.discount,
+          images: product.images,
+          avgRating: product.avgRating,
+          reviewsCount: product.reviewsCount,
+          totalStock,
+          variantsCount: product?.variants?.length || 0
+        }
+        next = [snapshot, ...list].slice(0, 3)
+      }
+      localStorage.setItem('compareProducts', JSON.stringify(next))
+      setIsCompared(!exists)
+      window.dispatchEvent(new Event('compare:updated'))
+    } catch {
+      // ignore
+    }
+  }
 
   const user = useAppSelector((state) => state.auth.user)
   const handleAddToCart = async (e) => {
@@ -68,6 +134,7 @@ export default function ProductCard({ product }) {
         productStock: totalStock,
         qty: 1,
         variant: null,
+        productVariants: buildProductVariants(product),
         addedAt: new Date().toISOString(),
         key: `${product._id}-default`
       }))
@@ -109,41 +176,57 @@ export default function ProductCard({ product }) {
     }
 
     try {
+      setWishlistLoading(true)
       await toggleWishlist(product._id).unwrap()
       toast({
         title: isWishlisted
           ? 'Removed from wishlist'
-          : 'Added to wishlist ❤️'
+          : 'Added to wishlist'
       })
     } catch {
       toast({
         title: 'Something went wrong',
         variant: 'destructive'
       })
+    } finally {
+      setWishlistLoading(false)
     }
   }
 
   if (!product) return null
 
   return (
-    <div className="group relative bg-white border border-gray-100 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+    <div className="group relative bg-white border border-gray-100 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col h-full">
       {/* WISHLIST BUTTON */}
       <div className="absolute top-4 right-4 z-10">
         <button
           onClick={handleWishlist}
-          className={`p-2 rounded-full bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm transition-all duration-300 ${isWishlisted ? 'text-red-500' : 'text-gray-400 hover:text-black'
+          className={`relative p-2 rounded-full bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm transition-all duration-300 ${isWishlisted ? 'text-red-500' : 'text-gray-400 hover:text-black'
             }`}
         >
           <Heart size={18} className={isWishlisted ? 'fill-current' : ''} />
+          {wishlistLoading && (
+            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-black/80 animate-pulse" />
+          )}
+        </button>
+      </div>
+
+      <div className="absolute top-4 left-4 z-10">
+        <button
+          onClick={handleCompare}
+          className={`p-2 rounded-full bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm transition-all duration-300 ${isCompared ? 'text-black' : 'text-gray-400 hover:text-black'}`}
+          title={isCompared ? 'Remove from compare' : 'Compare'}
+        >
+          <Scale size={16} className={isCompared ? 'fill-current' : ''} />
         </button>
       </div>
 
       {/* PRODUCT IMAGE */}
-      <Link to={`/products/${product._id}`} className="block relative aspect-[4/5] overflow-hidden bg-gray-50">
+      <Link to={`/products/${product._id}`} className="block relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-slate-50 via-white to-amber-50">
         {/* SALE BADGE */}
         {product.discount > 0 && (
           <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5 animate-in fade-in zoom-in duration-500">
-            <span className="bg-white/60 backdrop-blur-lg text-slate-900 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 shadow-[0_8px_20px_rgba(255,255,255,0.3),0_4px_12px_rgba(0,0,0,0.1)] rounded-xl border border-white/50 border-t-white/80">
+            <span className="bg-white/70 backdrop-blur-lg text-slate-900 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 shadow-[0_8px_20px_rgba(255,255,255,0.3),0_4px_12px_rgba(0,0,0,0.1)] rounded-xl border border-white/50 border-t-white/80">
               Sale
             </span>
             <span className="bg-rose-500/80 backdrop-blur-lg text-white text-[10px] font-black uppercase tracking-[0.1em] px-2.5 py-1.2 shadow-[0_10px_20px_rgba(244,63,94,0.4)] rounded-xl text-center border border-white/30 border-t-white/50">
@@ -155,11 +238,18 @@ export default function ProductCard({ product }) {
         <img
           src={imageSrc}
           alt={product.title}
-          className="w-full h-full object-contain p-2 sm:p-3 transition-transform duration-700 group-hover:scale-105"
+          className={`w-full h-full object-contain p-2 sm:p-3 transition-all duration-700 ${secondaryImageUrl ? 'group-hover:opacity-0' : 'group-hover:scale-105'}`}
           onError={() => {
             if (imageSrc !== '/placeholder.png') setImageSrc('/placeholder.png')
           }}
         />
+        {secondaryImageUrl && (
+          <img
+            src={secondaryImageUrl}
+            alt={`${product.title} alternate`}
+            className="absolute inset-0 w-full h-full object-contain p-2 sm:p-3 opacity-0 transition-all duration-700 group-hover:opacity-100 group-hover:scale-105"
+          />
+        )}
 
         {/* QUICK ADD OVERLAY */}
         <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
@@ -174,7 +264,7 @@ export default function ProductCard({ product }) {
       </Link>
 
       {/* PRODUCT INFO */}
-      <div className="p-3 sm:p-5 space-y-2">
+      <div className="p-3 sm:p-5 space-y-2 flex-1">
         <div className="flex justify-between items-start gap-2 min-w-0">
           <Link to={`/products/${product._id}`} className="flex-1 min-w-0">
             <h3 className="text-xs sm:text-sm font-bold text-gray-900 line-clamp-2 break-words group-hover:text-primary transition-colors">
@@ -188,6 +278,9 @@ export default function ProductCard({ product }) {
           <StarRating rating={product.avgRating} size={12} />
           <span className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
             ({product?.avgRating?.toFixed(1) ?? '0.0'})
+          </span>
+          <span className="text-[9px] sm:text-[10px] font-bold text-gray-300 uppercase tracking-tighter">
+            - {product?.reviewsCount || 0} reviews
           </span>
         </div>
       </div>

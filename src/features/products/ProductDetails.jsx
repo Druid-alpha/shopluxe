@@ -1,4 +1,4 @@
-import * as React from 'react'
+﻿import * as React from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useGetProductQuery, useGetReviewsQuery } from './productApi'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
@@ -15,7 +15,7 @@ import {
   useGetWishlistQuery
 } from '../wishlist/wishlistApi'
 import StarRating from './StarRating'
-import { Heart } from 'lucide-react'
+import { Heart, Truck, ShieldCheck, RefreshCw, Clock } from 'lucide-react'
 import PriceDisplay from '@/components/PriceDisplay'
 import ReviewSummary from './ReviewSummary'
 
@@ -24,6 +24,20 @@ const getImageUrl = (img) => {
   if (!img) return ''
   if (typeof img === 'string') return img
   return img.url || ''
+}
+
+const buildProductVariants = (product) => {
+  if (!product?.variants?.length) return []
+  return product.variants.map(v => ({
+    sku: v.sku,
+    size: v.options?.size || '',
+    colorName: v.options?.color?.name || '',
+    colorHex: v.options?.color?.hex || null,
+    stock: v.stock ?? 0,
+    price: Number(v.price ?? 0),
+    discount: Number(v.discount ?? 0),
+    imageUrl: v.image?.url || null
+  }))
 }
 
 const CLOTHING_SIZE_LABELS = {
@@ -534,6 +548,33 @@ export default function ProductDetails() {
     }
   }, [product, mainImage])
 
+  // Track recently viewed products for UI strips
+  React.useEffect(() => {
+    if (!product?._id) return
+    try {
+      const key = 'recentlyViewedProducts'
+      const snapshot = {
+        _id: product._id,
+        title: product.title,
+        price: product.price,
+        discount: product.discount,
+        images: product.images,
+        avgRating: product.avgRating,
+        reviewsCount: product.reviewsCount,
+        stock: product.stock,
+        variants: product.variants
+      }
+      const existing = JSON.parse(localStorage.getItem(key) || '[]')
+      const normalized = Array.isArray(existing)
+        ? existing.filter(p => p?._id !== product._id)
+        : []
+      normalized.unshift(snapshot)
+      localStorage.setItem(key, JSON.stringify(normalized.slice(0, 8)))
+    } catch {
+      // ignore storage errors
+    }
+  }, [product?._id])
+
   // Sync image with purchaseMode and selectedVariant
   React.useEffect(() => {
     if (purchaseMode === 'base') {
@@ -682,6 +723,7 @@ export default function ProductDetails() {
         productCategoryName: product?.category?.name || (typeof product?.category === 'string' ? product.category : ''),
         variantStock: selectedVariant?.stock,
         clothingType,
+        productVariants: buildProductVariants(product),
         addedAt: new Date().toISOString(),
         key: `${product._id}-${variantPayload?.sku || variantPayload?.size || selectedBaseSize || 'default'}`
       }))
@@ -730,10 +772,10 @@ export default function ProductDetails() {
   ]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6 lg:space-y-8 overflow-x-hidden">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6 lg:space-y-8 overflow-x-hidden pb-24 sm:pb-8">
       <div className="flex flex-col lg:flex-row gap-6 xl:gap-8">
 
-        {/* ── IMAGES COLUMN ── */}
+        {/* -- IMAGES COLUMN -- */}
         <div className="lg:w-1/2 xl:w-[52%] space-y-4">
           <div className="aspect-[4/5] max-h-[560px] bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm group">
             <img
@@ -760,16 +802,16 @@ export default function ProductDetails() {
           </div>
         </div>
 
-        {/* ── DETAILS COLUMN ── */}
+        {/* -- DETAILS COLUMN -- */}
         <div className="lg:w-1/2 xl:w-[48%] space-y-6">
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
               <span>{product.brand?.name || 'ShopLuxe Original'}</span>
-              <span>•</span>
+              <span>-</span>
               <StarRating rating={product.avgRating} size={14} />
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 leading-none">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 leading-none font-display">
               {product.title}
             </h1>
 
@@ -786,8 +828,23 @@ export default function ProductDetails() {
           <p className="text-gray-600 text-sm leading-relaxed max-w-md relative z-10 text-justify">
             {product.description}
           </p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { label: 'Secure Checkout', icon: ShieldCheck },
+              { label: 'Fast Dispatch', icon: Clock },
+              { label: 'Easy Returns', icon: RefreshCw },
+            ].map((item) => (
+              <span
+                key={item.label}
+                className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest text-gray-500 shadow-sm"
+              >
+                <item.icon size={12} />
+                {item.label}
+              </span>
+            ))}
+          </div>
 
-          {/* ─── PURCHASE MODE TOGGLE ─── */}
+          {/* --- PURCHASE MODE TOGGLE --- */}
           {hasVariants && (mainSizes.length > 0 || !product.sizes?.length) && (
             <div className="pt-1 relative z-20 bg-transparent">
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 block">
@@ -817,7 +874,7 @@ export default function ProductDetails() {
           )}
 
           <div className="relative z-10 bg-transparent min-h-[100px] pb-3 px-1 -mx-1 overflow-hidden sm:overflow-visible flex flex-col gap-4">
-            {/* ─── VARIANT SELECTOR ─── */}
+            {/* --- VARIANT SELECTOR --- */}
             {hasVariants && purchaseMode === 'variant' && (
               <div key="variant-selector" className="space-y-4 pt-4 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300">
                 {/* COLOR SELECTOR */}
@@ -827,7 +884,7 @@ export default function ProductDetails() {
                       Color
                       {selectedColorKey && (
                         <span className="ml-2 text-gray-600 normal-case font-bold">
-                          — {variantColorOptions.find(c => c.key === selectedColorKey)?.name || ''}
+                          - {variantColorOptions.find(c => c.key === selectedColorKey)?.name || ''}
                         </span>
                       )}
                     </p>
@@ -844,7 +901,7 @@ export default function ProductDetails() {
                               setSelectedSize(sizes.length > 0 ? sizes[0] : '')
                             }}
                             title={c.name}
-                            className={`w-10 h-10 rounded-full border-[3px] transition-all flex items-center justify-center shadow-md hover:scale-110 active:scale-95 overflow-hidden ${isSelected ? 'scale-110' : 'border-gray-200'}`}
+                            className={`w-10 h-10 rounded-full border-[3px] transition-all flex items-center justify-center shadow-md hover:scale-110 active:scale-95 overflow-hidden ${isSelected ? 'scale-110 ring-2 ring-black/30' : 'border-gray-200'}`}
                             style={{
                               backgroundColor: c.hex || '#e5e7eb',
                               borderColor: isSelected ? (c.hex && (c.hex.toLowerCase() === '#ffffff' || c.hex.toLowerCase() === '#fff') ? '#111' : (c.hex || '#111')) : (c.hex && (c.hex.toLowerCase() === '#ffffff' || c.hex.toLowerCase() === '#fff') ? '#d1d5db' : '#e5e7eb'),
@@ -874,7 +931,7 @@ export default function ProductDetails() {
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
                       {sizeLabel}
                       {selectedSize && (
-                        <span className="ml-2 text-gray-600 normal-case font-bold">— {selectedSize}</span>
+                        <span className="ml-2 text-gray-600 normal-case font-bold">- {selectedSize}</span>
                       )}
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -912,7 +969,7 @@ export default function ProductDetails() {
               </div>
             )}
 
-            {/* ─── MAIN PRODUCT SPECIFICATIONS / SIZES / SELECTION ─── */}
+            {/* --- MAIN PRODUCT SPECIFICATIONS / SIZES / SELECTION --- */}
             {(mainSizes.length > 0 || baseColorName) && (purchaseMode === 'base' || !hasVariants) && (
               <div key="main-product-specs" className="space-y-4 pt-4 border-t border-slate-100 bg-transparent animate-in fade-in slide-in-from-top-4 duration-300 mb-3">
                 <div className="flex flex-col gap-3">
@@ -936,7 +993,7 @@ export default function ProductDetails() {
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
                       {sizeLabel}
                       {purchaseMode === 'base' && selectedBaseSize && (
-                        <span className="ml-2 text-slate-700 normal-case font-bold">— {selectedBaseSize}</span>
+                        <span className="ml-2 text-slate-700 normal-case font-bold">- {selectedBaseSize}</span>
                       )}
                     </p>
                     {baseColorName && (
@@ -986,7 +1043,7 @@ export default function ProductDetails() {
               </div>
             )}
 
-            {/* ─── INVENTORY STATUS ─── */}
+            {/* --- INVENTORY STATUS --- */}
             <div className="space-y-3 pt-3 border-t border-gray-100">
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
                 <div className="flex items-center gap-3">
@@ -1003,7 +1060,26 @@ export default function ProductDetails() {
               </div>
             </div>
 
-            {/* ─── PURCHASE ACTIONS ─── */}
+            {/* --- TRUST & SHIPPING --- */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              {[
+                { icon: Truck, title: 'Fast Delivery', desc: '2-4 business days' },
+                { icon: RefreshCw, title: 'Easy Returns', desc: '7-day return window' },
+                { icon: ShieldCheck, title: 'Secure Checkout', desc: 'Paystack protected' }
+              ].map((item) => (
+                <div key={item.title} className="flex items-start gap-3 bg-slate-50 border border-slate-100 rounded-2xl p-3">
+                  <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center">
+                    <item.icon size={16} className="text-slate-700" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-700">{item.title}</p>
+                    <p className="text-[10px] text-slate-400 font-semibold">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* --- PURCHASE ACTIONS --- */}
             <div className="space-y-3">
               <div className="flex gap-3">
                 <div className="flex items-center bg-gray-100 rounded-xl px-2">
@@ -1048,7 +1124,52 @@ export default function ProductDetails() {
         </div>
       </div>
 
-      {/* ─── REVIEWS ─── */}
+      {/* Sticky mobile add-to-cart bar */}
+      <div className="fixed bottom-0 left-0 right-0 sm:hidden z-50 border-t border-gray-200 bg-white/95 backdrop-blur-lg px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Total</p>
+            <p className="text-lg font-black text-slate-900 leading-none">
+              NGN {discountedCurrentPrice?.toLocaleString?.() ?? 0}
+            </p>
+          </div>
+          <div className="flex items-center bg-gray-100 rounded-xl px-2">
+            <button
+              type="button"
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="w-8 h-8 flex items-center justify-center font-bold text-gray-500"
+              disabled={quantity <= 1}
+            >
+              -
+            </button>
+            <span className="w-8 text-center text-xs font-black">{quantity}</span>
+            <button
+              type="button"
+              onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
+              className="w-8 h-8 flex items-center justify-center font-bold text-gray-500"
+              disabled={quantity >= currentStock}
+            >
+              +
+            </button>
+          </div>
+          <Button
+            type="button"
+            onClick={handleAddToCart}
+            disabled={currentStock < 1 || isAdding}
+            className="h-11 px-4 bg-black text-white font-black text-[10px] uppercase tracking-widest rounded-xl"
+          >
+            {currentStock > 0 ? 'Add to Bag' : 'Sold Out'}
+          </Button>
+        </div>
+        {currentStock > 0 && (
+          <div className="flex items-center gap-2 mt-2 text-[10px] text-gray-500">
+            <Clock size={12} />
+            Reserve stock for 15 minutes at checkout.
+          </div>
+        )}
+      </div>
+
+      {/* --- REVIEWS --- */}
       <div className="pt-8 lg:pt-6 border-t border-gray-100 space-y-8 lg:space-y-6">
         <section>
           <h2 className="text-2xl font-black tracking-tighter uppercase mb-4 lg:mb-3">Customer Reviews</h2>
@@ -1090,3 +1211,5 @@ export default function ProductDetails() {
     </div>
   )
 }
+
+

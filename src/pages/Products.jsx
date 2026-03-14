@@ -8,6 +8,7 @@ import { useGetProductsQuery } from '@/features/products/productApi'
 import axios from '@/lib/axios'
 import { SlidersHorizontal, X } from 'lucide-react'
 import clsx from 'clsx'
+import RecentlyViewed from '@/components/RecentlyViewed'
 
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -183,7 +184,7 @@ export default function Products() {
   return (
     <section className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">All Products</h1>
+        <h1 className="text-2xl font-bold font-display">All Products</h1>
         <Button variant="outline" className="lg:hidden flex gap-2" onClick={() => setMobileFilters(true)}>
           <SlidersHorizontal size={16} />
           Filters
@@ -192,7 +193,11 @@ export default function Products() {
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div className="w-full lg:w-72">
-          <ProductSearch search={search} setSearch={setSearch} />
+          <ProductSearch
+            search={search}
+            setSearch={setSearch}
+            suggestions={['New arrivals', 'Sale', 'Shoes', 'Bags', 'Electronics']}
+          />
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
@@ -226,10 +231,10 @@ export default function Products() {
 
         {/* Products */}
         <div className="lg:col-span-3">
-          <div className={clsx("grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 transition-opacity duration-150", (isFetching || isResolvingCategory) && !isLoading ? "opacity-70" : "opacity-100")}>
+          <div className={clsx("grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:block lg:columns-3 lg:gap-6 lg:space-y-6 transition-opacity duration-150", (isFetching || isResolvingCategory) && !isLoading ? "opacity-70" : "opacity-100")}>
             {(isResolvingCategory || isLoading || isFetching)
               ? Array.from({ length: 12 }).map((_, idx) => (
-                <div key={`skeleton-${idx}`} className="animate-pulse border rounded-lg p-4 space-y-3">
+                <div key={`skeleton-${idx}`} className="animate-pulse border rounded-lg p-4 space-y-3 lg:break-inside-avoid">
                   <div className="h-40 bg-gray-200 rounded" />
                   <div className="h-4 bg-gray-200 rounded w-3/4" />
                   <div className="h-4 bg-gray-200 rounded w-1/2" />
@@ -237,7 +242,7 @@ export default function Products() {
               ))
               : data?.products?.length > 0
                 ? data.products.map((product) => (
-                  <div key={product._id}>
+                  <div key={product._id} className="lg:break-inside-avoid lg:mb-6 h-full">
                     <ProductCard product={product} />
                   </div>
                 ))
@@ -272,6 +277,10 @@ export default function Products() {
               setPage(p => Math.min(totalPages, p + 1))
               window.scrollTo({ top: 0, behavior: 'smooth' })
             }}>Next</Button>
+          </div>
+
+          <div className="mt-16">
+            <RecentlyViewed title="Keep Browsing" />
           </div>
         </div>
       </div>

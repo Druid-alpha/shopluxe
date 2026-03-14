@@ -2,22 +2,22 @@ import { api } from '@/app/api'
 
 export const wishlistApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    // ✅ Fetch wishlist
+    // Fetch wishlist
     getWishlist: builder.query({
       query: () => ({
         url: '/wishlist',
-        credentials: 'include'   // ✅ REQUIRED
+        credentials: 'include'   // required
       }),
       providesTags: ['Wishlist']
     }),
 
-    // ✅ Toggle wishlist
+    // Toggle wishlist
     toggleWishlist: builder.mutation({
       query: (productId) => ({
         url: '/wishlist/toggle',
         method: 'POST',
-        body: { productId },     // ✅ correct payload
-        credentials: 'include'   // ✅ REQUIRED
+        body: { productId },     // correct payload
+        credentials: 'include'   // required
       }),
       invalidatesTags: ['Wishlist']
     })

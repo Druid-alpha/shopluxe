@@ -17,6 +17,7 @@ export default function AdminUsers() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState(null)
   const { toast } = useToast()
   const token = useAppSelector((state) => state.auth.token)
 
@@ -38,6 +39,7 @@ export default function AdminUsers() {
         new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
       ))
       setUsers(sortedUsers)
+      setLastUpdated(new Date().toLocaleString())
     } catch (err) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' })
     } finally {
@@ -114,7 +116,12 @@ export default function AdminUsers() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">User Management</h2>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">User Management</h2>
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mt-1">
+            Last updated: {lastUpdated || 'Just now'}
+          </p>
+        </div>
         <Button
           variant="outline"
           size="sm"
@@ -127,11 +134,11 @@ export default function AdminUsers() {
         </Button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="overflow-x-auto">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="overflow-x-auto max-h-[70vh] relative">
         <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-100 italic text-sm text-gray-500">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr className="border-b border-gray-100 text-xs text-gray-500 font-bold uppercase tracking-widest">
               <th className="px-6 py-4 font-medium uppercase tracking-wider">User</th>
               <th className="px-6 py-4 font-medium uppercase tracking-wider">Email</th>
               <th className="px-6 py-4 font-medium uppercase tracking-wider">Last Signed In</th>
@@ -142,8 +149,8 @@ export default function AdminUsers() {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {usersWithMetadata.map((user) => (
-              <tr key={user._id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-6 py-4">
+              <tr key={user._id} className="h-16 hover:bg-gray-50/60 transition-colors">
+                <td className="px-6 py-4 align-middle">
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600">
                       {user.name?.[0]?.toUpperCase() || 'U'}
@@ -151,16 +158,16 @@ export default function AdminUsers() {
                     <span className="font-semibold text-gray-900">{user.name}</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-gray-600 text-sm">{user.email}</td>
-                <td className="px-6 py-4 text-gray-600 text-sm">{formatDate(user.lastSignedIn)}</td>
-                <td className="px-6 py-4 text-gray-600 text-sm">{formatDate(user.dateJoined)}</td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 text-gray-600 text-sm align-middle">{user.email}</td>
+                <td className="px-6 py-4 text-gray-600 text-sm align-middle">{formatDate(user.lastSignedIn)}</td>
+                <td className="px-6 py-4 text-gray-600 text-sm align-middle">{formatDate(user.dateJoined)}</td>
+                <td className="px-6 py-4 align-middle">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
                     }`}>
                     {user.role}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-right">
+                <td className="px-6 py-4 text-right align-middle">
                   {user.role !== 'admin' ? (
                     <button
                       className="text-xs font-bold text-green-600 hover:text-green-700 bg-green-50 px-3 py-1.5 rounded-lg transition-colors border border-green-100"
@@ -191,7 +198,12 @@ export default function AdminUsers() {
         </table>
       </div>
       {users.length === 0 && (
-        <div className="p-12 text-center text-gray-500 italic">No users found.</div>
+        <div className="p-12 text-center text-gray-500">
+          <p className="text-sm font-semibold">No users found.</p>
+          <div className="mt-4 flex items-center justify-center">
+            <Button variant="outline" className="rounded-xl" onClick={() => fetchUsers(true)}>Refresh</Button>
+          </div>
+        </div>
       )}
     </div>
     </div>

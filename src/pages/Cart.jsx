@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { Button } from '@/components/ui/button';
-import { removeGuestCartItem, setCart, updateGuestCartQty } from '@/features/cart/cartSlice';
+import { removeGuestCartItem, setCart, updateGuestCartQty, updateGuestCartVariant } from '@/features/cart/cartSlice';
 import * as cartApi from '@/features/cart/cartApi';
 import { Trash, Loader2, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -92,6 +92,115 @@ function VariantBadges({ item }) {
   )
 }
 
+function VariantEditor({ item, onChange, disabled }) {
+  const variants = Array.isArray(item.productVariants) ? item.productVariants : []
+  if (variants.length === 0) return null
+
+  const colorKeyForVariant = (v) => (v.colorHex || v.colorName || '').toLowerCase()
+  const colorOptions = []
+  const colorSeen = new Set()
+  variants.forEach(v => {
+    const key = colorKeyForVariant(v)
+    if (!key) return
+    if (colorSeen.has(key)) return
+    colorSeen.add(key)
+    colorOptions.push({ key, name: v.colorName || 'Color', hex: v.colorHex || null })
+  })
+
+  const initialColorKey = (item.variantColorHex || item.variantColorName || '').toLowerCase()
+  const [colorKey, setColorKey] = useState(initialColorKey || colorOptions[0]?.key || '')
+  const [size, setSize] = useState(item.variantSize || '')
+
+  const sizesByColor = new Map()
+  variants.forEach(v => {
+    const key = colorKeyForVariant(v)
+    if (!key) return
+    if (!sizesByColor.has(key)) sizesByColor.set(key, [])
+    if (v.size && !sizesByColor.get(key).includes(v.size)) sizesByColor.get(key).push(v.size)
+  })
+
+  const availableSizes = sizesByColor.get(colorKey) || []
+
+  const resolveVariant = () => {
+    const match = variants.find(v => {
+      const key = colorKeyForVariant(v)
+      const sizeMatch = size ? v.size === size : true
+      return key === colorKey && sizeMatch
+    })
+    if (match) return match
+    return variants.find(v => colorKeyForVariant(v) === colorKey) || variants[0]
+  }
+
+  useEffect(() => {
+    if (availableSizes.length > 0 && !availableSizes.includes(size)) {
+      setSize(availableSizes[0])
+    }
+  }, [colorKey])
+
+  const applyChange = (nextColorKey, nextSize) => {
+    const nextVariant = variants.find(v => {
+      const key = colorKeyForVariant(v)
+      const sizeMatch = nextSize ? v.size === nextSize : true
+      return key === nextColorKey && sizeMatch
+    })
+    if (nextVariant) onChange(nextVariant)
+  }
+
+  return (
+    <div className="flex flex-col gap-2 pt-2">
+      {colorOptions.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          {colorOptions.map((c) => {
+            const isSelected = colorKey === c.key
+            const borderColor = c.hex || '#e5e7eb'
+            return (
+              <button
+                key={c.key}
+                type="button"
+                disabled={disabled}
+                onClick={() => {
+                  setColorKey(c.key)
+                  const nextSize = (sizesByColor.get(c.key) || [])[0] || ''
+                  setSize(nextSize)
+                  applyChange(c.key, nextSize)
+                }}
+                className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'scale-110' : 'hover:scale-105'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                style={{ borderColor: isSelected ? (c.hex || '#111') : borderColor, backgroundColor: c.hex || '#f1f5f9' }}
+                title={c.name}
+              >
+                <span className="text-[8px] font-black uppercase text-white mix-blend-difference">
+                  {!c.hex ? (c.name || '').slice(0, 2) : ''}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+      {availableSizes.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {availableSizes.map((s) => {
+            const isSelected = size === s
+            return (
+              <button
+                key={s}
+                type="button"
+                disabled={disabled}
+                onClick={() => {
+                  setSize(s)
+                  applyChange(colorKey, s)
+                }}
+                className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${isSelected ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-200 hover:border-black'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {s}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Cart() {
   const cart = useAppSelector(state => state.cart.items);
   const user = useAppSelector(state => state.auth.user)
@@ -118,20 +227,28 @@ export default function Cart() {
 
   if (!cart.length) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-8 p-12 text-center">
-        <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center border-2 border-dashed border-gray-200">
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-8 p-12 text-center bg-gradient-to-br from-white via-slate-50 to-amber-50 rounded-2xl border border-gray-100">
+        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center border-2 border-dashed border-gray-200 shadow-sm">
           <ShoppingCart className="text-gray-300" size={32} />
         </div>
         <div className="space-y-2">
           <h2 className="text-2xl font-black tracking-tighter uppercase">Your bag is empty</h2>
           <p className="text-gray-400 text-sm font-medium">Add some items to start your collection.</p>
         </div>
-        <Button
-          className="bg-black text-white hover:bg-slate-800 rounded-none px-12 py-7 text-xs font-black uppercase tracking-widest"
-          onClick={() => navigate('/')}
-        >
-          Return to Collections
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            className="bg-black text-white hover:bg-slate-800 rounded-none px-12 py-7 text-xs font-black uppercase tracking-widest"
+            onClick={() => navigate('/')}
+          >
+            Return to Collections
+          </Button>
+          <button
+            onClick={() => navigate('/products')}
+            className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-black border border-gray-200 rounded-full px-4 py-3"
+          >
+            Explore Products
+          </button>
+        </div>
       </div>
     );
   }
@@ -205,9 +322,57 @@ export default function Cart() {
     }
   };
 
+  const changeVariant = async (item, nextVariant) => {
+    if (!nextVariant?.sku) return
+    const updatingKey = `${item.key}-variant`
+    if (updatingItems[updatingKey]) return
+    setUpdatingItems(prev => ({ ...prev, [updatingKey]: true }))
+
+    const nextMeta = {
+      size: nextVariant.size || '',
+      colorName: nextVariant.colorName || '',
+      colorHex: nextVariant.colorHex || null,
+      imageUrl: nextVariant.imageUrl || null,
+      basePrice: Number(nextVariant.price ?? item.basePrice ?? 0),
+      discount: Number(nextVariant.discount ?? item.discount ?? 0)
+    }
+    const finalPrice = nextMeta.discount > 0
+      ? Math.round(nextMeta.basePrice * (1 - nextMeta.discount / 100))
+      : nextMeta.basePrice
+    nextMeta.finalPrice = finalPrice
+
+    if (!user) {
+      dispatch(updateGuestCartVariant({
+        key: item.key,
+        nextVariant: { sku: nextVariant.sku, size: nextVariant.size, color: nextVariant.colorName },
+        nextMeta
+      }))
+      setUpdatingItems(prev => ({ ...prev, [updatingKey]: false }))
+      return
+    }
+
+    try {
+      const oldVariantArg = (item.variantPayload && Object.keys(item.variantPayload).length > 0)
+        ? item.variantPayload
+        : (item.variant || null)
+      await cartApi.addToCart(item.productId, item.qty, { sku: nextVariant.sku })
+      const data = await cartApi.removeCartItem(item.productId, oldVariantArg)
+      dispatch(setCart(data))
+      toast({ title: 'Variant updated' })
+    } catch (err) {
+      toast({
+        title: 'Failed to update variant',
+        description: err.response?.data?.message || 'Please try again',
+        variant: 'destructive'
+      })
+    } finally {
+      setUpdatingItems(prev => ({ ...prev, [updatingKey]: false }))
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8 tracking-tight">Shopping Cart</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8 tracking-tight font-display">Shopping Cart</h1>
 
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
         <div className="lg:w-2/3 space-y-12">
@@ -237,12 +402,17 @@ export default function Cart() {
                       <div className="space-y-1">
                         <h3 className="font-black text-lg text-slate-900 tracking-tight uppercase leading-tight">{item.title}</h3>
                         <VariantBadges item={item} />
+                        <VariantEditor
+                          item={item}
+                          disabled={updatingItems[`${item.key}-variant`]}
+                          onChange={(nextVariant) => changeVariant(item, nextVariant)}
+                        />
                       </div>
                       <div className="text-right">
                         <p className="font-black text-lg text-slate-900">
-                          ₦{((item.price || 0) * (item.qty || 1)).toLocaleString()}
+                          NGN {((item.price || 0) * (item.qty || 1)).toLocaleString()}
                         </p>
-                        <p className="text-[10px] font-bold text-gray-300 tracking-widest uppercase">₦{(item.price || 0).toLocaleString()} /ea</p>
+                        <p className="text-[10px] font-bold text-gray-300 tracking-widest uppercase">NGN {(item.price || 0).toLocaleString()} /ea</p>
                       </div>
                     </div>
 
@@ -290,7 +460,7 @@ export default function Cart() {
             <div className="space-y-4 text-sm">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal ({sortedCart.length} item{sortedCart.length !== 1 ? 's' : ''})</span>
-                <span className="font-medium text-gray-900">₦{total.toLocaleString()}</span>
+                <span className="font-medium text-gray-900">NGN {total.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Shipping estimate</span>
@@ -298,11 +468,11 @@ export default function Cart() {
               </div>
               <div className="flex justify-between text-gray-600 pb-4 border-b border-gray-200">
                 <span>Tax</span>
-                <span className="font-medium text-gray-900">₦0</span>
+                <span className="font-medium text-gray-900">NGN 0</span>
               </div>
               <div className="flex justify-between text-lg font-bold text-gray-900 pt-2">
                 <span>Total</span>
-                <span>₦{total.toLocaleString()}</span>
+                <span>NGN {total.toLocaleString()}</span>
               </div>
             </div>
 
@@ -313,12 +483,20 @@ export default function Cart() {
               Proceed to Checkout
             </Button>
 
+            <div className="mt-4 bg-white rounded-xl border border-gray-200 px-4 py-3 text-[10px] uppercase tracking-widest font-black text-gray-500 flex items-center justify-between">
+              <span>Secure Paystack</span>
+              <span className="text-gray-300">-</span>
+              <span>SSL Protected</span>
+              <span className="text-gray-300">-</span>
+              <span>No card stored</span>
+            </div>
+
             <div className="text-center mt-6">
               <button
                 onClick={() => navigate('/')}
                 className="text-sm text-gray-500 hover:text-black font-medium transition-colors"
               >
-                Continue Shopping →
+                Continue Shopping ->
               </button>
             </div>
           </div>

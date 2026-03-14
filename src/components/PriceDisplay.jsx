@@ -9,11 +9,11 @@ export default function PriceDisplay({ price, discount, className = "" }) {
     return (
         <div className={`flex items-baseline gap-1 sm:gap-2 ${className}`}>
             <span className="text-slate-900 font-black tracking-tight text-xs sm:text-sm">
-                ₦{Math.round(discountedPrice).toLocaleString()}
+                NGN {Math.round(discountedPrice).toLocaleString()}
             </span>
             {hasDiscount && (
                 <span className="text-gray-400 text-[9px] sm:text-[10px] font-bold line-through tracking-tight sm:tracking-widest uppercase">
-                    ₦{Math.round(price).toLocaleString()}
+                    NGN {Math.round(price).toLocaleString()}
                 </span>
             )}
         </div>

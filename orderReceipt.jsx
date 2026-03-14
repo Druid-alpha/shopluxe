@@ -24,6 +24,10 @@ export default function OrderReceipt() {
   const [generateInvoice, { isLoading: isGeneratingInvoice }] = useGenerateOrderInvoiceMutation()
   const [isDownloading, setIsDownloading] = React.useState(false)
   const order = data?.order
+  const timelineSteps = ['pending', 'paid', 'processing', 'shipped', 'delivered']
+  const statusIndex = timelineSteps.indexOf(order?.status || 'pending')
+  const paymentIndex = order?.paymentStatus === 'paid' ? timelineSteps.indexOf('paid') : timelineSteps.indexOf('pending')
+  const currentStepIndex = Math.max(statusIndex, paymentIndex)
 
   const getVariantMeta = (item) => {
     if (!item) return null
@@ -215,7 +219,7 @@ export default function OrderReceipt() {
               <CheckCircle2 className="text-green-600" size={32} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Purchase Successful</h1>
+              <h1 className="text-2xl font-bold text-gray-900 tracking-tight font-display">Purchase Successful</h1>
               <p className="text-gray-500 text-sm">A copy of this receipt has been sent to your email.</p>
             </div>
           </div>
@@ -232,6 +236,23 @@ export default function OrderReceipt() {
                   ? 'Download Official Invoice'
                   : 'Generate & Download PDF'}
             </Button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Order Timeline</p>
+          <div className="grid grid-cols-5 gap-2">
+            {timelineSteps.map((step, idx) => {
+              const isActive = idx <= currentStepIndex
+              return (
+                <div key={step} className="flex flex-col items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${isActive ? 'bg-black' : 'bg-gray-200'}`} />
+                  <span className={`text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                    {step}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </div>
 

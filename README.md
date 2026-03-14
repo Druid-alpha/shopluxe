@@ -9,12 +9,18 @@ ShopLuxe is a full-stack ecommerce platform with a React/Vite frontend and a Nod
 Core user flow:
 - Browse products and filter by category/brand/price/color.
 - Select variants (size/color) in product details and add to cart.
+- Edit variants directly in cart (size/color selection where applicable).
 - Checkout with shipping details and Paystack payment verification.
 - View order receipt and download invoice.
+Additional UX:
+- Compare drawer (up to 3 products).
+- Recently viewed product rail.
+- Sticky mobile add-to-cart bar on product details.
 
 Core admin flow:
 - Manage products, variants, pricing, stock, and images.
 - Manage orders and fulfillment status.
+- Manage users and reviews.
 
 ## Architecture
 
@@ -30,7 +36,7 @@ Backend (sibling repo `../shop-luxe-BE`):
 
 Key boundaries:
 - Frontend talks to `/api/*` routes.
-- Auth uses cookies plus bearer token for protected requests.
+- Auth uses cookie-based session in the frontend.
 - Orders and payments are verified server-side; receipts are derived from server data.
 
 High-level diagram:
@@ -58,8 +64,8 @@ Backend API (Express)
 ```
 
 Auth/token flow:
-- Access token stored in `localStorage` and attached as `Authorization: Bearer <token>`.
-- Cookies are included for refresh/session with `credentials: include`.
+- Cookie-based session only (no localStorage tokens in the frontend).
+- Requests include cookies via `credentials: include`.
 - Protected routes fetch profile data and redirect to `/login` if missing.
 
 ## Repository Scope
@@ -167,8 +173,8 @@ Main backend route groups mounted under `/api`:
 ## API Contracts (High Level)
 
 Auth:
-- `POST /api/auth/login` -> returns user + access token, sets cookies
-- `POST /api/auth/refresh` -> refreshes access token
+- `POST /api/auth/login` -> returns user and sets cookies
+- `POST /api/auth/refresh` -> refreshes session
 - `GET /api/users/profile` -> current user profile
 
 Products:
@@ -184,6 +190,7 @@ Cart:
 - `POST /api/cart/sync` -> merge guest cart into user cart
 
 Orders:
+- `POST /api/orders/validate` -> validate stock before checkout
 - `POST /api/orders` -> create order from cart and shipping address
 - `GET /api/orders/:id` -> order detail for receipt
 - `POST /api/orders/:id/invoice` -> signed invoice URL

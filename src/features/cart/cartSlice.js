@@ -74,6 +74,41 @@ const cartSlice = createSlice({
       persistGuestCart(state.items)
     },
 
+    updateGuestCartVariant: (state, action) => {
+      const { key, nextVariant, nextMeta } = action.payload
+      const existing = state.items.find((item) => item.key === key)
+      if (!existing) return
+
+      const newKey = `${existing.productId}-${getVariantKey(nextVariant)}`
+      const already = state.items.find((item) => item.key === newKey)
+
+      if (already && already.key !== key) {
+        already.qty += existing.qty
+        state.items = state.items.filter((item) => item.key !== key)
+      } else {
+        state.items = state.items.map((item) =>
+          item.key === key
+            ? {
+              ...item,
+              key: newKey,
+              variant: nextVariant?.sku || nextVariant || null,
+              variantPayload: nextVariant || null,
+              variantSize: nextMeta?.size || '',
+              variantColorName: nextMeta?.colorName || '',
+              variantColorHex: nextMeta?.colorHex || null,
+              productImage: nextMeta?.imageUrl || item.productImage,
+              price: Number(nextMeta?.finalPrice ?? item.price),
+              basePrice: Number(nextMeta?.basePrice ?? item.basePrice),
+              discount: Number(nextMeta?.discount ?? item.discount)
+            }
+            : item
+        )
+      }
+
+      state.items = sortNewestFirst(state.items)
+      persistGuestCart(state.items)
+    },
+
     removeGuestCartItem: (state, action) => {
       const key = action.payload
       state.items = state.items.filter((item) => item.key !== key)
@@ -91,6 +126,7 @@ export const {
   setCart,
   addGuestCart,
   updateGuestCartQty,
+  updateGuestCartVariant,
   removeGuestCartItem,
   clearCart
 } = cartSlice.actions

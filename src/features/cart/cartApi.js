@@ -350,7 +350,7 @@ const buildVariantLabel = ({ variantSku, size, colorName }) => {
   return variantSku || "";
 };
 
-// 🔥 Normalize cart for frontend
+// Normalize cart for frontend
 export const normalizeCart = (cart) => {
   if (!cart || !Array.isArray(cart)) return [];
   const seedTime = Date.now()
@@ -401,6 +401,18 @@ export const normalizeCart = (cart) => {
       } : null;
       const productImage =
         variantObj?.image?.url || product.images?.[0]?.url || null
+      const productVariants = Array.isArray(product.variants)
+        ? product.variants.map(v => ({
+          sku: v.sku,
+          size: v.options?.size || '',
+          colorName: getColorName(v.options?.color),
+          colorHex: resolveHex(v.options?.color),
+          stock: v.stock ?? 0,
+          price: Number(v.price ?? 0),
+          discount: Number(v.discount ?? 0),
+          imageUrl: v.image?.url || null
+        }))
+        : []
       const basePrice = Number(variantObj?.price ?? product.price ?? 0)
       const discount = Number(variantObj?.discount ?? product.discount ?? 0)
       const finalPrice = discount > 0
@@ -426,6 +438,7 @@ export const normalizeCart = (cart) => {
         variantColorHex,
         variantColorName,
         productColorName,
+        productVariants,
         variantStock: variantObj?.stock,
         productStock: product.stock,
         clothingType: product.clothingType || null,

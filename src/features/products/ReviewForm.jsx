@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useAddReviewMutation } from './productApi'
 import { useToast } from '@/hooks/use-toast'
@@ -55,7 +55,7 @@ export default function ReviewForm({ productId, onSuccess, user }) {
             onMouseEnter={() => setHover(star)}
             onMouseLeave={() => setHover(0)}
           >
-            ★
+            *
           </span>
         ))}
         <span className="ml-2 text-sm text-gray-600">
@@ -86,3 +86,4 @@ export default function ReviewForm({ productId, onSuccess, user }) {
     </form>
   )
 }
+

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300..800&family=Playfair+Display:wght@600..800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,6 +6,14 @@
 
 @layer base {
   :root {
+    --font-body: 'Manrope', system-ui, -apple-system, sans-serif;
+    --font-display: 'Playfair Display', 'Manrope', serif;
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
     --background: 210 14% 97%;
     --foreground: 220 17% 8%;
 
@@ -88,7 +96,14 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-body);
      }
+}
+
+@layer components {
+  .font-display {
+    font-family: var(--font-display);
+  }
 }
 
 @layer components {

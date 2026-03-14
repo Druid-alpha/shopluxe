@@ -89,13 +89,28 @@ export default function Checkout() {
   const inputCls = "w-full border-2 border-gray-100 bg-gray-50 rounded-xl px-5 py-3.5 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-black transition-all placeholder:text-gray-300"
 
   return (
-    <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-[calc(100vh-80px)]">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-[calc(100vh-80px)] relative">
+      {loading && (
+        <div className="fixed inset-0 z-50 bg-white/70 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-white border border-gray-200 rounded-2xl px-6 py-5 shadow-xl flex items-center gap-3">
+            <Loader2 size={20} className="animate-spin text-gray-700" />
+            <span className="text-xs font-black uppercase tracking-widest text-gray-500">Processing payment</span>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col lg:flex-row gap-8">
 
         {/* Left: Shipping + Payment */}
         <div className="lg:w-7/12 space-y-6">
+          <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+            <span className="px-3 py-1 rounded-full bg-black text-white">Shipping</span>
+            <span className="h-px w-6 bg-gray-200" />
+            <span className="px-3 py-1 rounded-full border border-gray-200">Payment</span>
+            <span className="h-px w-6 bg-gray-200" />
+            <span className="px-3 py-1 rounded-full border border-gray-200">Done</span>
+          </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-1">Secure Checkout</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-1 font-display">Secure Checkout</h1>
             <p className="text-gray-500 text-sm">Fill in your shipping details and proceed to payment.</p>
           </div>
 
@@ -204,7 +219,7 @@ export default function Checkout() {
                 </>
               ) : (
                 <>
-                  Finalize Payment • ₦{total.toLocaleString()}
+                  Finalize Payment - NGN {total.toLocaleString()}
                   <ChevronRight size={18} />
                 </>
               )}
@@ -237,7 +252,7 @@ export default function Checkout() {
                     <p className="text-gray-500 text-xs mt-1">Qty: {item.qty}</p>
                   </div>
                   <div className="font-semibold text-sm text-gray-900 whitespace-nowrap">
-                    ₦{((item.price || 0) * (item.qty || 1)).toLocaleString()}
+                    NGN {((item.price || 0) * (item.qty || 1)).toLocaleString()}
                   </div>
                 </div>
               ))}
@@ -246,7 +261,7 @@ export default function Checkout() {
             <div className="border-t border-gray-100 pt-4 space-y-3">
               <div className="flex justify-between text-sm text-gray-500">
                 <span>Subtotal</span>
-                <span className="font-medium text-gray-900">₦{total.toLocaleString()}</span>
+                <span className="font-medium text-gray-900">NGN {total.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm text-gray-500">
                 <span>Shipping</span>
@@ -254,7 +269,7 @@ export default function Checkout() {
               </div>
               <div className="flex justify-between text-base font-bold text-gray-900 pt-3 border-t border-gray-100">
                 <span>Total to Pay</span>
-                <span>₦{total.toLocaleString()}</span>
+                <span>NGN {total.toLocaleString()}</span>
               </div>
             </div>
           </div>

@@ -7,6 +7,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import { Toaster } from './components/ui/toaster'
 import ScrollToTop from './components/ScrollToTop'
+import CompareDrawer from './components/CompareDrawer'
 
 import Home from './pages/Home'
 import Products from './pages/Products'
@@ -138,6 +139,7 @@ export default function App() {
       </main>
 
       <Footer />
+      <CompareDrawer />
       <Toaster />
     </>
   )

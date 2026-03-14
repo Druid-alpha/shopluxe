@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import { useAppSelector } from '@/app/hooks'
 import { Users, Package, ShoppingBag, TrendingUp, AlertCircle, Loader2 } from 'lucide-react'
 
@@ -73,22 +73,35 @@ export default function AdminAnalytics() {
     { label: 'Total Users', value: stats.users, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: 'Total Products', value: stats.products, icon: Package, color: 'text-purple-600', bg: 'bg-purple-50' },
     { label: 'Total Orders', value: stats.orders, icon: ShoppingBag, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { label: 'Total Revenue', value: `₦${(stats.revenue || 0).toLocaleString()}`, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
+    { label: 'Total Revenue', value: `NGN ${(stats.revenue || 0).toLocaleString()}`, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
   ]
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-1">
-      {cardData.map((card, idx) => (
-        <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-5 transition-transform hover:scale-[1.02]">
-          <div className={`${card.bg} ${card.color} p-4 rounded-xl`}>
-            <card.icon size={24} />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">{card.label}</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-black tracking-tighter uppercase">Analytics Overview</h2>
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mt-1">High-level business snapshot</p>
         </div>
-      ))}
+        <div className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+          Updated: {new Date().toLocaleString()}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-1">
+        {cardData.map((card, idx) => (
+          <div key={idx} className="group bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-5 transition-all hover:-translate-y-1 hover:shadow-lg">
+            <div className={`${card.bg} ${card.color} p-4 rounded-xl`}>
+              <card.icon size={24} />
+            </div>
+            <div>
+              <p className="text-xs font-black text-gray-400 uppercase tracking-widest">{card.label}</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
+

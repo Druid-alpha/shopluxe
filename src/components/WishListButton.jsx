@@ -1,4 +1,4 @@
-
+﻿
 
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
@@ -13,8 +13,9 @@ export default function WishListButton({ product }) {
       <span className={`cursor-pointer text-2xl ${isWishListed ? 'text-red-500' : 'text-gray-300'}`}
         onClick={() => dispatch(toggleWishlist({ productId: product._id, title: product.title }))}
       >
-        ❤️
+        Love
       </span>
     </div>
   )
 }
+

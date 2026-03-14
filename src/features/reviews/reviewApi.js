@@ -18,7 +18,7 @@ export const reviewApi = api.injectEndpoints({
       }),
       invalidatesTags: (r, e, { productId }) => [
         { type: 'Review', id: productId },
-        { type: 'Product', id: productId }, // ⭐ updates ProductCard
+        { type: 'Product', id: productId }, // updates ProductCard
       ],
     }),
 

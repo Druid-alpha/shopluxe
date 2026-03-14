@@ -1,4 +1,4 @@
-import * as React from 'react'
+﻿import * as React from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { logoutAndReset } from '@/features/auth/authSlice'
@@ -372,7 +372,7 @@ export default function Navbar() {
                   </a>
                 ))}
               </div>
-              <p className="text-[8px] font-black uppercase tracking-widest text-gray-300 mt-8">© 2026 ShopLuxe. All rights reserved.</p>
+              <p className="text-[8px] font-black uppercase tracking-widest text-gray-300 mt-8">(c) 2026 ShopLuxe. All rights reserved.</p>
             </div>
           </div>
 
@@ -418,4 +418,5 @@ export default function Navbar() {
     </header>
   )
 }
+
 

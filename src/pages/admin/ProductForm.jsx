@@ -1,4 +1,4 @@
-// components/ProductForm.js
+﻿// components/ProductForm.js
 import React, { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -125,7 +125,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       setIsColorPickerOpen(false)
       setNewColorName('')
       setNewColorHex('#000000')
-      toast({ title: `Color already exists in ${categoryLabel} — applied` })
+      toast({ title: `Color already exists in ${categoryLabel} - applied` })
       return existingColor._id
     }
     const existing = colors.find(c =>
@@ -553,8 +553,8 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   }
 
   const CLOTHING_TYPE_LABELS = {
-    clothes: 'Clothing Sizes (S, M, L…)',
-    shoes: 'Shoe Sizes (36–46)',
+    clothes: 'Clothing Sizes (S, M, L...)',
+    shoes: 'Shoe Sizes (36-46)',
     bags: 'Bag Sizes (S/M/L)',
     eyeglass: 'Frame Sizes'
   }
@@ -567,7 +567,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     <form onSubmit={handleSubmit} className="space-y-6 px-4 py-2">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        {/* ── LEFT COLUMN ── */}
+        {/* -- LEFT COLUMN -- */}
         <div className="flex flex-col gap-4">
           <div className="relative z-20">
             <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Title</label>
@@ -587,7 +587,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
 
           <div className="grid grid-cols-2 gap-4 md:order-1">
             <div>
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Price (₦)</label>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Price (NGN )</label>
               <Input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" className="rounded-xl border-gray-100" />
               {errors.price && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.price}</p>}
             </div>
@@ -607,7 +607,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
             <Input value={tags} onChange={e => setTags(e.target.value)} placeholder="luxury, limited, winter" className="rounded-xl border-gray-100" />
           </div>
 
-          {/* MAIN PRODUCT SIZES / SPECS — admin picks which sizes or specs this product is available in */}
+          {/* MAIN PRODUCT SIZES / SPECS - admin picks which sizes or specs this product is available in */}
           {(isClothingLike || isElectronics || isGrocery || mainSizes.length > 0) && (
             <div className="space-y-4">
               <div>
@@ -687,7 +687,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
           )}
         </div>
 
-        {/* ── RIGHT COLUMN ── */}
+        {/* -- RIGHT COLUMN -- */}
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4 md:order-3">
             <div>
@@ -715,7 +715,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* CLOTHING TYPE — visible for all categories */}
+            {/* CLOTHING TYPE - visible for all categories */}
             {isClothingLike && (
               <div>
                 <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Size Type</label>
@@ -724,7 +724,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                   onChange={e => handleClothingTypeChange(e.target.value)}
                   className="w-full h-10 px-3 py-2 text-sm border-gray-100 rounded-xl focus:outline-none focus:ring-0 focus:border-black transition-colors appearance-none"
                 >
-                  <option value="">— None / No sizes —</option>
+                  <option value="">- None / No sizes -</option>
                   {clothingTypes.map(t => (
                     <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
                   ))}
@@ -834,13 +834,13 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         </div>
       </div>
 
-      {/* ══════ VARIANTS ══════ */}
+      {/* ====== VARIANTS ====== */}
       <div className="border-t border-gray-50 pt-6">
         <div className="flex justify-between items-center mb-4">
           <div>
             <h3 className="text-sm font-black uppercase tracking-[.2em] text-gray-900">Product Variants</h3>
             <p className="text-[10px] text-gray-400 mt-0.5 font-medium">
-              Each variant = a different colour. Customer picks colour → then picks 1 size → adds to cart.
+              Each variant = a different colour. Customer picks colour -> then picks 1 size -> adds to cart.
             </p>
           </div>
           <Button type="button" onClick={addVariant} variant="outline" className="rounded-xl text-[10px] uppercase font-black tracking-widest border-black hover:bg-black hover:text-white">+ Add Variant</Button>
@@ -910,7 +910,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                   )}
                 </div>
 
-                {/* SIZE — dropdown for clothing types */}
+                {/* SIZE - dropdown for clothing types */}
                 <div>
                   <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">
                     {categories.find(c => c._id === category)?.name?.toLowerCase().includes('electronics') ? 'Specification' : 'Size'}
@@ -924,7 +924,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                       onChange={e => updateVariant(idx, 'size', e.target.value)}
                       className="w-full h-10 px-3 py-2 text-[10px] border-white bg-white rounded-xl focus:outline-none focus:ring-0"
                     >
-                      <option value="">— Pick size —</option>
+                      <option value="">- Pick size -</option>
                       {getSizesForType(clothingType).map(s => (
                         <option key={s} value={s}>{s}</option>
                       ))}
@@ -941,7 +941,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
 
                 {/* PRICE */}
                 <div>
-                  <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Price (₦)</label>
+                  <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Price (NGN )</label>
                   <Input type="number" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} className="rounded-xl border-white bg-white text-[10px]" />
                   {errors[`price_${idx}`] && <p className="text-red-500 text-[8px] mt-1 font-bold uppercase">{errors[`price_${idx}`]}</p>}
                 </div>
@@ -1000,7 +1000,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         <Button type="button" variant="ghost" onClick={onClose} className="rounded-xl px-8 py-6 font-bold uppercase tracking-widest text-[10px] text-gray-400">Cancel</Button>
       </div>
 
-      {/* ── IMAGE COLOR PICKER MODAL (Mobile Fallback) ── */}
+      {/* -- IMAGE COLOR PICKER MODAL (Mobile Fallback) -- */}
       {
         isImagePickerOpen && (
           <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col animate-in fade-in duration-300">
@@ -1127,4 +1127,6 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     </form >
   )
 }
+
+
 

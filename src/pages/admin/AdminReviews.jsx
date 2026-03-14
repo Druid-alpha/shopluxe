@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 export default function AdminReviews() {
     const { toast } = useToast()
     const [page, setPage] = useState(1)
+    const [filtersOpen, setFiltersOpen] = useState(false)
     const [reviewToDelete, setReviewToDelete] = useState(null)
     const { data, isLoading, refetch } = useGetAdminReviewsQuery(page)
     const [deleteReview] = useDeleteReviewMutation()
@@ -69,12 +70,65 @@ export default function AdminReviews() {
                     <h2 className="text-2xl font-black tracking-tighter uppercase">Product Reviews</h2>
                     <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">Manage customer feedback and ratings</p>
                 </div>
-                <div className="bg-black text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">
-                    {data?.total || 0} Total Reviews
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setFiltersOpen((prev) => !prev)}
+                        className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-black border border-gray-200 rounded-full px-3 py-2"
+                    >
+                        {filtersOpen ? 'Hide Filters' : 'Show Filters'}
+                    </button>
+                    <div className="bg-black text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                        {data?.total || 0} Total Reviews
+                    </div>
                 </div>
             </div>
 
-            <div className="grid gap-4">
+            {filtersOpen && (
+                <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <input
+                            type="text"
+                            placeholder="Search by user or title"
+                            className="h-10 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
+                            disabled
+                        />
+                        <select
+                            className="h-10 rounded-xl border border-gray-200 px-3 text-sm bg-white"
+                            disabled
+                        >
+                            <option>Rating (All)</option>
+                            <option>5 stars</option>
+                            <option>4 stars</option>
+                            <option>3 stars</option>
+                            <option>2 stars</option>
+                            <option>1 star</option>
+                        </select>
+                        <select
+                            className="h-10 rounded-xl border border-gray-200 px-3 text-sm bg-white"
+                            disabled
+                        >
+                            <option>Verified (All)</option>
+                            <option>Verified</option>
+                            <option>Guest</option>
+                        </select>
+                        <select
+                            className="h-10 rounded-xl border border-gray-200 px-3 text-sm bg-white"
+                            disabled
+                        >
+                            <option>Featured (All)</option>
+                            <option>Featured</option>
+                            <option>Not Featured</option>
+                        </select>
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                        <Button variant="outline" className="rounded-xl" disabled>Apply Filters</Button>
+                        <Button variant="outline" className="rounded-xl" disabled>Reset</Button>
+                    </div>
+                </div>
+            )}
+
+            <div className="grid gap-5">
                 <AnimatePresence mode="popLayout">
                     {data?.reviews?.length > 0 ? (
                         data.reviews.map((review, idx) => (
@@ -84,7 +138,7 @@ export default function AdminReviews() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 transition={{ delay: idx * 0.05 }}
-                                className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group"
+                                className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden group hover:-translate-y-0.5"
                             >
                                 <div className="flex flex-col md:flex-row gap-6">
                                     {/* User & Rating */}
@@ -139,7 +193,7 @@ export default function AdminReviews() {
                                             </div>
                                         </div>
 
-                                        <div className="pt-4 border-t border-gray-50 flex flex-wrap items-center gap-6">
+                                        <div className="pt-4 border-t border-gray-100 flex flex-wrap items-center gap-6">
                                             <div className="flex items-center gap-2">
                                                 <Package size={14} className="text-gray-300" />
                                                 <div>
@@ -166,7 +220,15 @@ export default function AdminReviews() {
                         ))
                     ) : (
                         <div className="text-center py-20 bg-white border border-gray-100 rounded-2xl">
-                            <p className="text-gray-400 text-sm font-bold uppercase tracking-widest italic">No reviews found in the system.</p>
+                            <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">No reviews found in the system.</p>
+                            <div className="mt-5 flex items-center justify-center gap-3">
+                                <Button variant="outline" className="rounded-xl" onClick={() => refetch()}>
+                                    Refresh
+                                </Button>
+                                <Button variant="outline" className="rounded-xl" disabled>
+                                    Filters (Coming Soon)
+                                </Button>
+                            </div>
                         </div>
                     )}
                 </AnimatePresence>

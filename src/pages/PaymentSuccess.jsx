@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+﻿import { useEffect, useState } from "react"
 import { useSearchParams, useNavigate } from "react-router-dom"
 import { useAppDispatch } from "@/app/hooks"
 import { clearCart } from "@/features/cart/cartSlice"
@@ -68,6 +68,13 @@ export default function PaymentSuccess() {
   return (
     <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 bg-gray-50">
       <div className="max-w-md w-full">
+        <div className="flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">
+          <span className="px-3 py-1 rounded-full border border-gray-200">Shipping</span>
+          <span className="h-px w-6 bg-gray-200" />
+          <span className="px-3 py-1 rounded-full border border-gray-200">Payment</span>
+          <span className="h-px w-6 bg-gray-200" />
+          <span className={`px-3 py-1 rounded-full ${status === 'success' ? 'bg-black text-white' : 'border border-gray-200'}`}>Done</span>
+        </div>
 
         {/* VERIFYING State */}
         {status === "verifying" && (
@@ -82,7 +89,7 @@ export default function PaymentSuccess() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Verifying Payment</h1>
-              <p className="text-gray-500 text-sm mt-2">Please wait while we confirm your payment with Paystack…</p>
+              <p className="text-gray-500 text-sm mt-2">Please wait while we confirm your payment with Paystack...</p>
             </div>
             <div className="flex justify-center gap-1.5">
               {[0, 1, 2].map(i => (
@@ -114,7 +121,7 @@ export default function PaymentSuccess() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Payment Confirmed!</h1>
-              <p className="text-gray-500 text-sm mt-2">Redirecting you to your order receipt…</p>
+              <p className="text-gray-500 text-sm mt-2">Redirecting you to your order receipt...</p>
             </div>
             <div className="flex justify-center gap-1.5">
               {[0, 1, 2].map(i => (
@@ -161,3 +168,4 @@ export default function PaymentSuccess() {
     </div>
   )
 }
+

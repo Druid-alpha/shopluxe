@@ -1,4 +1,4 @@
-import * as React from 'react'
+﻿import * as React from 'react'
 import { Slider } from './ui/slider'
 import axios from '@/lib/axios'
 import { ChevronDown, ChevronUp } from 'lucide-react'
@@ -305,12 +305,12 @@ export default function ProductFilters({
             <div className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
               <div className="text-center">
                 <span className="block text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1">Min</span>
-                <span className="text-[10px] font-black text-slate-900">₦{minPrice.toLocaleString()}</span>
+                <span className="text-[10px] font-black text-slate-900">NGN {minPrice.toLocaleString()}</span>
               </div>
               <div className="h-4 w-px bg-gray-200" />
               <div className="text-center">
                 <span className="block text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1">Max</span>
-                <span className="text-[10px] font-black text-slate-900">₦{maxPrice.toLocaleString()}</span>
+                <span className="text-[10px] font-black text-slate-900">NGN {maxPrice.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -320,4 +320,5 @@ export default function ProductFilters({
     </div>
   )
 }
+
 

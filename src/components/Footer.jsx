@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 
 export default function Footer() {
   return (
@@ -47,8 +47,9 @@ export default function Footer() {
 
       {/* COPYRIGHT */}
       <div className="border-t border-white/5 py-8 text-center text-[10px] font-black uppercase tracking-[0.3em] text-gray-600">
-        © {new Date().getFullYear()} ShopLuxe Global. All Rights Reserved.
+        (c) {new Date().getFullYear()} ShopLuxe Global. All Rights Reserved.
       </div>
     </footer>
   )
 }
+

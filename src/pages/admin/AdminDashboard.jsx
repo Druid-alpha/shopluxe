@@ -1,5 +1,3 @@
-
-
 import { Button } from '@/components/ui/button'
 import React, { useState } from 'react'
 import AdminProducts from './AdminProducts'
@@ -13,7 +11,10 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState('products')
   return (
     <div className='p-6 space-y-6'>
-      <h1 className='text-2xl font-bold'>Admin Dashboard</h1>
+      <div>
+        <h1 className='text-2xl font-black tracking-tighter uppercase font-display'>Admin Dashboard</h1>
+        <p className='text-xs font-bold uppercase tracking-widest text-gray-400 mt-1'>Manage products, orders, and customers</p>
+      </div>
       <div className='flex flex-wrap gap-2 mb-8 bg-gray-50 p-2 rounded-2xl w-fit'>
         {[
           { id: 'products', label: 'Products', icon: Package },
