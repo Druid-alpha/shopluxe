@@ -23,6 +23,7 @@ Core admin flow:
 - Manage products, variants, pricing, stock, and images.
 - Manage orders and fulfillment status.
 - Handle returns (approve/reject/refund) with notes and refund amounts.
+- Refund actions can include admin notes (emailed to customers).
 - Manage users and reviews.
 - Export products and orders as CSV backups.
 
