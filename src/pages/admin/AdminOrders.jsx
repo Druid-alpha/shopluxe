@@ -10,6 +10,7 @@ import { Loader2, RefreshCcw, Trash2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/CustomSelect"
+import axios from '@/lib/axios'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +27,7 @@ export default function AdminOrders() {
   const orderStatusOptions = ['pending', 'processing', 'shipped', 'delivered']
   const [lastUpdated, setLastUpdated] = React.useState(null)
   const [showReservedOnly, setShowReservedOnly] = React.useState(false)
+  const [showReturnOnly, setShowReturnOnly] = React.useState(false)
   const [nowTick, setNowTick] = React.useState(Date.now())
   const [returnNotes, setReturnNotes] = React.useState({})
   const [refundAmounts, setRefundAmounts] = React.useState({})
@@ -42,9 +44,12 @@ export default function AdminOrders() {
   const [orderToDelete, setOrderToDelete] = React.useState(null)
 
   const orders = data?.orders || []
-  const filteredOrders = showReservedOnly
-    ? orders.filter(o => o?.paymentStatus === 'pending')
-    : orders
+  const returnRequestCount = orders.filter(o => o?.returnStatus === 'requested').length
+  const filteredOrders = orders.filter(o => {
+    if (showReservedOnly && o?.paymentStatus !== 'pending') return false
+    if (showReturnOnly && o?.returnStatus !== 'requested') return false
+    return true
+  })
   React.useEffect(() => {
     if (data) setLastUpdated(new Date().toLocaleString())
   }, [data])
@@ -53,6 +58,20 @@ export default function AdminOrders() {
     const timer = setInterval(() => setNowTick(Date.now()), 60 * 1000)
     return () => clearInterval(timer)
   }, [])
+
+  React.useEffect(() => {
+    const pending = orders.filter(o => o?.paymentStatus === 'pending' && o?.expiresAt)
+    if (pending.length === 0) return
+    const nextExpiry = pending
+      .map(o => new Date(o.expiresAt).getTime() - Date.now())
+      .filter(ms => ms > 0)
+      .sort((a, b) => a - b)[0]
+    if (!nextExpiry) return
+    const timer = setTimeout(() => {
+      refetch()
+    }, Math.min(nextExpiry + 1000, 60000))
+    return () => clearTimeout(timer)
+  }, [orders, refetch])
 
   const handleStatusUpdate = async (id, newValue) => {
     try {
@@ -81,9 +100,8 @@ export default function AdminOrders() {
 
   const handleExport = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/export/orders`, { credentials: 'include' })
-      if (!res.ok) throw new Error('Export failed')
-      const blob = await res.blob()
+      const res = await axios.get('/admin/export/orders', { responseType: 'blob' })
+      const blob = res.data
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -164,6 +182,19 @@ export default function AdminOrders() {
           >
             {showReservedOnly ? 'Reserved Only' : 'All Orders'}
           </button>
+          <button
+            type="button"
+            onClick={() => setShowReturnOnly(prev => !prev)}
+            className={`h-8 px-4 rounded-full border text-[10px] font-black uppercase tracking-widest transition-colors ${showReturnOnly ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-white text-gray-500 border-gray-200 hover:text-black hover:border-black'}`}
+            title="Show return requests"
+          >
+            {showReturnOnly ? 'Return Requests' : 'All Returns'}
+          </button>
+          {returnRequestCount > 0 && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-100">
+              {returnRequestCount} return request{returnRequestCount > 1 ? 's' : ''}
+            </span>
+          )}
         </div>
       </div>
 
@@ -221,11 +252,11 @@ export default function AdminOrders() {
                   {isReserved ? (
                     <div className="flex flex-col gap-1">
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-100 w-fit">
-                        Reserved
+                        {minutesLeft === 0 ? 'Expired' : 'Reserved'}
                       </span>
                       {minutesLeft !== null && (
                         <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
-                          Expires in {minutesLeft} min
+                          {minutesLeft === 0 ? 'Awaiting cleanup' : `Expires in ${minutesLeft} min`}
                         </span>
                       )}
                     </div>
@@ -383,11 +414,11 @@ export default function AdminOrders() {
                     {isReserved ? (
                       <div className="flex flex-col gap-1">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-100 w-fit">
-                          Reserved
+                          {minutesLeft === 0 ? 'Expired' : 'Reserved'}
                         </span>
                         {minutesLeft !== null && (
                           <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
-                            Expires in {minutesLeft} min
+                            {minutesLeft === 0 ? 'Awaiting cleanup' : `Expires in ${minutesLeft} min`}
                           </span>
                         )}
                       </div>

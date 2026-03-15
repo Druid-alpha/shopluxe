@@ -33,7 +33,11 @@ const progressIndex = (status) => {
 }
 
 export default function MyOrders() {
-  const { data, isLoading, isError, refetch } = useGetMyOrdersQuery()
+  const { data, isLoading, isError, refetch } = useGetMyOrdersQuery(undefined, {
+    pollingInterval: 15000,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  })
   const ordersRaw = data?.orders || data || []
   const orders = Array.isArray(ordersRaw)
     ? [...ordersRaw].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))

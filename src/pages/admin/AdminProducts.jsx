@@ -254,9 +254,8 @@ export default function AdminProducts() {
 
   const handleExport = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/export/products`, { credentials: 'include' })
-      if (!res.ok) throw new Error('Export failed')
-      const blob = await res.blob()
+      const res = await axios.get('/admin/export/products', { responseType: 'blob' })
+      const blob = res.data
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
