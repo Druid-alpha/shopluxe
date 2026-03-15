@@ -230,7 +230,7 @@ export default function ProductCard({ product }) {
   if (!product) return null
 
   return (
-    <div className="group relative bg-white border border-gray-100 rounded-xl transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col">
+    <div className="group relative bg-white border border-gray-100 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col h-full">
       {/* WISHLIST BUTTON */}
       <div className="absolute top-4 right-4 z-10">
         <button
@@ -256,7 +256,7 @@ export default function ProductCard({ product }) {
       </div>
 
       {/* PRODUCT IMAGE */}
-      <Link to={`/products/${product._id}`} className="block relative aspect-[3/2] sm:aspect-[4/3] overflow-hidden bg-gradient-to-br from-slate-50 via-white to-amber-50 min-h-[200px] sm:min-h-[210px] flex items-center justify-center">
+      <Link to={`/products/${product._id}`} className="block relative aspect-[3/2] sm:aspect-[4/3] overflow-hidden bg-gradient-to-br from-slate-50 via-white to-amber-50 flex items-center justify-center">
         {/* SALE BADGE */}
         {maxDiscount > 0 && (
           <div className="absolute top-4 left-4 z-10">
