@@ -294,10 +294,16 @@ export default function AdminOrders() {
                 </div>
                 {canHandleReturn && (
                   <div className="mt-3 space-y-2">
+                    {order.returnReason && (
+                      <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-3 text-[11px] font-medium text-amber-800">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 block mb-1">Customer Reason</span>
+                        {order.returnReason}
+                      </div>
+                    )}
                     <textarea
                       value={returnNotes[order._id] || ''}
                       onChange={(e) => setReturnNotes(prev => ({ ...prev, [order._id]: e.target.value }))}
-                      placeholder="Return notes (optional)"
+                      placeholder="Admin note (emailed to customer)"
                       className="w-full border rounded-xl p-3 text-[11px] font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all min-h-[80px]"
                     />
                     <input
@@ -308,10 +314,10 @@ export default function AdminOrders() {
                       placeholder="Refund amount (optional)"
                       className="w-full border rounded-xl p-3 text-[11px] font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all"
                     />
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <Button
                         variant="outline"
-                        className="h-9 rounded-xl text-[10px] font-black uppercase tracking-widest border-emerald-200 text-emerald-700"
+                        className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-emerald-200 text-emerald-700 w-full"
                         disabled={isUpdatingReturn || isRefunding}
                         onClick={() => handleReturnUpdate(order._id, 'approved')}
                       >
@@ -319,7 +325,7 @@ export default function AdminOrders() {
                       </Button>
                       <Button
                         variant="outline"
-                        className="h-9 rounded-xl text-[10px] font-black uppercase tracking-widest border-rose-200 text-rose-700"
+                        className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-rose-200 text-rose-700 w-full"
                         disabled={isUpdatingReturn || isRefunding}
                         onClick={() => handleReturnUpdate(order._id, 'rejected')}
                       >
@@ -327,7 +333,7 @@ export default function AdminOrders() {
                       </Button>
                       <Button
                         variant="outline"
-                        className="h-9 rounded-xl text-[10px] font-black uppercase tracking-widest border-blue-200 text-blue-700"
+                        className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-blue-200 text-blue-700 w-full"
                         disabled={isUpdatingReturn || isRefunding}
                         onClick={() => handleReturnUpdate(order._id, 'refunded')}
                       >
@@ -484,10 +490,16 @@ export default function AdminOrders() {
                     </Button>
                     {canHandleReturn && (
                       <div className="mt-2 flex flex-col items-end gap-2">
+                        {order.returnReason && (
+                          <div className="w-56 rounded-xl border border-amber-100 bg-amber-50/60 p-2 text-[10px] font-medium text-amber-800 text-left">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 block mb-1">Customer Reason</span>
+                            {order.returnReason}
+                          </div>
+                        )}
                         <textarea
                           value={returnNotes[order._id] || ''}
                           onChange={(e) => setReturnNotes(prev => ({ ...prev, [order._id]: e.target.value }))}
-                          placeholder="Return notes"
+                          placeholder="Admin note (emailed)"
                           className="w-56 border rounded-xl p-2 text-[10px] font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all min-h-[60px]"
                         />
                         <input
