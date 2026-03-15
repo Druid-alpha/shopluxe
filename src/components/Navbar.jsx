@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import { Heart, LogOut, Menu, Shield, ShoppingCart, User, X, ArrowRight } from 'lucide-react'
+import { Heart, LogOut, Menu, Package, Shield, ShoppingCart, User, X, ArrowRight } from 'lucide-react'
 import { useGetWishlistQuery } from '@/features/wishlist/wishlistApi'
 
 const SOCIAL_LINKS = [
@@ -181,6 +181,12 @@ export default function Navbar() {
                     Profile
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/orders">
+                    <Package className="mr-2 h-4 w-4" />
+                    My Orders
+                  </Link>
+                </DropdownMenuItem>
 
                 {/* Admin dropdown */}
                 {user.role === 'admin' && (
@@ -334,6 +340,12 @@ export default function Navbar() {
                   {wishlistCount > 0 && (
                     <span className="bg-black text-white text-[10px] font-black px-2 py-0.5 rounded-full">{wishlistCount}</span>
                   )}
+                </Link>
+                <Link to="/orders" className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <Package size={20} className="text-slate-900" />
+                    <span className="text-sm font-black uppercase tracking-tight">My Orders</span>
+                  </div>
                 </Link>
                 <Link to="/cart" className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-4">

@@ -17,6 +17,7 @@ import Modal from './Modal'
 import { Star, Edit, Trash2, RotateCcw, Trash, RefreshCw } from 'lucide-react'
 
 export default function AdminProducts() {
+  const LOW_STOCK_THRESHOLD = 5
   const [toggleFeatured] = useToggleFeaturedMutation()
   const { toast } = useToast()
   const [page, setPage] = useState(1)
@@ -251,6 +252,24 @@ export default function AdminProducts() {
     }
   }
 
+  const handleExport = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/export/products`, { credentials: 'include' })
+      if (!res.ok) throw new Error('Export failed')
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `products-${Date.now()}.csv`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      toast({ title: 'Export failed', description: err.message || 'Could not export products', variant: 'destructive' })
+    }
+  }
+
   const handleResetReservation = async (product) => {
     if (!product?._id) return
     try {
@@ -287,6 +306,9 @@ export default function AdminProducts() {
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button onClick={() => setEditingProduct({})} className="bg-black hover:bg-gray-800 rounded-xl w-full sm:w-auto">
               + Create Product
+            </Button>
+            <Button variant="outline" className="rounded-xl w-full sm:w-auto" onClick={handleExport}>
+              Export Products
             </Button>
             <Button
               variant="outline"
@@ -435,6 +457,7 @@ export default function AdminProducts() {
             const totalStock = Number(p.stock || 0) + variantStock
             const totalReserved = Number(p.reserved || 0) + variantReserved
             const availableStock = Math.max(0, totalStock - totalReserved)
+            const isLowStock = totalStock > 0 && availableStock <= LOW_STOCK_THRESHOLD
             const showReserveInfo = totalStock > 0 || totalReserved > 0
             return (
               <div key={p._id} className={`rounded-2xl border border-gray-100 p-4 shadow-sm ${p.isDeleted ? 'opacity-50' : ''}`}>
@@ -472,6 +495,11 @@ export default function AdminProducts() {
                   {duplicateSkus.length > 0 && (
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 uppercase tracking-tighter w-fit">
                       Duplicate SKU
+                    </span>
+                  )}
+                  {isLowStock && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-tighter w-fit">
+                      Low Stock
                     </span>
                   )}
                 </div>
@@ -554,7 +582,7 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-          {products.map((p) => {
+              {products.map((p) => {
                 const hasDiscount = Number(p.discount || 0) > 0 || (p.variants || []).some(v => Number(v?.discount || 0) > 0)
                 const skuCounts = (p.variants || []).reduce((acc, v) => {
                   const sku = String(v?.sku || '').trim()
@@ -568,6 +596,7 @@ export default function AdminProducts() {
                 const totalStock = Number(p.stock || 0) + variantStock
                 const totalReserved = Number(p.reserved || 0) + variantReserved
                 const availableStock = Math.max(0, totalStock - totalReserved)
+                const isLowStock = totalStock > 0 && availableStock <= LOW_STOCK_THRESHOLD
                 const showReserveInfo = totalStock > 0 || totalReserved > 0
                 return (
                 <tr key={p._id} className={`hover:bg-gray-50/50 transition-colors ${p.isDeleted ? 'opacity-50' : ''}`}>
@@ -627,6 +656,11 @@ export default function AdminProducts() {
                       {duplicateSkus.length > 0 && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 uppercase tracking-tighter w-fit">
                           Duplicate SKU
+                        </span>
+                      )}
+                      {isLowStock && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-tighter w-fit">
+                          Low Stock
                         </span>
                       )}
                     </div>

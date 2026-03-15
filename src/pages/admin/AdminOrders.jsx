@@ -2,7 +2,9 @@
 import {
   useGetAllOrdersQuery,
   useUpdateOrderStatusMutation,
-  useDeleteOrderMutation
+  useDeleteOrderMutation,
+  useUpdateReturnStatusMutation,
+  useRefundOrderMutation
 } from '@/features/orders/orderApi'
 import { Loader2, RefreshCcw, Trash2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
@@ -25,6 +27,8 @@ export default function AdminOrders() {
   const [lastUpdated, setLastUpdated] = React.useState(null)
   const [showReservedOnly, setShowReservedOnly] = React.useState(false)
   const [nowTick, setNowTick] = React.useState(Date.now())
+  const [returnNotes, setReturnNotes] = React.useState({})
+  const [refundAmounts, setRefundAmounts] = React.useState({})
 
   // Use RTK Query for fetching orders with polling
   const { data, isLoading, isError, isFetching, refetch } = useGetAllOrdersQuery(undefined, {
@@ -33,6 +37,8 @@ export default function AdminOrders() {
 
   const [updateStatus, { isLoading: isUpdating }] = useUpdateOrderStatusMutation()
   const [deleteOrder] = useDeleteOrderMutation()
+  const [updateReturnStatus, { isLoading: isUpdatingReturn }] = useUpdateReturnStatusMutation()
+  const [refundOrder, { isLoading: isRefunding }] = useRefundOrderMutation()
   const [orderToDelete, setOrderToDelete] = React.useState(null)
 
   const orders = data?.orders || []
@@ -73,6 +79,42 @@ export default function AdminOrders() {
     }
   }
 
+  const handleExport = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/export/orders`, { credentials: 'include' })
+      if (!res.ok) throw new Error('Export failed')
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `orders-${Date.now()}.csv`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      toast({ title: 'Export failed', description: err.message || 'Could not export orders', variant: 'destructive' })
+    }
+  }
+
+  const handleReturnUpdate = async (id, status) => {
+    try {
+      const note = returnNotes[id] || ''
+      const refundAmount = refundAmounts[id]
+      if (status === 'refunded') {
+        await refundOrder({ orderId: id, amount: refundAmount, reason: note }).unwrap()
+        toast({ title: 'Refund processed', description: 'Payment refunded via Paystack.' })
+      } else {
+        await updateReturnStatus({ id, status, note, refundAmount }).unwrap()
+        toast({ title: `Return ${status}`, description: 'Return status updated.' })
+      }
+      setReturnNotes(prev => ({ ...prev, [id]: '' }))
+      setRefundAmounts(prev => ({ ...prev, [id]: '' }))
+    } catch (err) {
+      toast({ title: 'Error', description: err.data?.message || 'Failed to update return', variant: 'destructive' })
+    }
+  }
+
   if (isLoading) return (
     <div className="flex flex-col items-center justify-center p-20 space-y-4">
       <Loader2 className="animate-spin text-gray-400" size={40} />
@@ -106,6 +148,14 @@ export default function AdminOrders() {
             <RefreshCcw size={14} className={isFetching ? "animate-spin" : ""} />
             {isFetching ? "Refreshing..." : "Refresh"}
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            className="gap-2"
+          >
+            Export Orders
+          </Button>
           <button
             type="button"
             onClick={() => setShowReservedOnly(prev => !prev)}
@@ -124,6 +174,7 @@ export default function AdminOrders() {
             const isReserved = order?.paymentStatus === 'pending'
             const expiresAt = order?.expiresAt ? new Date(order.expiresAt) : null
             const minutesLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - nowTick) / 60000)) : null
+            const canHandleReturn = order?.returnStatus === 'requested'
             return (
               <div key={order._id} className="rounded-2xl border border-gray-100 p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
@@ -142,6 +193,18 @@ export default function AdminOrders() {
                     {order.paymentStatus || 'pending'}
                   </span>
                 </div>
+                {order.returnStatus && order.returnStatus !== 'none' && (
+                  <span className={`inline-flex items-center justify-center h-7 px-3 text-[10px] font-bold uppercase rounded-full mt-2 ${order.returnStatus === 'approved'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : order.returnStatus === 'rejected'
+                      ? 'bg-rose-100 text-rose-700'
+                      : order.returnStatus === 'refunded'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-amber-100 text-amber-700'
+                    }`}>
+                    Return {order.returnStatus}
+                  </span>
+                )}
 
                 <div className="mt-3 text-sm font-semibold text-gray-900">{order.user?.name || 'Guest'}</div>
                 <div className="text-xs text-gray-400">{order.user?.email || 'N/A'}</div>
@@ -198,6 +261,50 @@ export default function AdminOrders() {
                     <Trash2 size={18} />
                   </Button>
                 </div>
+                {canHandleReturn && (
+                  <div className="mt-3 space-y-2">
+                    <textarea
+                      value={returnNotes[order._id] || ''}
+                      onChange={(e) => setReturnNotes(prev => ({ ...prev, [order._id]: e.target.value }))}
+                      placeholder="Return notes (optional)"
+                      className="w-full border rounded-xl p-3 text-[11px] font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all min-h-[80px]"
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      value={refundAmounts[order._id] || ''}
+                      onChange={(e) => setRefundAmounts(prev => ({ ...prev, [order._id]: e.target.value }))}
+                      placeholder="Refund amount (optional)"
+                      className="w-full border rounded-xl p-3 text-[11px] font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all"
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="h-9 rounded-xl text-[10px] font-black uppercase tracking-widest border-emerald-200 text-emerald-700"
+                        disabled={isUpdatingReturn || isRefunding}
+                        onClick={() => handleReturnUpdate(order._id, 'approved')}
+                      >
+                        Approve Return
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-9 rounded-xl text-[10px] font-black uppercase tracking-widest border-rose-200 text-rose-700"
+                        disabled={isUpdatingReturn || isRefunding}
+                        onClick={() => handleReturnUpdate(order._id, 'rejected')}
+                      >
+                        Reject Return
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-9 rounded-xl text-[10px] font-black uppercase tracking-widest border-blue-200 text-blue-700"
+                        disabled={isUpdatingReturn || isRefunding}
+                        onClick={() => handleReturnUpdate(order._id, 'refunded')}
+                      >
+                        Mark Refunded
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}
@@ -222,6 +329,7 @@ export default function AdminOrders() {
                 const isReserved = order?.paymentStatus === 'pending'
                 const expiresAt = order?.expiresAt ? new Date(order.expiresAt) : null
                 const minutesLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - nowTick) / 60000)) : null
+                const canHandleReturn = order?.returnStatus === 'requested'
                 return (
                 <tr key={order._id} className="h-16 hover:bg-gray-50/60 transition-colors">
                   <td className="px-6 py-4 align-middle">
@@ -299,6 +407,18 @@ export default function AdminOrders() {
                         }`}>
                         {order.paymentStatus || 'pending'}
                       </span>
+                      {order.returnStatus && order.returnStatus !== 'none' && (
+                        <span className={`inline-flex items-center justify-center h-7 w-28 text-[9px] font-bold uppercase rounded-lg ${order.returnStatus === 'approved'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : order.returnStatus === 'rejected'
+                            ? 'bg-rose-100 text-rose-700'
+                            : order.returnStatus === 'refunded'
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-amber-100 text-amber-700'
+                          }`}>
+                          Return {order.returnStatus}
+                        </span>
+                      )}
 
                       {/* Operational Status Dropdown */}
                       <Select
@@ -331,6 +451,50 @@ export default function AdminOrders() {
                     >
                       <Trash2 size={18} />
                     </Button>
+                    {canHandleReturn && (
+                      <div className="mt-2 flex flex-col items-end gap-2">
+                        <textarea
+                          value={returnNotes[order._id] || ''}
+                          onChange={(e) => setReturnNotes(prev => ({ ...prev, [order._id]: e.target.value }))}
+                          placeholder="Return notes"
+                          className="w-56 border rounded-xl p-2 text-[10px] font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all min-h-[60px]"
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          value={refundAmounts[order._id] || ''}
+                          onChange={(e) => setRefundAmounts(prev => ({ ...prev, [order._id]: e.target.value }))}
+                          placeholder="Refund amount"
+                          className="w-56 border rounded-xl p-2 text-[10px] font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all"
+                        />
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest border-emerald-200 text-emerald-700"
+                            disabled={isUpdatingReturn || isRefunding}
+                            onClick={() => handleReturnUpdate(order._id, 'approved')}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest border-rose-200 text-rose-700"
+                            disabled={isUpdatingReturn || isRefunding}
+                            onClick={() => handleReturnUpdate(order._id, 'rejected')}
+                          >
+                            Reject
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest border-blue-200 text-blue-700"
+                            disabled={isUpdatingReturn || isRefunding}
+                            onClick={() => handleReturnUpdate(order._id, 'refunded')}
+                          >
+                            Refunded
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </td>
                 </tr>
               )})}

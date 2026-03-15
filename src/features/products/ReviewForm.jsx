@@ -46,19 +46,23 @@ export default function ReviewForm({ productId, onSuccess, user }) {
         Share fit, quality, delivery speed, and whether you would buy again.
       </p>
 
-      <div className="flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <span
-            key={star}
-            className={`text-2xl cursor-pointer ${hover >= star || rating >= star ? 'text-yellow-400' : 'text-gray-300'}`}
-            onClick={() => setRating(star)}
-            onMouseEnter={() => setHover(star)}
-            onMouseLeave={() => setHover(0)}
-          >
-            *
-          </span>
-        ))}
-        <span className="ml-2 text-sm text-gray-600">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+              className={`w-10 h-10 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-2xl transition-all border ${hover >= star || rating >= star ? 'text-yellow-400 border-yellow-200 bg-yellow-50/60' : 'text-gray-300 border-gray-200 bg-white'}`}
+              onClick={() => setRating(star)}
+              onMouseEnter={() => setHover(star)}
+              onMouseLeave={() => setHover(0)}
+            >
+              ★
+            </button>
+          ))}
+        </div>
+        <span className="text-sm text-gray-600 font-medium">
           {rating ? `${ratingLabels[rating]} (${rating} / 5)` : 'Tap to rate'}
         </span>
       </div>

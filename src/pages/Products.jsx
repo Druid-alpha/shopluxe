@@ -46,6 +46,24 @@ export default function Products() {
   const [mobileFilters, setMobileFilters] = React.useState(false)
   const [isResolvingCategory, setIsResolvingCategory] = React.useState(false)
   const skipNextUrlSyncRef = React.useRef(false)
+  const quickSuggestions = React.useMemo(() => ([
+    'Sale',
+    'New Arrivals',
+    'Bags',
+    'Shoes',
+    'Electronics',
+    'Under 50k'
+  ]), [])
+  const setMeta = React.useCallback((name, content) => {
+    if (!content) return
+    let tag = document.querySelector(`meta[name="${name}"]`)
+    if (!tag) {
+      tag = document.createElement('meta')
+      tag.setAttribute('name', name)
+      document.head.appendChild(tag)
+    }
+    tag.setAttribute('content', content)
+  }, [])
 
   // Keep local state in sync when URL params change externally (e.g. navbar/home category links).
   React.useEffect(() => {
@@ -170,6 +188,18 @@ export default function Products() {
     return () => { document.body.style.overflow = '' }
   }, [mobileFilters])
 
+  React.useEffect(() => {
+    const activeCategory = options.categories.find(c => c._id === category)?.name || ''
+    const titleParts = [
+      search ? `Search: ${search}` : '',
+      activeCategory || '',
+      saleOnly ? 'On Sale' : '',
+      'ShopLuxe'
+    ].filter(Boolean)
+    document.title = titleParts.join(' · ')
+    setMeta('description', 'Browse curated products, filter by category, and find deals at ShopLuxe.')
+  }, [search, category, saleOnly, options.categories, setMeta])
+
   // ---------------- Fetch products ----------------
   const { data, isLoading, isFetching } = useGetProductsQuery({
     page,
@@ -232,6 +262,15 @@ export default function Products() {
       return
     }
 
+    const underMatch = value.match(/under\s+(\d+)(k)?/)
+    if (underMatch) {
+      const amount = Number(underMatch[1]) * (underMatch[2] ? 1000 : 1)
+      setMinPrice(0)
+      setMaxPrice(amount || MAX_PRICE)
+      setSearch('')
+      return
+    }
+
     setSearch(raw)
   }
 
@@ -251,7 +290,7 @@ export default function Products() {
             search={search}
             setSearch={setSearch}
             onSuggestion={handleSuggestion}
-            suggestions={[]}
+            suggestions={quickSuggestions}
           />
         </div>
 
@@ -308,6 +347,18 @@ export default function Products() {
                     <p className="text-gray-400 text-lg font-medium">
                       {data?.message || 'No products found for the selected filters.'}
                     </p>
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      {quickSuggestions.map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => handleSuggestion(s)}
+                          className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-gray-200 text-gray-500 hover:text-black hover:border-black transition-all"
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
                     <Button variant="outline" onClick={() => {
                       setCategory('')
                       setBrand(null)

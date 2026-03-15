@@ -395,6 +395,16 @@ export default function ProductDetails() {
   const { toast } = useToast()
   const user = useAppSelector(state => state.auth.user)
   const token = useAppSelector(state => state.auth.token)
+  const setMeta = React.useCallback((name, content) => {
+    if (!content) return
+    let tag = document.querySelector(`meta[name="${name}"]`)
+    if (!tag) {
+      tag = document.createElement('meta')
+      tag.setAttribute('name', name)
+      document.head.appendChild(tag)
+    }
+    tag.setAttribute('content', content)
+  }, [])
 
   const { data, isLoading, refetch } = useGetProductQuery(id)
   const product = data?.product
@@ -411,6 +421,16 @@ export default function ProductDetails() {
     const timer = setInterval(() => { refetch() }, 3000)
     return () => clearInterval(timer)
   }, [refetch])
+
+  React.useEffect(() => {
+    if (product?.title) {
+      document.title = `${product.title} · ShopLuxe`
+      const description = product.description
+        ? String(product.description).slice(0, 160)
+        : 'Explore premium products on ShopLuxe.'
+      setMeta('description', description)
+    }
+  }, [product?.title, product?.description, setMeta])
 
   React.useEffect(() => {
     const prev = document.body.style.overflowX
@@ -998,6 +1018,15 @@ export default function ProductDetails() {
                 return (
                   <div className="mt-3 inline-flex items-center bg-rose-50 text-rose-700 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-rose-100">
                     High Reserved
+                  </div>
+                )
+              })()}
+              {(() => {
+                const isLowStock = totalAvailable > 0 && totalAvailable <= 5
+                if (!isLowStock) return null
+                return (
+                  <div className="mt-2 inline-flex items-center bg-amber-50 text-amber-700 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-amber-100">
+                    Only {totalAvailable} left
                   </div>
                 )
               })()}

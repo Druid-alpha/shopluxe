@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { Camera, User, Loader2, CheckCircle2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Link } from 'react-router-dom'
 
 export default function Profile() {
   const { user, token } = useAppSelector((state) => state.auth)
@@ -141,6 +142,12 @@ export default function Profile() {
                   Discard Changes
                 </Button>
               )}
+            </div>
+
+            <div className="pt-4 border-t border-gray-100">
+              <Button asChild variant="outline" className="h-12 rounded-xl w-full sm:w-auto">
+                <Link to="/orders">Track My Orders</Link>
+              </Button>
             </div>
           </div>
         </div>

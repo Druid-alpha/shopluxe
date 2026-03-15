@@ -61,6 +61,7 @@ export default function ProductCard({ product }) {
   const totalStock = toNumberOrNull(product?.totalStock) ?? (baseStock + variantStockTotal)
   const totalReserved = toNumberOrNull(product?.totalReserved) ?? (baseReserved + variantReservedTotal)
   const availableStock = Math.max(0, totalStock - totalReserved)
+  const isLowStock = availableStock > 0 && availableStock <= 5
   const isReservedHigh = totalStock > 0
     && totalReserved >= Math.ceil(totalStock * 0.7)
     && availableStock < 5
@@ -279,6 +280,13 @@ export default function ProductCard({ product }) {
             </span>
           </div>
         )}
+        {isLowStock && (
+          <div className="absolute top-24 left-4 z-10">
+            <span className="inline-flex items-center bg-amber-50 text-amber-700 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-amber-100">
+              Only {availableStock} left
+            </span>
+          </div>
+        )}
 
         <img
           src={imageSrc}
@@ -337,11 +345,11 @@ export default function ProductCard({ product }) {
         </div>
 
         <div className="flex items-center gap-1 pt-1">
-          <StarRating rating={product.avgRating} size={12} />
-          <span className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+          <StarRating rating={product.avgRating} size={14} />
+          <span className="text-[9px] sm:text-[10px] font-bold text-gray-500 uppercase tracking-tighter">
             ({product?.avgRating?.toFixed(1) ?? '0.0'})
           </span>
-          <span className="text-[9px] sm:text-[10px] font-bold text-gray-300 uppercase tracking-tighter">
+          <span className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
             - {product?.reviewsCount || 0} reviews
           </span>
         </div>

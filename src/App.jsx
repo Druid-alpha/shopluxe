@@ -35,6 +35,7 @@ import NotFound from './pages/NotFound'
 import HelpCenter from './pages/HelpCenter'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
+import MyOrders from './pages/MyOrders'
 
 export default function App() {
   const location = useLocation()
@@ -91,6 +92,14 @@ export default function App() {
               element={
                 <ProtectedRoute roles={['user', 'admin']}>
                   <PageTransition><OrderReceipt /></PageTransition>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <ProtectedRoute roles={['user', 'admin']}>
+                  <PageTransition><MyOrders /></PageTransition>
                 </ProtectedRoute>
               }
             />

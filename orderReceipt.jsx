@@ -6,8 +6,9 @@ import html2pdf from 'html2pdf.js'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { logout } from '@/features/auth/authSlice'
 import { productApi } from '@/features/products/productApi'
-import { useGenerateOrderInvoiceMutation, useGetOrderQuery } from '@/features/orders/orderApi'
+import { useGenerateOrderInvoiceMutation, useGetOrderQuery, useRequestReturnMutation } from '@/features/orders/orderApi'
 import { useToast } from '@/hooks/use-toast'
+import { estimateEtaRange } from '@/lib/eta'
 
 export default function OrderReceipt() {
   const { id } = useParams()
@@ -23,13 +24,26 @@ export default function OrderReceipt() {
     refetchOnFocus: true
   })
   const [generateInvoice, { isLoading: isGeneratingInvoice }] = useGenerateOrderInvoiceMutation()
+  const [requestReturn, { isLoading: isRequestingReturn }] = useRequestReturnMutation()
   const [isDownloading, setIsDownloading] = React.useState(false)
   const [invoiceUrl, setInvoiceUrl] = React.useState(null)
+  const [returnReason, setReturnReason] = React.useState('')
   const order = data?.order
+  const eta = estimateEtaRange(order)
   const timelineSteps = ['pending', 'paid', 'processing', 'shipped', 'delivered']
   const statusIndex = timelineSteps.indexOf(order?.status || 'pending')
   const paymentIndex = order?.paymentStatus === 'paid' ? timelineSteps.indexOf('paid') : timelineSteps.indexOf('pending')
   const currentStepIndex = Math.max(statusIndex, paymentIndex)
+  const statusTone = (() => {
+    const status = String(order?.status || 'pending').toLowerCase()
+    if (status === 'delivered') return 'bg-emerald-50 text-emerald-700 border-emerald-100'
+    if (status === 'shipped') return 'bg-blue-50 text-blue-700 border-blue-100'
+    if (status === 'processing') return 'bg-slate-50 text-slate-700 border-slate-200'
+    if (status === 'paid') return 'bg-green-50 text-green-700 border-green-100'
+    if (status === 'failed') return 'bg-rose-50 text-rose-700 border-rose-100'
+    if (status === 'cancelled') return 'bg-gray-50 text-gray-500 border-gray-200'
+    return 'bg-amber-50 text-amber-700 border-amber-100'
+  })()
 
   const getVariantMeta = (item) => {
     if (!item) return null
@@ -194,6 +208,22 @@ export default function OrderReceipt() {
     navigate('/login')
   }
 
+  const handleReturnRequest = async () => {
+    if (!order?._id) return
+    try {
+      await requestReturn({ id: order._id, reason: returnReason }).unwrap()
+      toast({ title: 'Return requested', description: 'We will review your request shortly.' })
+      setReturnReason('')
+      refetch()
+    } catch (err) {
+      toast({
+        title: 'Return request failed',
+        description: err?.data?.message || 'Please try again.',
+        variant: 'destructive'
+      })
+    }
+  }
+
   if (queryError) return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-4">
       <div className="bg-red-50 p-4 rounded-full text-red-500"><LogOut size={32} /></div>
@@ -244,6 +274,11 @@ export default function OrderReceipt() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900 tracking-tight font-display">Purchase Successful</h1>
               <p className="text-gray-500 text-sm">A copy of this receipt has been sent to your email.</p>
+              <div className="mt-3">
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${statusTone}`}>
+                  {order?.status || 'pending'}
+                </span>
+              </div>
             </div>
           </div>
           <div className="flex gap-3 w-full md:w-auto">
@@ -277,6 +312,46 @@ export default function OrderReceipt() {
               )
             })}
           </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Returns</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {order.returnStatus && order.returnStatus !== 'none'
+                  ? `Status: ${order.returnStatus}`
+                  : 'Request a return within 7 days of delivery.'}
+              </p>
+            </div>
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${order.returnStatus === 'approved'
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+              : order.returnStatus === 'rejected'
+                ? 'bg-rose-50 text-rose-700 border-rose-100'
+                : order.returnStatus === 'requested'
+                  ? 'bg-amber-50 text-amber-700 border-amber-100'
+                  : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+              {order.returnStatus || 'none'}
+            </span>
+          </div>
+
+          {order.status === 'delivered' && order.returnStatus === 'none' && (
+            <div className="space-y-3">
+              <textarea
+                value={returnReason}
+                onChange={(e) => setReturnReason(e.target.value)}
+                placeholder="Why do you want to return this order?"
+                className="w-full border rounded-xl p-4 text-sm font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all min-h-[100px]"
+              />
+              <Button
+                onClick={handleReturnRequest}
+                disabled={isRequestingReturn}
+                className="h-11 rounded-xl bg-black text-white hover:bg-gray-800"
+              >
+                {isRequestingReturn ? 'Submitting...' : 'Request Return'}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Invoice Card */}
@@ -336,6 +411,12 @@ export default function OrderReceipt() {
                     <span className="text-gray-400 mr-2">Issue Date:</span>
                     {new Date(order.createdAt).toLocaleDateString('en-US', { dateStyle: 'long' })}
                   </p>
+                  {eta?.label && (
+                    <p className="text-sm font-medium">
+                      <span className="text-gray-400 mr-2">Estimated Delivery:</span>
+                      {eta.label.replace('ETA: ', '')}
+                    </p>
+                  )}
                   <p className="text-sm font-medium">
                     <span className="text-gray-400 mr-2">Status:</span>
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase italic tracking-wider ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
