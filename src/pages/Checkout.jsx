@@ -3,6 +3,7 @@ import { useAppSelector } from '@/app/hooks'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { ShieldCheck, MapPin, ChevronRight, Loader2 } from 'lucide-react'
+import { releaseReservation, clearReservationStorage } from '@/lib/reservation'
 
 export default function Checkout() {
   const cart = useAppSelector(state => state.cart.items)
@@ -12,16 +13,17 @@ export default function Checkout() {
   const [loading, setLoading] = React.useState(false)
   const [reservationExpiresAt, setReservationExpiresAt] = React.useState(null)
   const [reservationRemaining, setReservationRemaining] = React.useState(null)
+  const [isReleasing, setIsReleasing] = React.useState(false)
   const redirectingRef = React.useRef(false)
   const notifyReservationChange = React.useCallback((expiresAt) => {
     window.dispatchEvent(new CustomEvent('shopluxe:reservation-updated', { detail: { expiresAt } }))
   }, [])
   const clearReservation = React.useCallback(() => {
-    window.localStorage.removeItem('shopluxe_reservation')
-    notifyReservationChange(null)
+    void releaseReservation({ token })
+    clearReservationStorage()
     setReservationExpiresAt(null)
     setReservationRemaining(null)
-  }, [notifyReservationChange])
+  }, [token])
   const setReservation = React.useCallback((expiresAtMs, orderId) => {
     window.localStorage.setItem('shopluxe_reservation', JSON.stringify({
       ...(orderId ? { orderId } : {}),
@@ -84,11 +86,11 @@ export default function Checkout() {
     return () => {
       if (redirectingRef.current) return
       if (reservationExpiresAt) {
-        window.localStorage.removeItem('shopluxe_reservation')
-        notifyReservationChange(null)
+        void releaseReservation({ token })
+        clearReservationStorage()
       }
     }
-  }, [reservationExpiresAt, notifyReservationChange])
+  }, [reservationExpiresAt, token])
 
   const formatRemaining = (ms) => {
     const totalSeconds = Math.max(0, Math.floor(ms / 1000))
@@ -96,6 +98,26 @@ export default function Checkout() {
     const seconds = totalSeconds % 60
     if (minutes <= 0) return `${seconds}s`
     return `${minutes}m ${seconds}s`
+  }
+
+  const handleCancelReservation = async () => {
+    if (isReleasing) return
+    setIsReleasing(true)
+    try {
+      await releaseReservation({ token })
+      clearReservationStorage()
+      setReservationExpiresAt(null)
+      setReservationRemaining(null)
+      toast({ title: 'Reservation cleared' })
+    } catch {
+      toast({
+        title: 'Could not clear reservation',
+        description: 'Please try again.',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsReleasing(false)
+    }
   }
 
   const pay = async () => {
@@ -408,6 +430,16 @@ export default function Checkout() {
               <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-emerald-700 mb-5">
                 Reservation expires in {formatRemaining(reservationRemaining)}
               </div>
+            )}
+            {reservationRemaining && (
+              <Button
+                variant="outline"
+                className="w-full h-12 rounded-xl border-amber-200 text-amber-700 hover:bg-amber-50 mb-5"
+                onClick={handleCancelReservation}
+                disabled={isReleasing}
+              >
+                {isReleasing ? 'Clearing...' : 'Cancel Reservation'}
+              </Button>
             )}
 
             <div className="border-t border-gray-100 pt-4 space-y-3">

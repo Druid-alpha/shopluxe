@@ -18,6 +18,7 @@ import StarRating from './StarRating'
 import { Heart, Truck, ShieldCheck, RefreshCw, Clock } from 'lucide-react'
 import PriceDisplay from '@/components/PriceDisplay'
 import ReviewSummary from './ReviewSummary'
+import { releaseReservation, clearReservationStorage } from '@/lib/reservation'
 
 
 const getImageUrl = (img) => {
@@ -393,6 +394,7 @@ export default function ProductDetails() {
   const dispatch = useAppDispatch()
   const { toast } = useToast()
   const user = useAppSelector(state => state.auth.user)
+  const token = useAppSelector(state => state.auth.token)
 
   const { data, isLoading, refetch } = useGetProductQuery(id)
   const product = data?.product
@@ -574,27 +576,27 @@ export default function ProductDetails() {
       const parsed = JSON.parse(raw)
       const expiresAt = Number(parsed?.expiresAt || 0)
       if (!expiresAt || Number.isNaN(expiresAt)) {
-        window.localStorage.removeItem('shopluxe_reservation')
-        window.dispatchEvent(new CustomEvent('shopluxe:reservation-updated', { detail: { expiresAt: null } }))
+        void releaseReservation({ token })
+        clearReservationStorage()
         setReservationExpiresAt(null)
         setReservationRemaining(null)
         return
       }
       if (expiresAt <= Date.now()) {
-        window.localStorage.removeItem('shopluxe_reservation')
-        window.dispatchEvent(new CustomEvent('shopluxe:reservation-updated', { detail: { expiresAt: null } }))
+        void releaseReservation({ token })
+        clearReservationStorage()
         setReservationExpiresAt(null)
         setReservationRemaining(null)
         return
       }
       setReservationExpiresAt(expiresAt)
     } catch {
-      window.localStorage.removeItem('shopluxe_reservation')
-      window.dispatchEvent(new CustomEvent('shopluxe:reservation-updated', { detail: { expiresAt: null } }))
+      void releaseReservation({ token })
+      clearReservationStorage()
       setReservationExpiresAt(null)
       setReservationRemaining(null)
     }
-  }, [])
+  }, [token])
 
   React.useEffect(() => {
     syncReservationFromStorage()
@@ -623,8 +625,8 @@ export default function ProductDetails() {
       if (remainingMs <= 0) {
         setReservationRemaining(null)
         setReservationExpiresAt(null)
-        window.localStorage.removeItem('shopluxe_reservation')
-        window.dispatchEvent(new CustomEvent('shopluxe:reservation-updated', { detail: { expiresAt: null } }))
+        void releaseReservation({ token })
+        clearReservationStorage()
         return
       }
       setReservationRemaining(remainingMs)
@@ -632,7 +634,7 @@ export default function ProductDetails() {
     tick()
     const timer = setInterval(tick, 1000)
     return () => clearInterval(timer)
-  }, [reservationExpiresAt])
+  }, [reservationExpiresAt, token])
 
   const formatRemaining = (ms) => {
     const totalSeconds = Math.max(0, Math.floor(ms / 1000))
@@ -701,6 +703,22 @@ export default function ProductDetails() {
       setPurchaseMode('base')
     }
   }, [product, mainSizes, variants.length])
+
+  React.useEffect(() => {
+    if (purchaseMode === 'base') {
+      setSelectedColorKey('')
+      setSelectedSize('')
+      setSelectedVariantIndex(-1)
+    }
+  }, [purchaseMode])
+
+  React.useEffect(() => {
+    if (!product?._id) return
+    setPurchaseMode('base')
+    setSelectedColorKey('')
+    setSelectedSize('')
+    setSelectedVariantIndex(-1)
+  }, [product?._id])
 
   // Sync selectedVariantIndex from color+size
   React.useEffect(() => {
@@ -993,7 +1011,12 @@ export default function ProductDetails() {
               <div className="flex bg-slate-100/50 backdrop-blur-sm p-1.5 rounded-2xl w-fit relative border border-slate-200/50">
                 <button
                   type="button"
-                  onClick={() => setPurchaseMode('base')}
+                  onClick={() => {
+                    setPurchaseMode('base')
+                    setSelectedColorKey('')
+                    setSelectedSize('')
+                    setSelectedVariantIndex(-1)
+                  }}
                   className={`relative z-10 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${purchaseMode === 'base' ? 'shadow-lg scale-100' : 'text-gray-400 hover:text-gray-600 scale-95 opacity-70'}`}
                   style={purchaseMode === 'base' ? {
                     backgroundColor: baseColorHex || '#000000',

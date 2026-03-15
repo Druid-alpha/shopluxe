@@ -7,6 +7,7 @@ import { removeGuestCartItem, setCart, updateGuestCartQty, updateGuestCartVarian
 import * as cartApi from '@/features/cart/cartApi';
 import { Trash, Loader2, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { releaseReservation, clearReservationStorage } from '@/lib/reservation';
 
 const CLOTHING_TYPES = new Set(['clothes', 'shoes', 'bags', 'eyeglass'])
 const SIZE_TYPE_LABEL = {
@@ -237,6 +238,7 @@ function VariantEditor({ item, onChange, disabled }) {
 export default function Cart() {
   const cart = useAppSelector(state => state.cart.items);
   const user = useAppSelector(state => state.auth.user)
+  const token = useAppSelector(state => state.auth.token)
   const sortedCart = [...cart].sort((a, b) => new Date(b.addedAt || 0) - new Date(a.addedAt || 0))
 
   const dispatch = useAppDispatch();
@@ -246,9 +248,7 @@ export default function Cart() {
   const [isLoadingCart, setIsLoadingCart] = useState(false)
   const [reservationExpiresAt, setReservationExpiresAt] = useState(null)
   const [reservationRemaining, setReservationRemaining] = useState(null)
-  const notifyReservationChange = (expiresAt) => {
-    window.dispatchEvent(new CustomEvent('shopluxe:reservation-updated', { detail: { expiresAt } }))
-  }
+  const [isReleasing, setIsReleasing] = useState(false)
 
   /* ================= LOAD CART ================= */
   useEffect(() => {
@@ -274,21 +274,21 @@ export default function Cart() {
       const parsed = JSON.parse(raw)
       const expiresAt = Number(parsed?.expiresAt || 0)
       if (!expiresAt || Number.isNaN(expiresAt)) {
-        window.localStorage.removeItem('shopluxe_reservation')
-        notifyReservationChange(null)
+        void releaseReservation({ token })
+        clearReservationStorage()
         return
       }
       if (expiresAt <= Date.now()) {
-        window.localStorage.removeItem('shopluxe_reservation')
-        notifyReservationChange(null)
+        void releaseReservation({ token })
+        clearReservationStorage()
         return
       }
       setReservationExpiresAt(expiresAt)
     } catch {
-      window.localStorage.removeItem('shopluxe_reservation')
-      notifyReservationChange(null)
+      void releaseReservation({ token })
+      clearReservationStorage()
     }
-  }, [])
+  }, [token])
 
   useEffect(() => {
     if (!reservationExpiresAt) return
@@ -297,8 +297,8 @@ export default function Cart() {
       if (remainingMs <= 0) {
         setReservationRemaining(null)
         setReservationExpiresAt(null)
-        window.localStorage.removeItem('shopluxe_reservation')
-        notifyReservationChange(null)
+        void releaseReservation({ token })
+        clearReservationStorage()
         return
       }
       setReservationRemaining(remainingMs)
@@ -306,7 +306,7 @@ export default function Cart() {
     tick()
     const timer = setInterval(tick, 1000)
     return () => clearInterval(timer)
-  }, [reservationExpiresAt])
+  }, [reservationExpiresAt, token])
 
   const formatRemaining = (ms) => {
     const totalSeconds = Math.max(0, Math.floor(ms / 1000))
@@ -314,6 +314,26 @@ export default function Cart() {
     const seconds = totalSeconds % 60
     if (minutes <= 0) return `${seconds}s`
     return `${minutes}m ${seconds}s`
+  }
+
+  const handleCancelReservation = async () => {
+    if (isReleasing) return
+    setIsReleasing(true)
+    try {
+      await releaseReservation({ token })
+      clearReservationStorage()
+      setReservationExpiresAt(null)
+      setReservationRemaining(null)
+      toast({ title: 'Reservation cleared' })
+    } catch {
+      toast({
+        title: 'Could not clear reservation',
+        description: 'Please try again.',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsReleasing(false)
+    }
   }
 
   if (isLoadingCart) {
@@ -611,6 +631,16 @@ export default function Cart() {
               <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-emerald-700 mt-4">
                 Reservation expires in {formatRemaining(reservationRemaining)}
               </div>
+            )}
+            {reservationRemaining && (
+              <Button
+                variant="outline"
+                className="w-full h-12 rounded-xl border-amber-200 text-amber-700 hover:bg-amber-50 mt-3"
+                onClick={handleCancelReservation}
+                disabled={isReleasing}
+              >
+                {isReleasing ? 'Clearing...' : 'Cancel Reservation'}
+              </Button>
             )}
 
             <Button

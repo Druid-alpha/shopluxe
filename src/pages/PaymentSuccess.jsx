@@ -8,6 +8,7 @@ import { orderApi } from "@/features/orders/orderApi"
 import { CheckCircle2, XCircle, Loader2, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Confetti from "react-confetti"
+import { releaseReservation, clearReservationStorage } from "@/lib/reservation"
 
 export default function PaymentSuccess() {
   const [params] = useSearchParams()
@@ -63,6 +64,8 @@ export default function PaymentSuccess() {
         }, 2000)
 
       } catch (err) {
+        void releaseReservation({ token })
+        clearReservationStorage()
         setErrorMsg(err.message || "Payment verification failed")
         setStatus("error")
       }

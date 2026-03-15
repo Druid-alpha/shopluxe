@@ -112,6 +112,7 @@ export default function OrderReceipt() {
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
+    const isMobileDevice = /android|iphone|ipad|ipod/i.test(navigator.userAgent || '')
     const downloadViaApi = async (url) => {
       const filename = opt.filename.endsWith('.pdf') ? opt.filename : `${opt.filename}.pdf`
       const res = await fetch(url, {
@@ -124,6 +125,11 @@ export default function OrderReceipt() {
       if (!res.ok) throw new Error(`Download failed: ${res.status}`)
       const blob = await res.blob()
       const objectUrl = window.URL.createObjectURL(blob)
+      if (isMobileDevice) {
+        window.open(objectUrl, '_blank', 'noopener')
+        window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 5000)
+        return true
+      }
       const link = document.createElement('a')
       link.href = objectUrl
       link.download = filename
