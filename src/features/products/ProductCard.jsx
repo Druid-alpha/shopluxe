@@ -346,12 +346,6 @@ export default function ProductCard({ product }) {
 
         <div className="flex items-center gap-1 pt-1">
           <StarRating rating={product.avgRating} size={14} />
-          <span className="text-[9px] sm:text-[10px] font-bold text-gray-500 uppercase tracking-tighter">
-            ({product?.avgRating?.toFixed(1) ?? '0.0'})
-          </span>
-          <span className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-            - {product?.reviewsCount || 0} reviews
-          </span>
         </div>
       </div>
     </div>

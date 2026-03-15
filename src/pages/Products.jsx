@@ -189,16 +189,16 @@ export default function Products() {
   }, [mobileFilters])
 
   React.useEffect(() => {
-    const activeCategory = options.categories.find(c => c._id === category)?.name || ''
+    const categoryLabel = category && !isObjectId(category) ? category : ''
     const titleParts = [
       search ? `Search: ${search}` : '',
-      activeCategory || '',
+      categoryLabel || '',
       saleOnly ? 'On Sale' : '',
       'ShopLuxe'
     ].filter(Boolean)
     document.title = titleParts.join(' · ')
     setMeta('description', 'Browse curated products, filter by category, and find deals at ShopLuxe.')
-  }, [search, category, saleOnly, options.categories, setMeta])
+  }, [search, category, saleOnly, isObjectId, setMeta])
 
   // ---------------- Fetch products ----------------
   const { data, isLoading, isFetching } = useGetProductsQuery({
