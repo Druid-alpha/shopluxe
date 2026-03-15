@@ -44,6 +44,13 @@ export default function OrderReceipt() {
     if (status === 'cancelled') return 'bg-gray-50 text-gray-500 border-gray-200'
     return 'bg-amber-50 text-amber-700 border-amber-100'
   })()
+  const returnEligibilityMessage = (() => {
+    if (!order) return ''
+    if (order.returnStatus && order.returnStatus !== 'none') return ''
+    if (order.paymentStatus !== 'paid') return 'Returns are available after payment is confirmed.'
+    if (order.status !== 'delivered') return 'Returns are available after delivery.'
+    return ''
+  })()
 
   const getVariantMeta = (item) => {
     if (!item) return null
@@ -331,11 +338,11 @@ export default function OrderReceipt() {
                 : order.returnStatus === 'requested'
                   ? 'bg-amber-50 text-amber-700 border-amber-100'
                   : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
-              {order.returnStatus || 'none'}
+              {order.returnStatus && order.returnStatus !== 'none' ? order.returnStatus : 'not requested'}
             </span>
           </div>
 
-          {order.status === 'delivered' && order.returnStatus === 'none' && (
+          {order.paymentStatus === 'paid' && order.returnStatus === 'none' && (
             <div className="space-y-3">
               <textarea
                 value={returnReason}
@@ -351,6 +358,11 @@ export default function OrderReceipt() {
                 {isRequestingReturn ? 'Submitting...' : 'Request Return'}
               </Button>
             </div>
+          )}
+          {order.returnStatus === 'none' && order.paymentStatus !== 'paid' && (
+            <p className="text-xs text-gray-500 font-medium">
+              {returnEligibilityMessage || 'Return request will unlock once delivery is confirmed.'}
+            </p>
           )}
         </div>
 

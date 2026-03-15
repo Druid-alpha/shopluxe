@@ -11,16 +11,20 @@ Core user flow:
 - Select variants (size/color) in product details and add to cart.
 - Edit variants directly in cart (size/color selection where applicable).
 - Checkout with shipping details and Paystack payment verification.
-- View order receipt and download invoice.
+- View order receipt, track order timeline, and download invoice.
+- Request returns from the receipt page (paid orders).
 Additional UX:
 - Compare drawer (up to 3 products).
 - Recently viewed product rail.
 - Sticky mobile add-to-cart bar on product details.
+- My Orders page with ETA estimates and tracking links.
 
 Core admin flow:
 - Manage products, variants, pricing, stock, and images.
 - Manage orders and fulfillment status.
+- Handle returns (approve/reject/refund) with notes and refund amounts.
 - Manage users and reviews.
+- Export products and orders as CSV backups.
 
 ## Architecture
 
@@ -132,6 +136,7 @@ Protected user/admin routes:
 - `/profile`
 - `/checkout`
 - `/wishlist`
+- `/orders` (My Orders)
 - `/orders/:id`
 
 Admin-only routes:
@@ -194,17 +199,22 @@ Orders:
 - `POST /api/orders` -> create order from cart and shipping address
 - `GET /api/orders/:id` -> order detail for receipt
 - `POST /api/orders/:id/invoice` -> signed invoice URL
+- `POST /api/orders/:id/return` -> request a return (paid orders)
+- `PATCH /api/orders/:id/return` -> admin return decision (approve/reject/refund)
 
 Payments:
 - `POST /api/payments/paystack/init` -> initialize Paystack transaction
 - `GET /api/payments/verify/:reference` -> verify payment and update order
 - `POST /api/payments/paystack/webhook` -> Paystack webhook
+- `POST /api/payments/paystack/refund` -> admin refund (partial/full)
 
 Admin (examples):
 - `GET /api/admin/products`
 - `POST /api/products/admin`
 - `PUT /api/products/admin/:id`
 - `PATCH /api/orders/:id/status`
+- `GET /api/admin/export/products`
+- `GET /api/admin/export/orders`
 
 Note: payload shapes are defined in the backend controllers and Mongoose schemas.
 
@@ -245,6 +255,7 @@ Order:
 - `user`, `items[]`, `totalAmount`, `status`, `paymentStatus`
 - `items[]` includes `product`, `title`, `qty`, `priceAtPurchase`, `variant`
 - `shippingAddress`
+- Return fields: `returnStatus`, `returnRequestedAt`, `returnReason`, `returnNote`, `refundStatus`, `refundAmount`, `refundProcessedAt`
 
 User:
 - `name`, `email`, `password`, `role`
@@ -260,6 +271,8 @@ Exact schema definitions live in the backend repo models.
 - Payment verification runs in `src/pages/PaymentSuccess.jsx`, clears cart, and redirects to `/orders/:id`.
 - Invoice download requests a signed invoice URL from `/orders/:id/invoice` and falls back to a client-side PDF if needed.
 - Order receipt uses RTK Query and refetches on mount and focus to avoid stale status after payment.
+- Admin refunds run through Paystack via `/payments/paystack/refund` (partial or full).
+- Returns are requested by customers and approved/rejected/refunded by admin in the Orders screen.
 
 ## Troubleshooting
 
@@ -287,6 +300,7 @@ Environment:
 - `orderReceipt.jsx` is still at project root and imported as `../orderReceipt` from `src/App.jsx`.
 - Redux store currently wires `auth`, `cart`, and RTK Query API reducers; wishlist reducer is not wired.
 - API usage style is mixed (RTK Query + axios + fetch).
+- ETA estimates are rule-based on state (frontend-only logic).
 
 ## License
 

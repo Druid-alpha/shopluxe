@@ -46,14 +46,6 @@ export default function Products() {
   const [mobileFilters, setMobileFilters] = React.useState(false)
   const [isResolvingCategory, setIsResolvingCategory] = React.useState(false)
   const skipNextUrlSyncRef = React.useRef(false)
-  const quickSuggestions = React.useMemo(() => ([
-    'Sale',
-    'New Arrivals',
-    'Bags',
-    'Shoes',
-    'Electronics',
-    'Under 50k'
-  ]), [])
   const setMeta = React.useCallback((name, content) => {
     if (!content) return
     let tag = document.querySelector(`meta[name="${name}"]`)
@@ -223,57 +215,6 @@ export default function Products() {
     return list.filter((p) => Number(p?.discount || 0) > 0)
   }, [data?.products, saleOnly])
 
-  const handleSuggestion = (raw) => {
-    const value = String(raw || '').trim().toLowerCase()
-    if (!value) return
-
-    if (value.includes('sale')) {
-      setSaleOnly(true)
-      setSearch('')
-      return
-    }
-
-    if (saleOnly) setSaleOnly(false)
-
-    if (value.includes('latest') || value.includes('new')) {
-      setSortBy('newest')
-      setSearch('')
-      return
-    }
-
-    if (value.includes('bags')) {
-      setCategory('clothing')
-      setClothingType('bags')
-      setSearch('')
-      return
-    }
-
-    if (value.includes('shoes')) {
-      setCategory('clothing')
-      setClothingType('shoes')
-      setSearch('')
-      return
-    }
-
-    if (value.includes('electronics')) {
-      setCategory('electronics')
-      setClothingType('')
-      setSearch('')
-      return
-    }
-
-    const underMatch = value.match(/under\s+(\d+)(k)?/)
-    if (underMatch) {
-      const amount = Number(underMatch[1]) * (underMatch[2] ? 1000 : 1)
-      setMinPrice(0)
-      setMaxPrice(amount || MAX_PRICE)
-      setSearch('')
-      return
-    }
-
-    setSearch(raw)
-  }
-
   return (
     <section className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-4">
@@ -289,8 +230,7 @@ export default function Products() {
           <ProductSearch
             search={search}
             setSearch={setSearch}
-            onSuggestion={handleSuggestion}
-            suggestions={quickSuggestions}
+            suggestions={[]}
           />
         </div>
 
@@ -347,18 +287,6 @@ export default function Products() {
                     <p className="text-gray-400 text-lg font-medium">
                       {data?.message || 'No products found for the selected filters.'}
                     </p>
-                    <div className="flex flex-wrap items-center justify-center gap-2">
-                      {quickSuggestions.map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => handleSuggestion(s)}
-                          className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-gray-200 text-gray-500 hover:text-black hover:border-black transition-all"
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
                     <Button variant="outline" onClick={() => {
                       setCategory('')
                       setBrand(null)
