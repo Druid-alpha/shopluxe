@@ -350,6 +350,10 @@ const buildVariantLabel = ({ variantSku, size, colorName }) => {
   return variantSku || "";
 };
 
+const toNumberOrNull = (value) => (
+  value === null || value === undefined || Number.isNaN(Number(value)) ? null : Number(value)
+)
+
 // Normalize cart for frontend
 export const normalizeCart = (cart) => {
   if (!cart || !Array.isArray(cart)) return [];
@@ -419,6 +423,18 @@ export const normalizeCart = (cart) => {
       const finalPrice = discount > 0
         ? Math.round(basePrice * (1 - discount / 100))
         : basePrice
+      const baseStock = toNumberOrNull(product?.stock) ?? 0
+      const baseReserved = toNumberOrNull(product?.reserved) ?? 0
+      const variantStockTotal = Array.isArray(product.variants)
+        ? product.variants.reduce((sum, v) => sum + Number(v?.stock || 0), 0)
+        : 0
+      const variantReservedTotal = Array.isArray(product.variants)
+        ? product.variants.reduce((sum, v) => sum + Number(v?.reserved || 0), 0)
+        : 0
+      const totalStock = toNumberOrNull(product?.totalStock) ?? (baseStock + variantStockTotal)
+      const totalReserved = toNumberOrNull(product?.totalReserved) ?? (baseReserved + variantReservedTotal)
+      const availableFromApi = toNumberOrNull(product?.availableStock)
+      const totalAvailable = availableFromApi ?? Math.max(0, totalStock - totalReserved)
       const fallbackAddedAt = new Date(seedTime + index).toISOString()
       const addedAt = item.addedAt || item.createdAt || item.updatedAt || fallbackAddedAt
 
@@ -428,6 +444,7 @@ export const normalizeCart = (cart) => {
         title: product.title || 'Product',
         productCategoryName: product?.category?.name || (typeof product?.category === 'string' ? product.category : ''),
         productReserved: product?.reserved ?? 0,
+        productTotalReserved: totalReserved,
         price: finalPrice,
         basePrice,
         discount,
@@ -443,6 +460,8 @@ export const normalizeCart = (cart) => {
         productVariants,
         variantStock: variantObj?.stock,
         productStock: product.stock,
+        productTotalStock: totalStock,
+        productAvailableStock: totalAvailable,
         clothingType: product.clothingType || null,
         productImage,
         baseProductImage,

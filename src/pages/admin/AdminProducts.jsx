@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react'
+﻿import React, { useEffect, useRef, useState, useCallback } from 'react'
 import Select from 'react-select'
 import axios from '@/lib/axios'
 import { Button } from '@/components/ui/button'
@@ -43,6 +43,14 @@ export default function AdminProducts() {
     },
   })
   const filterOptionsCacheRef = useRef(new Map())
+  const listTopRef = useRef(null)
+  const scrollToListTop = useCallback(() => {
+    if (listTopRef.current) {
+      listTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      return
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
 
   /* ================= ADMIN QUERY ================= */
   const { data, isLoading, isFetching, isError, error, refetch } = useGetAdminProductsQuery(
@@ -401,6 +409,7 @@ export default function AdminProducts() {
       </div>
 
       {/* PRODUCT TABLE */}
+      <div ref={listTopRef} />
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {/* Mobile cards */}
         <div className="lg:hidden p-4 space-y-4">
@@ -687,9 +696,25 @@ export default function AdminProducts() {
       {/* PAGINATION */}
       {totalPages > 1 && (
         <div className="flex gap-2 justify-center">
-          <Button disabled={page === 1} onClick={() => setPage(p => p - 1)}>Prev</Button>
+          <Button
+            disabled={page === 1}
+            onClick={() => {
+              setPage(p => p - 1)
+              scrollToListTop()
+            }}
+          >
+            Prev
+          </Button>
           <span>Page {page} of {totalPages}</span>
-          <Button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Next</Button>
+          <Button
+            disabled={page === totalPages}
+            onClick={() => {
+              setPage(p => p + 1)
+              scrollToListTop()
+            }}
+          >
+            Next
+          </Button>
         </div>
       )}
 

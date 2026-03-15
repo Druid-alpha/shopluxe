@@ -13,6 +13,23 @@ export default function Checkout() {
   const [reservationExpiresAt, setReservationExpiresAt] = React.useState(null)
   const [reservationRemaining, setReservationRemaining] = React.useState(null)
   const redirectingRef = React.useRef(false)
+  const notifyReservationChange = React.useCallback((expiresAt) => {
+    window.dispatchEvent(new CustomEvent('shopluxe:reservation-updated', { detail: { expiresAt } }))
+  }, [])
+  const clearReservation = React.useCallback(() => {
+    window.localStorage.removeItem('shopluxe_reservation')
+    notifyReservationChange(null)
+    setReservationExpiresAt(null)
+    setReservationRemaining(null)
+  }, [notifyReservationChange])
+  const setReservation = React.useCallback((expiresAtMs, orderId) => {
+    window.localStorage.setItem('shopluxe_reservation', JSON.stringify({
+      ...(orderId ? { orderId } : {}),
+      expiresAt: expiresAtMs
+    }))
+    setReservationExpiresAt(expiresAtMs)
+    notifyReservationChange(expiresAtMs)
+  }, [notifyReservationChange])
 
   const [address, setAddress] = React.useState({
     fullName: '',
@@ -35,27 +52,25 @@ export default function Checkout() {
       const parsed = JSON.parse(raw)
       const expiresAt = Number(parsed?.expiresAt || 0)
       if (!expiresAt || Number.isNaN(expiresAt)) {
-        window.localStorage.removeItem('shopluxe_reservation')
+        clearReservation()
         return
       }
       if (expiresAt <= Date.now()) {
-        window.localStorage.removeItem('shopluxe_reservation')
+        clearReservation()
         return
       }
       setReservationExpiresAt(expiresAt)
     } catch {
-      window.localStorage.removeItem('shopluxe_reservation')
+      clearReservation()
     }
-  }, [])
+  }, [clearReservation])
 
   React.useEffect(() => {
     if (!reservationExpiresAt) return
     const tick = () => {
       const remainingMs = reservationExpiresAt - Date.now()
       if (remainingMs <= 0) {
-        setReservationRemaining(null)
-        setReservationExpiresAt(null)
-        window.localStorage.removeItem('shopluxe_reservation')
+        clearReservation()
         return
       }
       setReservationRemaining(remainingMs)
@@ -63,16 +78,17 @@ export default function Checkout() {
     tick()
     const timer = setInterval(tick, 1000)
     return () => clearInterval(timer)
-  }, [reservationExpiresAt])
+  }, [reservationExpiresAt, clearReservation])
 
   React.useEffect(() => {
     return () => {
       if (redirectingRef.current) return
       if (reservationExpiresAt) {
         window.localStorage.removeItem('shopluxe_reservation')
+        notifyReservationChange(null)
       }
     }
-  }, [reservationExpiresAt])
+  }, [reservationExpiresAt, notifyReservationChange])
 
   const formatRemaining = (ms) => {
     const totalSeconds = Math.max(0, Math.floor(ms / 1000))
@@ -168,11 +184,7 @@ export default function Checkout() {
       if (payData?.expiresAt) {
         const expiresAtMs = new Date(payData.expiresAt).getTime()
         if (!Number.isNaN(expiresAtMs)) {
-          window.localStorage.setItem('shopluxe_reservation', JSON.stringify({
-            orderId: orderData.order._id,
-            expiresAt: expiresAtMs
-          }))
-          setReservationExpiresAt(expiresAtMs)
+          setReservation(expiresAtMs, orderData.order._id)
         }
       }
 
@@ -371,8 +383,12 @@ export default function Checkout() {
             </div>
 
             {(() => {
-              const totalAvailable = cart.reduce((sum, item) => sum + Math.max(0, Number(item.productStock || 0) - Number(item.productReserved || 0)), 0)
-              const totalReserved = cart.reduce((sum, item) => sum + Number(item.productReserved || 0), 0)
+              const totalAvailable = cart.reduce((sum, item) => {
+                const stock = Number(item.productTotalStock ?? item.productStock || 0)
+                const reserved = Number(item.productTotalReserved ?? item.productReserved || 0)
+                return sum + Math.max(0, stock - reserved)
+              }, 0)
+              const totalReserved = cart.reduce((sum, item) => sum + Number(item.productTotalReserved ?? item.productReserved || 0), 0)
               if (totalAvailable + totalReserved <= 0) return null
               const pct = Math.min(100, Math.max(0, (totalAvailable / Math.max(1, totalAvailable + totalReserved)) * 100))
               return (

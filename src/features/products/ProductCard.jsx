@@ -51,8 +51,15 @@ export default function ProductCard({ product }) {
     ? product.variants.reduce((max, v) => Math.max(max, Number(v?.discount || 0)), 0)
     : 0
   const maxDiscount = Math.max(Number(product?.discount || 0), maxVariantDiscount)
-  const totalReserved = Number(product?.totalReserved || 0)
-  const totalStock = Number(product?.totalStock || 0)
+  const toNumberOrNull = (value) => (
+    value === null || value === undefined || Number.isNaN(Number(value)) ? null : Number(value)
+  )
+  const baseStock = toNumberOrNull(product?.stock) ?? 0
+  const baseReserved = toNumberOrNull(product?.reserved) ?? 0
+  const variantStockTotal = (product?.variants || []).reduce((sum, v) => sum + Number(v?.stock || 0), 0)
+  const variantReservedTotal = (product?.variants || []).reduce((sum, v) => sum + Number(v?.reserved || 0), 0)
+  const totalStock = toNumberOrNull(product?.totalStock) ?? (baseStock + variantStockTotal)
+  const totalReserved = toNumberOrNull(product?.totalReserved) ?? (baseReserved + variantReservedTotal)
   const availableStock = Math.max(0, totalStock - totalReserved)
   const isReservedHigh = totalStock > 0
     && totalReserved >= Math.ceil(totalStock * 0.7)
@@ -249,7 +256,7 @@ export default function ProductCard({ product }) {
       </div>
 
       {/* PRODUCT IMAGE */}
-      <Link to={`/products/${product._id}`} className="block relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-slate-50 via-white to-amber-50 min-h-[260px]">
+      <Link to={`/products/${product._id}`} className="block relative aspect-[5/4] overflow-hidden bg-gradient-to-br from-slate-50 via-white to-amber-50 min-h-[220px] sm:min-h-[240px] flex items-center justify-center">
         {/* SALE BADGE */}
         {maxDiscount > 0 && (
           <div className="absolute top-4 left-4 z-10">
@@ -259,14 +266,14 @@ export default function ProductCard({ product }) {
           </div>
         )}
         {Number(product?.totalReserved || 0) > 0 && (
-          <div className="absolute top-4 right-4 z-10">
+          <div className="absolute top-14 right-4 z-10">
             <span className="inline-flex items-center bg-amber-50 text-amber-700 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-amber-100">
               Reserved {product.totalReserved}
             </span>
           </div>
         )}
         {isReservedHigh && (
-          <div className="absolute top-14 right-4 z-10">
+          <div className="absolute top-24 right-4 z-10">
             <span className="inline-flex items-center bg-rose-50 text-rose-700 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-rose-100">
               High Reserved
             </span>
@@ -276,7 +283,7 @@ export default function ProductCard({ product }) {
         <img
           src={imageSrc}
           alt={product.title}
-          className={`w-full h-full object-contain p-2 sm:p-3 transition-all duration-700 ${secondaryImageUrl ? 'group-hover:opacity-0' : 'group-hover:scale-105'}`}
+          className={`w-full h-full max-h-full max-w-full object-contain p-3 sm:p-4 transition-all duration-700 ${secondaryImageUrl ? 'group-hover:opacity-0' : 'group-hover:scale-105'}`}
           onError={() => {
             if (imageSrc !== '/placeholder.png') setImageSrc('/placeholder.png')
           }}
@@ -285,7 +292,7 @@ export default function ProductCard({ product }) {
           <img
             src={secondaryImageUrl}
             alt={`${product.title} alternate`}
-            className="absolute inset-0 w-full h-full object-contain p-2 sm:p-3 opacity-0 transition-all duration-700 group-hover:opacity-100 group-hover:scale-105"
+            className="absolute inset-0 w-full h-full max-h-full max-w-full object-contain p-3 sm:p-4 opacity-0 transition-all duration-700 group-hover:opacity-100 group-hover:scale-105"
           />
         )}
 

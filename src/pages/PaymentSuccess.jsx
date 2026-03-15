@@ -53,6 +53,7 @@ export default function PaymentSuccess() {
         try { await clearCartBackend() } catch (e) { console.error('Clear cart backend error', e) }
 
         window.localStorage.removeItem('shopluxe_reservation')
+        window.dispatchEvent(new CustomEvent('shopluxe:reservation-updated', { detail: { expiresAt: null } }))
         dispatch(clearCart())
         dispatch(orderApi.util.invalidateTags(['Order']))
         setStatus("success")

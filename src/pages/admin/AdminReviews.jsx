@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import {
     useGetAdminReviewsQuery,
     useDeleteReviewAdminMutation,
@@ -39,6 +39,14 @@ export default function AdminReviews() {
     const { data, isLoading, refetch } = useGetAdminReviewsQuery({ page, ...appliedFilters })
     const [deleteReview] = useDeleteReviewAdminMutation()
     const [toggleFeatured] = useToggleFeaturedReviewMutation()
+    const listTopRef = useRef(null)
+    const scrollToListTop = useCallback(() => {
+        if (listTopRef.current) {
+            listTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            return
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+    }, [])
 
     const handleToggleFeature = async (id) => {
         try {
@@ -201,6 +209,7 @@ export default function AdminReviews() {
                 </div>
             )}
 
+            <div ref={listTopRef} />
             <div className="grid gap-5">
                 <AnimatePresence mode="popLayout">
                     {filteredReviews?.length > 0 ? (
@@ -324,7 +333,10 @@ export default function AdminReviews() {
                 <div className="flex justify-center items-center gap-4 pt-10">
                     <Button
                         disabled={page <= 1}
-                        onClick={() => setPage(p => p - 1)}
+                        onClick={() => {
+                            setPage(p => p - 1)
+                            scrollToListTop()
+                        }}
                         variant="outline"
                         className="rounded-xl"
                     >
@@ -333,7 +345,10 @@ export default function AdminReviews() {
                     <span className="text-xs font-black uppercase tracking-widest">Page {page} of {totalPages}</span>
                     <Button
                         disabled={page >= totalPages}
-                        onClick={() => setPage(p => p + 1)}
+                        onClick={() => {
+                            setPage(p => p + 1)
+                            scrollToListTop()
+                        }}
                         variant="outline"
                         className="rounded-xl"
                     >

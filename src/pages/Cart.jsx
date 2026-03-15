@@ -58,8 +58,8 @@ function VariantBadges({ item }) {
     .replace(new RegExp(`^${sizeTypeLabel}:?\\s*`, 'i'), '')
     .trim()
   const isDuplicate = cleanSize.toLowerCase().includes(sizeTypeLabel.toLowerCase())
-  const reservedCount = Number(item.productReserved || 0)
-  const totalCount = Number(item.productStock || 0)
+  const reservedCount = Number(item.productTotalReserved ?? item.productReserved || 0)
+  const totalCount = Number(item.productTotalStock ?? item.productStock || 0)
   const availableCount = Math.max(0, totalCount - reservedCount)
   const isReservedHigh = totalCount > 0
     && reservedCount >= Math.ceil(totalCount * 0.7)
@@ -246,6 +246,9 @@ export default function Cart() {
   const [isLoadingCart, setIsLoadingCart] = useState(false)
   const [reservationExpiresAt, setReservationExpiresAt] = useState(null)
   const [reservationRemaining, setReservationRemaining] = useState(null)
+  const notifyReservationChange = (expiresAt) => {
+    window.dispatchEvent(new CustomEvent('shopluxe:reservation-updated', { detail: { expiresAt } }))
+  }
 
   /* ================= LOAD CART ================= */
   useEffect(() => {
@@ -272,15 +275,18 @@ export default function Cart() {
       const expiresAt = Number(parsed?.expiresAt || 0)
       if (!expiresAt || Number.isNaN(expiresAt)) {
         window.localStorage.removeItem('shopluxe_reservation')
+        notifyReservationChange(null)
         return
       }
       if (expiresAt <= Date.now()) {
         window.localStorage.removeItem('shopluxe_reservation')
+        notifyReservationChange(null)
         return
       }
       setReservationExpiresAt(expiresAt)
     } catch {
       window.localStorage.removeItem('shopluxe_reservation')
+      notifyReservationChange(null)
     }
   }, [])
 
@@ -292,6 +298,7 @@ export default function Cart() {
         setReservationRemaining(null)
         setReservationExpiresAt(null)
         window.localStorage.removeItem('shopluxe_reservation')
+        notifyReservationChange(null)
         return
       }
       setReservationRemaining(remainingMs)
@@ -562,8 +569,12 @@ export default function Cart() {
 
             <div className="space-y-4 text-sm">
               {(() => {
-                const totalAvailable = sortedCart.reduce((sum, item) => sum + Math.max(0, Number(item.productStock || 0) - Number(item.productReserved || 0)), 0)
-                const totalReserved = sortedCart.reduce((sum, item) => sum + Number(item.productReserved || 0), 0)
+                const totalAvailable = sortedCart.reduce((sum, item) => {
+                  const stock = Number(item.productTotalStock ?? item.productStock || 0)
+                  const reserved = Number(item.productTotalReserved ?? item.productReserved || 0)
+                  return sum + Math.max(0, stock - reserved)
+                }, 0)
+                const totalReserved = sortedCart.reduce((sum, item) => sum + Number(item.productTotalReserved ?? item.productReserved || 0), 0)
                 if (totalAvailable + totalReserved <= 0) return null
                 const pct = Math.min(100, Math.max(0, (totalAvailable / Math.max(1, totalAvailable + totalReserved)) * 100))
                 return (

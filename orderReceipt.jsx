@@ -134,6 +134,7 @@ export default function OrderReceipt() {
       return true
     }
 
+    let usedFallback = false
     try {
       const backendUrl = `${import.meta.env.VITE_API_URL}/orders/${order._id}/invoice/download`
       toast({
@@ -159,16 +160,27 @@ export default function OrderReceipt() {
         console.error('Official invoice download failed:', retryErr)
       }
       console.error('Official invoice download failed:', err)
-      toast({
-        title: 'Invoice download failed',
-        description: 'Please try again in a moment.',
-        variant: 'destructive'
-      })
+      usedFallback = true
     } finally {
       setIsDownloading(false)
     }
 
-    html2pdf().set(opt).from(receiptRef.current).save()
+    if (usedFallback) {
+      try {
+        toast({
+          title: 'Downloading receipt PDF',
+          description: 'Using the on-page receipt as a fallback.',
+        })
+        await html2pdf().set(opt).from(receiptRef.current).save()
+      } catch (fallbackErr) {
+        console.error('Fallback PDF download failed:', fallbackErr)
+        toast({
+          title: 'Invoice download failed',
+          description: 'Please try again in a moment.',
+          variant: 'destructive'
+        })
+      }
+    }
   }
 
   const handleLogout = async () => {

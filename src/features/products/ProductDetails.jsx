@@ -563,25 +563,58 @@ export default function ProductDetails() {
     return () => window.removeEventListener('shopluxe:mobile-nav', handler)
   }, [])
 
-  React.useEffect(() => {
+  const syncReservationFromStorage = React.useCallback(() => {
     const raw = window.localStorage.getItem('shopluxe_reservation')
-    if (!raw) return
+    if (!raw) {
+      setReservationExpiresAt(null)
+      setReservationRemaining(null)
+      return
+    }
     try {
       const parsed = JSON.parse(raw)
       const expiresAt = Number(parsed?.expiresAt || 0)
       if (!expiresAt || Number.isNaN(expiresAt)) {
         window.localStorage.removeItem('shopluxe_reservation')
+        window.dispatchEvent(new CustomEvent('shopluxe:reservation-updated', { detail: { expiresAt: null } }))
+        setReservationExpiresAt(null)
+        setReservationRemaining(null)
         return
       }
       if (expiresAt <= Date.now()) {
         window.localStorage.removeItem('shopluxe_reservation')
+        window.dispatchEvent(new CustomEvent('shopluxe:reservation-updated', { detail: { expiresAt: null } }))
+        setReservationExpiresAt(null)
+        setReservationRemaining(null)
         return
       }
       setReservationExpiresAt(expiresAt)
     } catch {
       window.localStorage.removeItem('shopluxe_reservation')
+      window.dispatchEvent(new CustomEvent('shopluxe:reservation-updated', { detail: { expiresAt: null } }))
+      setReservationExpiresAt(null)
+      setReservationRemaining(null)
     }
   }, [])
+
+  React.useEffect(() => {
+    syncReservationFromStorage()
+    const handleStorage = (event) => {
+      if (event.key && event.key !== 'shopluxe_reservation') return
+      syncReservationFromStorage()
+    }
+    const handleReservationEvent = () => syncReservationFromStorage()
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') syncReservationFromStorage()
+    }
+    window.addEventListener('storage', handleStorage)
+    window.addEventListener('shopluxe:reservation-updated', handleReservationEvent)
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      window.removeEventListener('storage', handleStorage)
+      window.removeEventListener('shopluxe:reservation-updated', handleReservationEvent)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
+  }, [syncReservationFromStorage])
 
   React.useEffect(() => {
     if (!reservationExpiresAt) return
@@ -591,6 +624,7 @@ export default function ProductDetails() {
         setReservationRemaining(null)
         setReservationExpiresAt(null)
         window.localStorage.removeItem('shopluxe_reservation')
+        window.dispatchEvent(new CustomEvent('shopluxe:reservation-updated', { detail: { expiresAt: null } }))
         return
       }
       setReservationRemaining(remainingMs)
@@ -702,6 +736,18 @@ export default function ProductDetails() {
     </div>
   )
   if (!product) return <p>Product not found</p>
+
+  const toNumberOrNull = (value) => (
+    value === null || value === undefined || Number.isNaN(Number(value)) ? null : Number(value)
+  )
+  const baseStock = toNumberOrNull(product?.stock) ?? 0
+  const baseReserved = toNumberOrNull(product?.reserved) ?? 0
+  const variantStockTotal = variants.reduce((sum, v) => sum + Number(v?.stock || 0), 0)
+  const variantReservedTotal = variants.reduce((sum, v) => sum + Number(v?.reserved || 0), 0)
+  const totalStock = toNumberOrNull(product?.totalStock) ?? (baseStock + variantStockTotal)
+  const totalReserved = toNumberOrNull(product?.totalReserved) ?? (baseReserved + variantReservedTotal)
+  const availableFromApi = toNumberOrNull(product?.availableStock)
+  const totalAvailable = availableFromApi ?? Math.max(0, totalStock - totalReserved)
 
   const isInWishlist = wishlistItems.some(item => {
     const pId = item?.productId?._id || item?.productId || item
@@ -905,29 +951,29 @@ export default function ProductDetails() {
               </span>
             ))}
           </div>
-          {(Number(product?.totalReserved || 0) > 0 || Number(product?.availableStock || 0) >= 0) && (
+          {(totalReserved > 0 || totalAvailable >= 0) && (
             <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50/60 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-amber-700">
               <div className="flex items-center justify-between">
                 <span>Available</span>
-                <span>{Number(product?.availableStock || 0)}</span>
+                <span>{totalAvailable}</span>
               </div>
               <div className="mt-2 flex items-center justify-between text-amber-600">
                 <span>Reserved</span>
-                <span>{Number(product?.totalReserved || 0)}</span>
+                <span>{totalReserved}</span>
               </div>
               <div className="mt-3 h-1.5 w-full rounded-full bg-amber-100">
                 <div
                   className="h-1.5 rounded-full bg-amber-500"
                   style={{
-                    width: `${Math.min(100, Math.max(0, (Number(product?.availableStock || 0) / Math.max(1, Number(product?.availableStock || 0) + Number(product?.totalReserved || 0))) * 100))}%`
+                    width: `${Math.min(100, Math.max(0, (totalAvailable / Math.max(1, totalAvailable + totalReserved)) * 100))}%`
                   }}
                 />
               </div>
               {(() => {
-                const total = Number(product?.availableStock || 0) + Number(product?.totalReserved || 0)
+                const total = totalAvailable + totalReserved
                 const isHigh = total > 0
-                  && Number(product?.totalReserved || 0) >= Math.ceil(total * 0.7)
-                  && Number(product?.availableStock || 0) < 5
+                  && totalReserved >= Math.ceil(total * 0.7)
+                  && totalAvailable < 5
                 if (!isHigh) return null
                 return (
                   <div className="mt-3 inline-flex items-center bg-rose-50 text-rose-700 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-rose-100">

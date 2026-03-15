@@ -135,7 +135,60 @@ export default function AdminUsers() {
       </div>
 
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="overflow-x-auto max-h-[70vh] relative">
+      {/* Mobile cards */}
+      <div className="md:hidden p-4 space-y-4">
+        {usersWithMetadata.map((user) => (
+          <div key={user._id} className="rounded-2xl border border-gray-100 p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 flex-shrink-0">
+                  {user.name?.[0]?.toUpperCase() || 'U'}
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900 truncate">{user.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                </div>
+              </div>
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                }`}>
+                {user.role}
+              </span>
+            </div>
+            <div className="mt-3 text-[11px] text-gray-500 space-y-1">
+              <p>Last Signed In: {formatDate(user.lastSignedIn)}</p>
+              <p>Date Joined: {formatDate(user.dateJoined)}</p>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {user.role !== 'admin' ? (
+                <button
+                  className="text-xs font-bold text-green-700 bg-green-50 px-3 py-2 rounded-lg border border-green-100"
+                  onClick={() => handleRoleChange(user._id, 'admin')}
+                >
+                  Promote
+                </button>
+              ) : (
+                <button
+                  className="text-xs font-bold text-red-700 bg-red-50 px-3 py-2 rounded-lg border border-red-100"
+                  onClick={() => handleRoleChange(user._id, 'user')}
+                >
+                  Demote
+                </button>
+              )}
+              {user.role !== 'admin' && (
+                <button
+                  className="text-xs font-bold text-red-700 bg-red-50 px-3 py-2 rounded-lg border border-red-100"
+                  onClick={() => handleDeleteUser(user._id)}
+                >
+                  Delete
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block overflow-x-auto max-h-[70vh] relative">
         <table className="w-full text-left border-collapse">
           <thead className="sticky top-0 z-10 bg-gray-50">
             <tr className="border-b border-gray-100 text-xs text-gray-500 font-bold uppercase tracking-widest">
