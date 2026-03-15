@@ -256,7 +256,7 @@ export default function ProductCard({ product }) {
       </div>
 
       {/* PRODUCT IMAGE */}
-      <Link to={`/products/${product._id}`} className="block relative aspect-[3/2] sm:aspect-[4/3] overflow-hidden bg-gradient-to-br from-slate-50 via-white to-amber-50 flex items-center justify-center">
+      <Link to={`/products/${product._id}`} className="block relative aspect-[4/5] sm:aspect-[4/3] overflow-hidden bg-gradient-to-br from-slate-50 via-white to-amber-50 flex items-center justify-center">
         {/* SALE BADGE */}
         {maxDiscount > 0 && (
           <div className="absolute top-4 left-4 z-10">
@@ -283,7 +283,7 @@ export default function ProductCard({ product }) {
         <img
           src={imageSrc}
           alt={product.title}
-          className={`w-full h-full max-h-full max-w-full object-contain p-3 sm:p-4 transition-all duration-700 ${secondaryImageUrl ? 'group-hover:opacity-0' : 'group-hover:scale-105'}`}
+          className={`w-full h-full max-h-full max-w-full object-contain p-2 sm:p-4 transition-all duration-700 ${secondaryImageUrl ? 'group-hover:opacity-0' : 'group-hover:scale-105'}`}
           onError={() => {
             if (imageSrc !== '/placeholder.png') setImageSrc('/placeholder.png')
           }}
@@ -292,16 +292,16 @@ export default function ProductCard({ product }) {
           <img
             src={secondaryImageUrl}
             alt={`${product.title} alternate`}
-            className="absolute inset-0 w-full h-full max-h-full max-w-full object-contain p-3 sm:p-4 opacity-0 transition-all duration-700 group-hover:opacity-100 group-hover:scale-105"
+            className="absolute inset-0 w-full h-full max-h-full max-w-full object-contain p-2 sm:p-4 opacity-0 transition-all duration-700 group-hover:opacity-100 group-hover:scale-105"
           />
         )}
 
         {/* QUICK ADD OVERLAY */}
-        <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+        <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
           <Button
             onClick={handleAddToCart}
             disabled={isOutOfStock || isAdding}
-            className="w-full bg-white/95 backdrop-blur-md text-black hover:bg-black hover:text-white border-0 shadow-lg text-xs font-bold uppercase tracking-wider h-11"
+            className="w-full bg-white/95 backdrop-blur-md text-black hover:bg-black hover:text-white border-0 shadow-lg text-xs font-bold uppercase tracking-wider h-12 sm:h-11"
           >
             {isAdding ? 'Adding...' : (isOutOfStock ? 'Sold Out' : 'Quick Add')}
           </Button>
