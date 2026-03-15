@@ -103,6 +103,7 @@ export default function AdminProducts() {
         params: {
           category: filters.category,
           clothingType: filters.clothingType,
+          includeAllBrands: true
         },
       })
       const mergeById = (prevList, nextList) => {

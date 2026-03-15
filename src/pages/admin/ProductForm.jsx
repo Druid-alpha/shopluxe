@@ -347,7 +347,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
       setColors([])
       return
     }
-    axios.get('/products/filters', { params: { category } })
+    axios.get('/products/filters', { params: { category, includeAllBrands: true } })
       .then(res => {
         setBrands(res.data.brands || [])
         setColors(res.data.colors || [])
