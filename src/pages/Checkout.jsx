@@ -384,11 +384,11 @@ export default function Checkout() {
 
             {(() => {
               const totalAvailable = cart.reduce((sum, item) => {
-                const stock = Number(item.productTotalStock ?? item.productStock || 0)
-                const reserved = Number(item.productTotalReserved ?? item.productReserved || 0)
+                const stock = Number(item.productTotalStock ?? item.productStock ?? 0)
+                const reserved = Number(item.productTotalReserved ?? item.productReserved ?? 0)
                 return sum + Math.max(0, stock - reserved)
               }, 0)
-              const totalReserved = cart.reduce((sum, item) => sum + Number(item.productTotalReserved ?? item.productReserved || 0), 0)
+              const totalReserved = cart.reduce((sum, item) => sum + Number(item.productTotalReserved ?? item.productReserved ?? 0), 0)
               if (totalAvailable + totalReserved <= 0) return null
               const pct = Math.min(100, Math.max(0, (totalAvailable / Math.max(1, totalAvailable + totalReserved)) * 100))
               return (

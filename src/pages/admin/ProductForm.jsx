@@ -885,7 +885,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
           <div>
             <h3 className="text-sm font-black uppercase tracking-[.2em] text-gray-900">Product Variants</h3>
             <p className="text-[10px] text-gray-400 mt-0.5 font-medium">
-              Each variant = a different colour. Customer picks colour -> then picks 1 size -> adds to cart.
+              Each variant = a different colour. Customer picks colour &rarr; then picks 1 size &rarr; adds to cart.
             </p>
           </div>
           <div className="flex items-center gap-2">
