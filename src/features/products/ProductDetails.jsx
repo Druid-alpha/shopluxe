@@ -810,14 +810,16 @@ export default function ProductDetails() {
       ? resolveHex(selectedVariant.options?.color)
       : baseColorHex
 
-    const variantPayload = (purchaseMode === 'variant' && selectedVariant)
+    const isVariantMode = purchaseMode === 'variant' && !!selectedVariant
+    const shouldSendBaseSize = !hasVariants && selectedBaseSize
+    const variantPayload = isVariantMode
       ? {
         _id: selectedVariant._id,
         sku: selectedVariant.sku,
         size: selectedVariant.options?.size || selectedSize || undefined,
         color: selectedVariant.options?.color?._id || selectedVariant.options?.color || undefined
       }
-      : (selectedBaseSize ? { size: selectedBaseSize } : null)
+      : (shouldSendBaseSize ? { size: selectedBaseSize } : null)
 
     const variantLabel = (purchaseMode === 'variant' && selectedVariant)
       ? [

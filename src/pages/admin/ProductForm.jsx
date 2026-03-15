@@ -322,7 +322,14 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   useEffect(() => {
     axios.get('/products/filters')
       .then(res => {
-        setCategories(res.data.categories || [])
+        setCategories((prev) => {
+          const next = res.data.categories || []
+          const map = new Map()
+          ;[...prev, ...next].forEach((c) => {
+            if (c?._id) map.set(c._id, c)
+          })
+          return Array.from(map.values())
+        })
         setColors(res.data.colors || [])
         setSizeOptionsByClothingType(res.data.sizeOptionsByClothingType || DEFAULT_SIZE_OPTIONS_BY_TYPE)
       })

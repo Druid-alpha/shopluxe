@@ -8,6 +8,7 @@ import * as cartApi from '@/features/cart/cartApi';
 import { Trash, Loader2, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { releaseReservation, clearReservationStorage } from '@/lib/reservation';
+import { productApi } from '@/features/products/productApi';
 
 const CLOTHING_TYPES = new Set(['clothes', 'shoes', 'bags', 'eyeglass'])
 const SIZE_TYPE_LABEL = {
@@ -324,6 +325,13 @@ export default function Cart() {
       clearReservationStorage()
       setReservationExpiresAt(null)
       setReservationRemaining(null)
+      try {
+        const refreshed = await cartApi.getCart()
+        dispatch(setCart(refreshed))
+      } catch {
+        // ignore cart refresh errors
+      }
+      dispatch(productApi.util.invalidateTags(['Product']))
       toast({ title: 'Reservation cleared' })
     } catch {
       toast({

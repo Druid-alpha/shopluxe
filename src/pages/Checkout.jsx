@@ -1,13 +1,17 @@
 ﻿import * as React from 'react'
-import { useAppSelector } from '@/app/hooks'
+import { useAppSelector, useAppDispatch } from '@/app/hooks'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { ShieldCheck, MapPin, ChevronRight, Loader2 } from 'lucide-react'
 import { releaseReservation, clearReservationStorage } from '@/lib/reservation'
+import { setCart } from '@/features/cart/cartSlice'
+import * as cartApi from '@/features/cart/cartApi'
+import { productApi } from '@/features/products/productApi'
 
 export default function Checkout() {
   const cart = useAppSelector(state => state.cart.items)
   const token = useAppSelector(state => state.auth.token)
+  const dispatch = useAppDispatch()
   const total = cart.reduce((s, item) => s + (item.price || 0) * (item.qty || 1), 0)
   const { toast } = useToast()
   const [loading, setLoading] = React.useState(false)
@@ -108,6 +112,13 @@ export default function Checkout() {
       clearReservationStorage()
       setReservationExpiresAt(null)
       setReservationRemaining(null)
+      try {
+        const refreshed = await cartApi.getCart()
+        dispatch(setCart(refreshed))
+      } catch {
+        // ignore cart refresh errors
+      }
+      dispatch(productApi.util.invalidateTags(['Product']))
       toast({ title: 'Reservation cleared' })
     } catch {
       toast({

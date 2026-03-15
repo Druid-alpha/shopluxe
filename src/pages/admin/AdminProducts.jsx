@@ -105,6 +105,13 @@ export default function AdminProducts() {
           clothingType: filters.clothingType,
         },
       })
+      const mergeById = (prevList, nextList) => {
+        const map = new Map()
+        ;[...(prevList || []), ...(nextList || [])].forEach((item) => {
+          if (item?._id) map.set(item._id, item)
+        })
+        return Array.from(map.values())
+      }
       const rawColors = res.data.colors || []
       const seenColorKeys = new Set()
       const normalizedColors = rawColors.filter(c => {
@@ -116,7 +123,7 @@ export default function AdminProducts() {
       })
 
       const nextOptions = {
-        categories: res.data.categories || [],
+        categories: mergeById(options.categories, res.data.categories || []),
         brands: res.data.brands || [],
         colors: normalizedColors.slice(0, 10),
         sizeOptions: res.data.sizeOptions || [],
