@@ -406,7 +406,11 @@ export default function ProductDetails() {
     tag.setAttribute('content', content)
   }, [])
 
-  const { data, isLoading, refetch } = useGetProductQuery(id)
+  const { data, isLoading, refetch } = useGetProductQuery(id, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true
+  })
   const product = data?.product
 
   const {
@@ -636,6 +640,14 @@ export default function ProductDetails() {
   }, [syncReservationFromStorage])
 
   React.useEffect(() => {
+    const handleReservationRefetch = () => {
+      if (typeof refetch === 'function') refetch()
+    }
+    window.addEventListener('shopluxe:reservation-updated', handleReservationRefetch)
+    return () => window.removeEventListener('shopluxe:reservation-updated', handleReservationRefetch)
+  }, [refetch])
+
+  React.useEffect(() => {
     if (reservationExpiresAt) return
     const syncReservation = async () => {
       try {
@@ -808,8 +820,8 @@ export default function ProductDetails() {
   const baseReserved = toNumberOrNull(product?.reserved) ?? 0
   const variantStockTotal = variants.reduce((sum, v) => sum + Number(v?.stock || 0), 0)
   const variantReservedTotal = variants.reduce((sum, v) => sum + Number(v?.reserved || 0), 0)
-  const totalStock = toNumberOrNull(product?.totalStock) ?? (baseStock + variantStockTotal)
-  const totalReserved = toNumberOrNull(product?.totalReserved) ?? (baseReserved + variantReservedTotal)
+  const totalStock = baseStock + variantStockTotal
+  const totalReserved = baseReserved + variantReservedTotal
   const totalAvailable = Math.max(0, totalStock - totalReserved)
 
   const isInWishlist = wishlistItems.some(item => {

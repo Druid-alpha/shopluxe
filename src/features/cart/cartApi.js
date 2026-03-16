@@ -431,10 +431,9 @@ export const normalizeCart = (cart) => {
       const variantReservedTotal = Array.isArray(product.variants)
         ? product.variants.reduce((sum, v) => sum + Number(v?.reserved || 0), 0)
         : 0
-      const totalStock = toNumberOrNull(product?.totalStock) ?? (baseStock + variantStockTotal)
-      const totalReserved = toNumberOrNull(product?.totalReserved) ?? (baseReserved + variantReservedTotal)
-      const availableFromApi = toNumberOrNull(product?.availableStock)
-      const totalAvailable = availableFromApi ?? Math.max(0, totalStock - totalReserved)
+      const totalStock = baseStock + variantStockTotal
+      const totalReserved = baseReserved + variantReservedTotal
+      const totalAvailable = Math.max(0, totalStock - totalReserved)
       const fallbackAddedAt = new Date(seedTime + index).toISOString()
       const addedAt = item.addedAt || item.createdAt || item.updatedAt || fallbackAddedAt
 

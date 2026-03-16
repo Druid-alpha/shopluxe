@@ -271,6 +271,20 @@ export default function Cart() {
   }, [dispatch, user]);
 
   useEffect(() => {
+    if (!user) return
+    const handleReservationRefresh = async () => {
+      try {
+        const data = await cartApi.getCart()
+        dispatch(setCart(data))
+      } catch {
+        // ignore refresh errors
+      }
+    }
+    window.addEventListener('shopluxe:reservation-updated', handleReservationRefresh)
+    return () => window.removeEventListener('shopluxe:reservation-updated', handleReservationRefresh)
+  }, [dispatch, user])
+
+  useEffect(() => {
     const raw = window.localStorage.getItem('shopluxe_reservation')
     if (!raw) return
     try {
