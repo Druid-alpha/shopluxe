@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { estimateEtaRange } from '@/lib/eta'
 import { CheckCircle2, Clock, Package, Truck, XCircle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { useAppSelector } from '@/app/hooks'
 
 const STATUS_META = {
   pending: { label: 'Pending', tone: 'bg-amber-50 text-amber-700 border-amber-100', icon: Clock },
@@ -35,6 +36,7 @@ const progressIndex = (status) => {
 
 export default function MyOrders() {
   const { toast } = useToast()
+  const token = useAppSelector(state => state.auth.token)
   const { data, isLoading, isError, refetch } = useGetMyOrdersQuery(undefined, {
     pollingInterval: 15000,
     refetchOnFocus: true,
@@ -109,12 +111,25 @@ export default function MyOrders() {
                 return
               }
               try {
-                const formData = new FormData()
-                formData.append('message', draft)
-                files.forEach((f) => {
-                  if (f?.file) formData.append('files', f.file)
-                })
-                await sendReturnMessage({ id: order._id, message: draft, formData }).unwrap()
+                if (files.length > 0) {
+                  const formData = new FormData()
+                  formData.append('message', draft)
+                  files.forEach((f) => {
+                    if (f?.file) formData.append('files', f.file)
+                  })
+                  const res = await fetch(`${import.meta.env.VITE_API_URL}/orders/${order._id}/return/message/user`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                      ...(token ? { Authorization: `Bearer ${token}` } : {})
+                    },
+                    body: formData
+                  })
+                  const data = await res.json()
+                  if (!res.ok) throw new Error(data?.message || 'Failed to send message')
+                } else {
+                  await sendReturnMessage({ id: order._id, message: draft }).unwrap()
+                }
                 toast({ title: 'Message sent', description: 'Support will get back to you shortly.' })
                 setDraftMessages(prev => ({ ...prev, [order._id]: '' }))
                 setDraftFiles(prev => ({ ...prev, [order._id]: [] }))

@@ -241,16 +241,28 @@ export default function OrderReceipt() {
       return
     }
     try {
-      const formData = new FormData()
-      formData.append('message', returnMessage)
-      returnFiles.forEach((f) => {
-        if (f?.file) formData.append('files', f.file)
-      })
-      await sendReturnMessage({
-        id: order._id,
-        message: returnMessage,
-        formData
-      }).unwrap()
+      if (returnFiles.length > 0) {
+        const formData = new FormData()
+        formData.append('message', returnMessage)
+        returnFiles.forEach((f) => {
+          if (f?.file) formData.append('files', f.file)
+        })
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/orders/${order._id}/return/message/user`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          },
+          body: formData
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data?.message || 'Failed to send message')
+      } else {
+        await sendReturnMessage({
+          id: order._id,
+          message: returnMessage
+        }).unwrap()
+      }
       toast({ title: 'Message sent', description: 'Support will get back to you shortly.' })
       setReturnMessage('')
       setReturnFiles([])
