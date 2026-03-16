@@ -455,6 +455,7 @@ export default function ProductDetails() {
   const [mainImage, setMainImage] = React.useState('')
   const [purchaseMode, setPurchaseMode] = React.useState('base') // 'base' or 'variant'
   const [selectedVariantIndex, setSelectedVariantIndex] = React.useState(-1)
+  const [selectedVariantId, setSelectedVariantId] = React.useState('')
   const [selectedBaseSize, setSelectedBaseSize] = React.useState('')
   const [selectedColorKey, setSelectedColorKey] = React.useState('')
   const [selectedSize, setSelectedSize] = React.useState('')
@@ -747,11 +748,19 @@ export default function ProductDetails() {
   React.useEffect(() => {
     if (purchaseMode === 'variant' && !selectedColorKey && variantColorOptions.length > 0) {
       const firstColor = variantColorOptions[0]
-      setSelectedColorKey(firstColor.key)
       const sizes = variantSizesByColor.get(firstColor.key) || []
-      if (sizes.length > 0 && !selectedSize) setSelectedSize(sizes[0])
+      const nextSize = sizes.length > 0 ? sizes[0] : ''
+      setSelectedColorKey(firstColor.key)
+      if (nextSize && !selectedSize) setSelectedSize(nextSize)
+      const firstMatch = variants.find(v => {
+        const meta = getColorMeta(v.options?.color)
+        const colorMatch = meta.key === firstColor.key
+        const sizeMatch = nextSize ? (v.options?.size || '') === nextSize : true
+        return colorMatch && sizeMatch
+      })
+      setSelectedVariantId(String(firstMatch?._id || ''))
     }
-  }, [product, variantColorOptions, purchaseMode])
+  }, [product, variantColorOptions, purchaseMode, selectedSize, variantSizesByColor, variants])
 
   // Auto-select first base size
   React.useEffect(() => {
@@ -768,6 +777,7 @@ export default function ProductDetails() {
       setSelectedColorKey('')
       setSelectedSize('')
       setSelectedVariantIndex(-1)
+      setSelectedVariantId('')
     }
   }, [purchaseMode])
 
@@ -777,6 +787,7 @@ export default function ProductDetails() {
     setSelectedColorKey('')
     setSelectedSize('')
     setSelectedVariantIndex(-1)
+    setSelectedVariantId('')
   }, [product?._id])
 
   // Sync selectedVariantIndex from color+size
@@ -791,11 +802,13 @@ export default function ProductDetails() {
     })
     if (idx >= 0) {
       setSelectedVariantIndex(idx)
+      setSelectedVariantId(String(variants[idx]?._id || ''))
       if (variants[idx]?.image?.url) setMainImage(variants[idx].image.url)
     } else {
       const colorIdx = variants.findIndex(v => getColorMeta(v.options?.color).key === selectedColorKey)
       if (colorIdx >= 0 && variants[colorIdx]?.image?.url) setMainImage(variants[colorIdx].image.url)
       setSelectedVariantIndex(-1)
+      setSelectedVariantId('')
     }
   }, [selectedColorKey, selectedSize, variants])
 
@@ -863,6 +876,10 @@ export default function ProductDetails() {
 
     const resolveVariantFromSelection = () => {
       if (!hasVariants) return null
+      if (selectedVariantId) {
+        const byId = variants.find(v => String(v._id) === String(selectedVariantId))
+        if (byId) return byId
+      }
       if (!selectedColorKey && !selectedSize) return selectedVariant
       const idx = variants.findIndex(v => {
         const meta = getColorMeta(v.options?.color)
@@ -875,6 +892,10 @@ export default function ProductDetails() {
     }
 
     const resolvedVariant = purchaseMode === 'variant' ? resolveVariantFromSelection() : null
+    if (purchaseMode === 'variant' && hasVariants && !resolvedVariant) {
+      toast({ title: 'Please select a valid option', variant: 'destructive' })
+      return
+    }
 
     const displayVariantColorName = (purchaseMode === 'variant' && resolvedVariant)
       ? getColorDisplayName(resolvedVariant.options?.color)
@@ -1143,9 +1164,17 @@ export default function ProductDetails() {
                             key={`color-${c.key}`}
                             type="button"
                             onClick={() => {
-                              setSelectedColorKey(c.key)
                               const sizes = variantSizesByColor.get(c.key) || []
-                              setSelectedSize(sizes.length > 0 ? sizes[0] : '')
+                              const nextSize = sizes.length > 0 ? sizes[0] : ''
+                              setSelectedColorKey(c.key)
+                              setSelectedSize(nextSize)
+                              const nextVariant = variants.find(v => {
+                                const meta = getColorMeta(v.options?.color)
+                                const colorMatch = meta.key === c.key
+                                const sizeMatch = nextSize ? (v.options?.size || '') === nextSize : true
+                                return colorMatch && sizeMatch
+                              })
+                              setSelectedVariantId(String(nextVariant?._id || ''))
                             }}
                             title={c.name}
                             className={`w-10 h-10 rounded-full border-[3px] transition-all flex items-center justify-center shadow-md hover:scale-110 active:scale-95 overflow-hidden ${isSelected ? 'scale-110 ring-2 ring-black/30' : 'border-gray-200'}`}
@@ -1193,7 +1222,17 @@ export default function ProductDetails() {
                           <button
                             key={`vsize-${size}`}
                             type="button"
-                            onClick={() => !isOOS && setSelectedSize(size)}
+                            onClick={() => {
+                              if (isOOS) return
+                              setSelectedSize(size)
+                              const nextVariant = variants.find(v => {
+                                const meta = getColorMeta(v.options?.color)
+                                const colorMatch = selectedColorKey ? meta.key === selectedColorKey : true
+                                const sizeMatch = (v.options?.size || '') === size
+                                return colorMatch && sizeMatch
+                              })
+                              setSelectedVariantId(String(nextVariant?._id || ''))
+                            }}
                             disabled={isOOS}
                             className={`relative px-4 py-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center min-w-[70px] ${isOOS ? 'opacity-50 bg-gray-50 border-gray-200 cursor-not-allowed text-gray-400' : 'hover:scale-105 active:scale-95 text-slate-700 bg-white border-gray-200'}`}
                             style={(!isOOS && isSelected)
