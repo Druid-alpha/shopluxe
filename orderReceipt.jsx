@@ -241,6 +241,10 @@ export default function OrderReceipt() {
       toast({ title: 'Message required', description: 'Type a message before sending.', variant: 'destructive' })
       return
     }
+    if (returnFiles.length > 0 && returnFiles.some(f => !f.remoteUrl)) {
+      toast({ title: 'Upload in progress', description: 'Please wait for attachments to finish uploading.', variant: 'destructive' })
+      return
+    }
     try {
       await sendReturnMessage({
         id: order._id,
