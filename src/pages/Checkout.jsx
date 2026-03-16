@@ -3,7 +3,7 @@ import { useAppSelector, useAppDispatch } from '@/app/hooks'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { ShieldCheck, MapPin, ChevronRight, Loader2 } from 'lucide-react'
-import { releaseReservation, clearReservationStorage, cancelAllReservations } from '@/lib/reservation'
+import { clearReservationStorage, cancelAllReservations } from '@/lib/reservation'
 import { setCart } from '@/features/cart/cartSlice'
 import * as cartApi from '@/features/cart/cartApi'
 import { productApi } from '@/features/products/productApi'
@@ -23,7 +23,7 @@ export default function Checkout() {
     window.dispatchEvent(new CustomEvent('shopluxe:reservation-updated', { detail: { expiresAt } }))
   }, [])
   const clearReservation = React.useCallback(() => {
-    void releaseReservation({ token })
+    void cancelAllReservations({ token })
     clearReservationStorage()
     setReservationExpiresAt(null)
     setReservationRemaining(null)

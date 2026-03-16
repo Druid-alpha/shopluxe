@@ -18,7 +18,7 @@ import StarRating from './StarRating'
 import { Heart, Truck, ShieldCheck, RefreshCw, Clock } from 'lucide-react'
 import PriceDisplay from '@/components/PriceDisplay'
 import ReviewSummary from './ReviewSummary'
-import { releaseReservation, clearReservationStorage } from '@/lib/reservation'
+import { cancelAllReservations, clearReservationStorage } from '@/lib/reservation'
 
 
 const getImageUrl = (img) => {
@@ -683,7 +683,7 @@ export default function ProductDetails() {
       if (remainingMs <= 0) {
         setReservationRemaining(null)
         setReservationExpiresAt(null)
-        void releaseReservation({ token })
+        void cancelAllReservations({ token })
         clearReservationStorage()
         return
       }
