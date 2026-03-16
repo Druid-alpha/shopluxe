@@ -49,6 +49,15 @@ export const orderApi = api.injectEndpoints({
             }),
             invalidatesTags: ['Order']
         }),
+        deleteOrdersBulk: builder.mutation({
+            query: (orderIds) => ({
+                url: '/admin/orders/delete-bulk',
+                method: 'POST',
+                body: { orderIds },
+                credentials: 'include'
+            }),
+            invalidatesTags: ['Order']
+        }),
         requestReturn: builder.mutation({
             query: ({ id, reason }) => ({
                 url: `/orders/${id}/return`,
@@ -113,6 +122,7 @@ export const {
     useGetAllOrdersQuery,
     useUpdateOrderStatusMutation,
     useDeleteOrderMutation,
+    useDeleteOrdersBulkMutation,
     useRequestReturnMutation,
     useUpdateReturnStatusMutation,
     useAddReturnMessageMutation,

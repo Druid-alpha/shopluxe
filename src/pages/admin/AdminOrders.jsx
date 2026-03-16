@@ -3,6 +3,7 @@ import {
   useGetAllOrdersQuery,
   useUpdateOrderStatusMutation,
   useDeleteOrderMutation,
+  useDeleteOrdersBulkMutation,
   useUpdateReturnStatusMutation,
   useAddReturnMessageMutation,
   useRefundOrderMutation
@@ -40,10 +41,12 @@ export default function AdminOrders() {
 
   const [updateStatus, { isLoading: isUpdating }] = useUpdateOrderStatusMutation()
   const [deleteOrder] = useDeleteOrderMutation()
+  const [deleteOrdersBulk, { isLoading: isBulkDeleting }] = useDeleteOrdersBulkMutation()
   const [updateReturnStatus, { isLoading: isUpdatingReturn }] = useUpdateReturnStatusMutation()
   const [addReturnMessage, { isLoading: isSendingMessage }] = useAddReturnMessageMutation()
   const [refundOrder, { isLoading: isRefunding }] = useRefundOrderMutation()
   const [orderToDelete, setOrderToDelete] = React.useState(null)
+  const [showBulkDelete, setShowBulkDelete] = React.useState(false)
 
   const orders = data?.orders || []
   const returnRequestCount = orders.filter(o => o?.returnStatus === 'requested').length
@@ -97,6 +100,25 @@ export default function AdminOrders() {
       toast({ title: 'Error', description: err.data?.message || 'Failed to delete order', variant: 'destructive' })
     } finally {
       setOrderToDelete(null)
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (filteredOrders.length === 0) return
+    try {
+      const ids = filteredOrders.map(order => order._id).filter(Boolean)
+      const res = await deleteOrdersBulk(ids).unwrap()
+      toast({
+        title: 'Orders Deleted',
+        description: `${res?.deleted ?? ids.length} order(s) removed.`
+      })
+      setShowBulkDelete(false)
+    } catch (err) {
+      toast({
+        title: 'Error',
+        description: err.data?.message || 'Failed to delete orders',
+        variant: 'destructive'
+      })
     }
   }
 
@@ -190,6 +212,15 @@ export default function AdminOrders() {
             className="gap-2"
           >
             Export Orders
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 border-red-200 text-red-700 hover:bg-red-50"
+            onClick={() => setShowBulkDelete(true)}
+            disabled={filteredOrders.length === 0 || isBulkDeleting}
+          >
+            {isBulkDeleting ? 'Deleting...' : 'Delete Filtered'}
           </Button>
           <button
             type="button"
@@ -661,6 +692,23 @@ export default function AdminOrders() {
             <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white rounded-xl">
               Delete Order
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showBulkDelete} onOpenChange={setShowBulkDelete}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete filtered orders?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete {filteredOrders.length} order(s). This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete} className="bg-red-600 hover:bg-red-700 text-white rounded-xl">
+              Delete Orders
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
