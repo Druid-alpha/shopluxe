@@ -318,19 +318,34 @@ export default function AdminOrders() {
                     {order.returnReason}
                   </div>
                 )}
-                {Array.isArray(order.returnMessages) && order.returnMessages.length > 0 && (
-                  <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50/60 p-3 text-[11px] font-medium text-slate-700 space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Message History</span>
-                    {order.returnMessages.map((msg, idx) => (
-                      <div key={idx} className="flex flex-col gap-1">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                          {msg.by}{msg.status ? ` • ${msg.status}` : ''}
-                        </span>
-                        <span>{msg.message}</span>
+                    {Array.isArray(order.returnMessages) && order.returnMessages.length > 0 && (
+                      <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50/60 p-3 text-[11px] font-medium text-slate-700 space-y-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Message History</span>
+                        {order.returnMessages.map((msg, idx) => (
+                          <div key={idx} className="flex flex-col gap-1">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                              {msg.by}{msg.status ? ` • ${msg.status}` : ''}
+                            </span>
+                            <span>{msg.message}</span>
+                            {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
+                              <div className="flex flex-wrap gap-2 pt-1">
+                                {msg.attachments.map((url, fileIdx) => (
+                                  <a
+                                    key={`${url}-${fileIdx}`}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] font-black uppercase tracking-widest text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full"
+                                  >
+                                    View File {fileIdx + 1}
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    )}
                 {canHandleReturn && (
                   <div className="mt-3 space-y-2">
                     <textarea
@@ -547,6 +562,21 @@ export default function AdminOrders() {
                               {msg.by}{msg.status ? ` • ${msg.status}` : ''}
                             </span>
                             <span>{msg.message}</span>
+                            {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
+                              <div className="flex flex-wrap gap-1 pt-1">
+                                {msg.attachments.map((url, fileIdx) => (
+                                  <a
+                                    key={`${url}-${fileIdx}`}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[9px] font-black uppercase tracking-widest text-blue-600 border border-blue-100 px-1.5 py-0.5 rounded-full"
+                                  >
+                                    File {fileIdx + 1}
+                                  </a>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

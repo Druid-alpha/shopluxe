@@ -191,6 +191,21 @@ export default function MyOrders() {
                             {msg.by}{msg.status ? ` • ${msg.status}` : ''}
                           </span>
                           <span>{msg.message}</span>
+                          {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              {msg.attachments.map((url, fileIdx) => (
+                                <a
+                                  key={`${url}-${fileIdx}`}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] font-black uppercase tracking-widest text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full"
+                                >
+                                  View File {fileIdx + 1}
+                                </a>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
