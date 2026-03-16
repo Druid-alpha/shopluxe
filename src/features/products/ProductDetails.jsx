@@ -861,28 +861,43 @@ export default function ProductDetails() {
       }
     }
 
-    const displayVariantColorName = (purchaseMode === 'variant' && selectedVariant)
-      ? getColorDisplayName(selectedVariant.options?.color)
+    const resolveVariantFromSelection = () => {
+      if (!hasVariants) return null
+      if (!selectedColorKey && !selectedSize) return selectedVariant
+      const idx = variants.findIndex(v => {
+        const meta = getColorMeta(v.options?.color)
+        const colorMatch = selectedColorKey ? meta.key === selectedColorKey : true
+        const sizeMatch = selectedSize ? (v.options?.size || '') === selectedSize : true
+        return colorMatch && sizeMatch
+      })
+      if (idx >= 0) return variants[idx]
+      return selectedVariant
+    }
+
+    const resolvedVariant = purchaseMode === 'variant' ? resolveVariantFromSelection() : null
+
+    const displayVariantColorName = (purchaseMode === 'variant' && resolvedVariant)
+      ? getColorDisplayName(resolvedVariant.options?.color)
       : getColorDisplayName(baseColor)
-    const displayVariantColorHex = (purchaseMode === 'variant' && selectedVariant)
-      ? resolveHex(selectedVariant.options?.color)
+    const displayVariantColorHex = (purchaseMode === 'variant' && resolvedVariant)
+      ? resolveHex(resolvedVariant.options?.color)
       : baseColorHex
 
-    const isVariantMode = purchaseMode === 'variant' && !!selectedVariant
+    const isVariantMode = purchaseMode === 'variant' && !!resolvedVariant
     const shouldSendBaseSize = !hasVariants && selectedBaseSize
     const variantPayload = isVariantMode
       ? {
-        _id: selectedVariant._id,
-        sku: selectedVariant.sku,
-        size: selectedVariant.options?.size || selectedSize || undefined,
-        color: selectedVariant.options?.color?._id || selectedVariant.options?.color || undefined
+        _id: resolvedVariant._id,
+        sku: resolvedVariant.sku,
+        size: resolvedVariant.options?.size || selectedSize || undefined,
+        color: resolvedVariant.options?.color?._id || resolvedVariant.options?.color || undefined
       }
       : (shouldSendBaseSize ? { size: selectedBaseSize } : null)
 
-    const variantLabel = (purchaseMode === 'variant' && selectedVariant)
+    const variantLabel = (purchaseMode === 'variant' && resolvedVariant)
       ? [
         displayVariantColorName || '',
-        selectedVariant.options?.size || ''
+        resolvedVariant.options?.size || ''
       ].filter(Boolean).join(' / ')
       : [
         displayVariantColorName || '',
@@ -903,11 +918,11 @@ export default function ProductDetails() {
         qty: quantity,
         variant: variantPayload || null,
         variantLabel,
-        variantSize: selectedVariant?.options?.size || selectedBaseSize || '',
+        variantSize: resolvedVariant?.options?.size || selectedBaseSize || '',
         variantColorName: displayVariantColorName || '',
         variantColorHex: displayVariantColorHex || '',
         productCategoryName: product?.category?.name || (typeof product?.category === 'string' ? product.category : ''),
-        variantStock: selectedVariant?.stock,
+        variantStock: resolvedVariant?.stock,
         clothingType,
         productVariants: buildProductVariants(product),
         addedAt: new Date().toISOString(),
