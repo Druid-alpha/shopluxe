@@ -30,6 +30,7 @@ const getImageUrl = (img) => {
 const buildProductVariants = (product) => {
   if (!product?.variants?.length) return []
   return product.variants.map(v => ({
+    _id: v._id,
     sku: v.sku,
     size: v.options?.size || '',
     colorName: v.options?.color?.name || '',

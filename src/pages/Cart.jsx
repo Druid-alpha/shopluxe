@@ -556,7 +556,14 @@ export default function Cart() {
     if (!user) {
       dispatch(updateGuestCartVariant({
         key: item.key,
-        nextVariant: isBaseSelection ? null : { sku: nextVariant.sku, size: nextVariant.size, color: nextVariant.colorName },
+        nextVariant: isBaseSelection
+          ? null
+          : {
+              _id: nextVariant._id,
+              sku: nextVariant.sku,
+              size: nextVariant.size,
+              color: nextVariant.colorName
+            },
         nextMeta
       }))
       setUpdatingItems(prev => ({ ...prev, [updatingKey]: false }))
@@ -573,7 +580,10 @@ export default function Cart() {
         const data = await cartApi.addToCart(item.productId, item.qty, null)
         dispatch(setCart(data))
       } else {
-        await cartApi.addToCart(item.productId, item.qty, { sku: nextVariant.sku })
+        const nextPayload = nextVariant?._id
+          ? { _id: nextVariant._id, sku: nextVariant.sku }
+          : { sku: nextVariant.sku }
+        await cartApi.addToCart(item.productId, item.qty, nextPayload)
         const data = await cartApi.removeCartItem(item.productId, oldVariantArg)
         dispatch(setCart(data))
       }

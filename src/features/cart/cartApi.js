@@ -408,6 +408,7 @@ export const normalizeCart = (cart) => {
       const baseProductImage = product.images?.[0]?.url || null
       const productVariants = Array.isArray(product.variants)
         ? product.variants.map(v => ({
+          _id: v._id,
           sku: v.sku,
           size: v.options?.size || '',
           colorName: getColorName(v.options?.color),
