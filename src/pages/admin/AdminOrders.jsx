@@ -404,8 +404,8 @@ export default function AdminOrders() {
         </div>
 
         {/* Desktop table */}
-        <div className="hidden lg:block overflow-x-auto max-h-[70vh] relative">
-          <table className="w-full text-left border-collapse table-fixed">
+        <div className="hidden lg:block max-h-[70vh] relative overflow-x-hidden">
+          <table className="w-full min-w-0 text-left border-collapse table-fixed">
             <thead className="sticky top-0 z-10 bg-gray-50">
               <tr className="border-b border-gray-100 text-xs text-gray-500 font-bold uppercase tracking-widest">
                 <th className="px-6 py-4 w-[160px]">Order Details</th>

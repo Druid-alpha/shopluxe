@@ -45,6 +45,7 @@ export default function MyOrders() {
   const [sendReturnMessage, { isLoading: isSendingMessage }] = useAddReturnMessageUserMutation()
   const [draftMessages, setDraftMessages] = React.useState({})
   const [draftFiles, setDraftFiles] = React.useState({})
+  const fileInputRefs = React.useRef({})
   const ordersRaw = data?.orders || data || []
   const orders = Array.isArray(ordersRaw)
     ? [...ordersRaw].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -104,19 +105,23 @@ export default function MyOrders() {
             const canMessage = ['requested', 'approved'].includes(order?.returnStatus)
             const draft = draftMessages[order._id] || ''
             const files = draftFiles[order._id] || []
+            const inputFiles = Array.from(fileInputRefs.current[order._id]?.files || [])
 
             const handleMessageSend = async () => {
-              const hasFiles = files.length > 0
+              const hasFiles = files.length > 0 || inputFiles.length > 0
               if (!draft.trim() && !hasFiles) {
                 toast({ title: 'Message required', description: 'Type a message or attach a file.', variant: 'destructive' })
                 return
               }
               try {
-                if (files.length > 0) {
+                const filesToSend = files.length > 0
+                  ? files.map(f => f?.file).filter(Boolean)
+                  : inputFiles
+                if (filesToSend.length > 0) {
                   const formData = new FormData()
                   formData.append('message', draft || 'Attachment(s) provided')
-                  files.forEach((f) => {
-                    if (f?.file) formData.append('files', f.file)
+                  filesToSend.forEach((file) => {
+                    if (file) formData.append('files', file)
                   })
                   const res = await fetch(`${import.meta.env.VITE_API_URL}/orders/${order._id}/return/message/user`, {
                     method: 'POST',
@@ -134,6 +139,7 @@ export default function MyOrders() {
                 toast({ title: 'Message sent', description: 'Support will get back to you shortly.' })
                 setDraftMessages(prev => ({ ...prev, [order._id]: '' }))
                 setDraftFiles(prev => ({ ...prev, [order._id]: [] }))
+                if (fileInputRefs.current[order._id]) fileInputRefs.current[order._id].value = ''
                 refetch()
               } catch (err) {
                 toast({
@@ -248,6 +254,7 @@ export default function MyOrders() {
                           }))
                           setDraftFiles(prev => ({ ...prev, [order._id]: selected }))
                         }}
+                        ref={(el) => { fileInputRefs.current[order._id] = el }}
                         className="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-100 file:text-gray-700 file:text-xs file:font-semibold hover:file:bg-gray-200"
                       />
                       {files.length > 0 && (

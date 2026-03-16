@@ -31,6 +31,7 @@ export default function OrderReceipt() {
   const [returnReason, setReturnReason] = React.useState('')
   const [returnMessage, setReturnMessage] = React.useState('')
   const [returnFiles, setReturnFiles] = React.useState([])
+  const returnFileInputRef = React.useRef(null)
   const order = data?.order
   const eta = estimateEtaRange(order)
   const timelineSteps = ['pending', 'paid', 'processing', 'shipped', 'delivered']
@@ -236,18 +237,20 @@ export default function OrderReceipt() {
 
   const handleReturnMessage = async () => {
     if (!order?._id) return
-    const hasFiles = returnFiles.length > 0
+    const inputFiles = Array.from(returnFileInputRef.current?.files || [])
+    const hasFiles = returnFiles.length > 0 || inputFiles.length > 0
     if (!returnMessage.trim() && !hasFiles) {
       toast({ title: 'Message required', description: 'Type a message or attach a file.', variant: 'destructive' })
       return
     }
     try {
-      if (returnFiles.length > 0) {
+      const filesToSend = returnFiles.length > 0
+        ? returnFiles.map(f => f?.file).filter(Boolean)
+        : inputFiles
+      if (filesToSend.length > 0) {
         const formData = new FormData()
         formData.append('message', returnMessage || 'Attachment(s) provided')
-        returnFiles.forEach((f) => {
-          if (f?.file) formData.append('files', f.file)
-        })
+        filesToSend.forEach((file) => formData.append('files', file))
         const res = await fetch(`${import.meta.env.VITE_API_URL}/orders/${order._id}/return/message/user`, {
           method: 'POST',
           credentials: 'include',
@@ -267,6 +270,7 @@ export default function OrderReceipt() {
       toast({ title: 'Message sent', description: 'Support will get back to you shortly.' })
       setReturnMessage('')
       setReturnFiles([])
+      if (returnFileInputRef.current) returnFileInputRef.current.value = ''
       refetch()
     } catch (err) {
       toast({
@@ -445,6 +449,7 @@ export default function OrderReceipt() {
                 accept="image/*"
                 multiple
                 onChange={handleAttachmentChange}
+                ref={returnFileInputRef}
                 className="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-100 file:text-gray-700 file:text-xs file:font-semibold hover:file:bg-gray-200"
               />
               {returnFiles.length > 0 && (
