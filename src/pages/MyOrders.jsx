@@ -106,14 +106,15 @@ export default function MyOrders() {
             const files = draftFiles[order._id] || []
 
             const handleMessageSend = async () => {
-              if (!draft.trim()) {
-                toast({ title: 'Message required', description: 'Type a message before sending.', variant: 'destructive' })
+              const hasFiles = files.length > 0
+              if (!draft.trim() && !hasFiles) {
+                toast({ title: 'Message required', description: 'Type a message or attach a file.', variant: 'destructive' })
                 return
               }
               try {
                 if (files.length > 0) {
                   const formData = new FormData()
-                  formData.append('message', draft)
+                  formData.append('message', draft || 'Attachment(s) provided')
                   files.forEach((f) => {
                     if (f?.file) formData.append('files', f.file)
                   })
@@ -133,6 +134,7 @@ export default function MyOrders() {
                 toast({ title: 'Message sent', description: 'Support will get back to you shortly.' })
                 setDraftMessages(prev => ({ ...prev, [order._id]: '' }))
                 setDraftFiles(prev => ({ ...prev, [order._id]: [] }))
+                refetch()
               } catch (err) {
                 toast({
                   title: 'Message failed',

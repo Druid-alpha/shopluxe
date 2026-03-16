@@ -236,14 +236,15 @@ export default function OrderReceipt() {
 
   const handleReturnMessage = async () => {
     if (!order?._id) return
-    if (!returnMessage.trim()) {
-      toast({ title: 'Message required', description: 'Type a message before sending.', variant: 'destructive' })
+    const hasFiles = returnFiles.length > 0
+    if (!returnMessage.trim() && !hasFiles) {
+      toast({ title: 'Message required', description: 'Type a message or attach a file.', variant: 'destructive' })
       return
     }
     try {
       if (returnFiles.length > 0) {
         const formData = new FormData()
-        formData.append('message', returnMessage)
+        formData.append('message', returnMessage || 'Attachment(s) provided')
         returnFiles.forEach((f) => {
           if (f?.file) formData.append('files', f.file)
         })

@@ -405,16 +405,16 @@ export default function AdminOrders() {
 
         {/* Desktop table */}
         <div className="hidden lg:block overflow-x-auto max-h-[70vh] relative">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse table-fixed">
             <thead className="sticky top-0 z-10 bg-gray-50">
               <tr className="border-b border-gray-100 text-xs text-gray-500 font-bold uppercase tracking-widest">
-                <th className="px-6 py-4">Order Details</th>
-                <th className="px-6 py-4">Customer</th>
-                <th className="px-6 py-4">Items</th>
-                <th className="px-6 py-4">Reserve</th>
-                <th className="px-6 py-4">Labels</th>
-                <th className="px-6 py-4 text-right">Total</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-6 py-4 w-[160px]">Order Details</th>
+                <th className="px-6 py-4 w-[200px]">Customer</th>
+                <th className="px-6 py-4 w-[280px]">Items</th>
+                <th className="px-6 py-4 w-[120px]">Reserve</th>
+                <th className="px-6 py-4 w-[140px]">Labels</th>
+                <th className="px-6 py-4 text-right w-[120px]">Total</th>
+                <th className="px-6 py-4 text-right w-[220px]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -436,10 +436,10 @@ export default function AdminOrders() {
                   </td>
                   <td className="px-6 py-4 align-middle">
                     <div className="text-sm font-semibold text-gray-900">{order.user?.name || 'Guest'}</div>
-                    <div className="text-xs text-gray-400">{order.user?.email || 'N/A'}</div>
+                    <div className="text-xs text-gray-400 truncate">{order.user?.email || 'N/A'}</div>
                   </td>
                   <td className="px-6 py-4 align-middle">
-                    <div className="flex flex-wrap gap-1.5 max-w-xs">
+                    <div className="flex flex-wrap gap-1.5 max-w-[260px]">
                       {order.items?.map((item, idx) => {
                         const hasVariant = item.variant?.color || item.variant?.size
                         const isClothing = ['clothes', 'shoes', 'bags', 'eyeglass'].includes(item.clothingType)
