@@ -250,9 +250,6 @@ export default function Cart() {
   const [reservationExpiresAt, setReservationExpiresAt] = useState(null)
   const [reservationRemaining, setReservationRemaining] = useState(null)
   const [isReleasing, setIsReleasing] = useState(false)
-  const [showReservationDebug, setShowReservationDebug] = useState(false)
-  const [reservationDebug, setReservationDebug] = useState(null)
-  const [reservationDebugLoading, setReservationDebugLoading] = useState(false)
 
   /* ================= LOAD CART ================= */
   useEffect(() => {
@@ -304,11 +301,6 @@ export default function Cart() {
       clearReservationStorage()
     }
   }, [token])
-
-  useEffect(() => {
-    const enabled = import.meta.env.DEV || window.localStorage.getItem('shopluxe_debug') === '1'
-    setShowReservationDebug(!!enabled)
-  }, [])
 
   useEffect(() => {
     if (!user || reservationExpiresAt) return
@@ -388,39 +380,6 @@ export default function Cart() {
       })
     } finally {
       setIsReleasing(false)
-    }
-  }
-
-  const handleReservationDebug = async () => {
-    if (reservationDebugLoading) return
-    const stored = getStoredReservation()
-    if (!stored?.orderId) {
-      toast({ title: 'No active reservation to debug', variant: 'destructive' })
-      return
-    }
-    setReservationDebugLoading(true)
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/orders/${stored.orderId}/reservation-debug`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        }
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data?.message || 'Failed to fetch debug data')
-      }
-      setReservationDebug(data)
-      toast({ title: 'Reservation debug loaded' })
-    } catch (err) {
-      toast({
-        title: 'Reservation debug failed',
-        description: err?.message || 'Please try again',
-        variant: 'destructive'
-      })
-    } finally {
-      setReservationDebugLoading(false)
     }
   }
 
@@ -746,24 +705,6 @@ export default function Cart() {
                 {isReleasing ? 'Clearing...' : 'Cancel Reservation'}
               </Button>
             )}
-            {showReservationDebug && (
-              <div className="mt-3 space-y-2">
-                <Button
-                  variant="outline"
-                  className="w-full h-10 rounded-xl border-gray-200 text-gray-700 hover:bg-gray-100"
-                  onClick={handleReservationDebug}
-                  disabled={reservationDebugLoading}
-                >
-                  {reservationDebugLoading ? 'Loading Debug...' : 'Reservation Debug'}
-                </Button>
-                {reservationDebug && (
-                  <pre className="max-h-64 overflow-auto rounded-xl border border-gray-200 bg-white p-3 text-[10px] text-gray-700">
-                    {JSON.stringify(reservationDebug, null, 2)}
-                  </pre>
-                )}
-              </div>
-            )}
-
             <Button
               className="w-full text-lg h-14 bg-black hover:bg-gray-800 text-white shadow-md transition-all rounded-lg mt-4"
               onClick={() => navigate('/checkout')}
