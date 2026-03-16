@@ -95,6 +95,30 @@ export default function Checkout() {
   }, [clearReservation])
 
   React.useEffect(() => {
+    if (reservationExpiresAt) return
+    const syncReservation = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/orders/pending-reservation`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          }
+        })
+        const data = await res.json()
+        if (!res.ok) return
+        if (!data?.reservation?.expiresAt || !data?.reservation?.orderId) return
+        const expiresAtMs = new Date(data.reservation.expiresAt).getTime()
+        if (Number.isNaN(expiresAtMs) || expiresAtMs <= Date.now()) return
+        setReservation(expiresAtMs, data.reservation.orderId)
+      } catch {
+        // ignore sync errors
+      }
+    }
+    void syncReservation()
+  }, [reservationExpiresAt, setReservation, token])
+
+  React.useEffect(() => {
     if (!reservationExpiresAt) return
     const tick = () => {
       const remainingMs = reservationExpiresAt - Date.now()

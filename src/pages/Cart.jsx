@@ -292,6 +292,34 @@ export default function Cart() {
   }, [token])
 
   useEffect(() => {
+    if (!user || reservationExpiresAt) return
+    const syncReservation = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/orders/pending-reservation`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          }
+        })
+        const data = await res.json()
+        if (!res.ok) return
+        if (!data?.reservation?.expiresAt || !data?.reservation?.orderId) return
+        const expiresAtMs = new Date(data.reservation.expiresAt).getTime()
+        if (Number.isNaN(expiresAtMs) || expiresAtMs <= Date.now()) return
+        window.localStorage.setItem('shopluxe_reservation', JSON.stringify({
+          orderId: data.reservation.orderId,
+          expiresAt: expiresAtMs
+        }))
+        setReservationExpiresAt(expiresAtMs)
+      } catch {
+        // ignore sync errors
+      }
+    }
+    void syncReservation()
+  }, [reservationExpiresAt, token, user])
+
+  useEffect(() => {
     if (!reservationExpiresAt) return
     const tick = () => {
       const remainingMs = reservationExpiresAt - Date.now()
