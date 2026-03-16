@@ -597,12 +597,17 @@ export default function Cart() {
 
             <div className="space-y-4 text-sm">
               {(() => {
-                const totalAvailable = sortedCart.reduce((sum, item) => {
+                const productMap = new Map()
+                sortedCart.forEach(item => {
+                  const productId = item.productId || item.product?._id || item.product
+                  if (!productId || productMap.has(productId)) return
                   const stock = Number(item.productTotalStock ?? item.productStock ?? 0)
                   const reserved = Number(item.productTotalReserved ?? item.productReserved ?? 0)
-                  return sum + Math.max(0, stock - reserved)
-                }, 0)
-                const totalReserved = sortedCart.reduce((sum, item) => sum + Number(item.productTotalReserved ?? item.productReserved ?? 0), 0)
+                  productMap.set(productId, { stock, reserved })
+                })
+                const totals = Array.from(productMap.values())
+                const totalAvailable = totals.reduce((sum, p) => sum + Math.max(0, p.stock - p.reserved), 0)
+                const totalReserved = totals.reduce((sum, p) => sum + p.reserved, 0)
                 if (totalAvailable + totalReserved <= 0) return null
                 const pct = Math.min(100, Math.max(0, (totalAvailable / Math.max(1, totalAvailable + totalReserved)) * 100))
                 return (

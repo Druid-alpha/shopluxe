@@ -205,7 +205,10 @@ export default function AdminOrders() {
             const isReserved = order?.paymentStatus === 'pending'
             const expiresAt = order?.expiresAt ? new Date(order.expiresAt) : null
             const minutesLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - nowTick) / 60000)) : null
-            const canHandleReturn = order?.returnStatus === 'requested'
+            const canHandleReturn = ['requested', 'approved'].includes(order?.returnStatus)
+            const canApprove = order?.returnStatus === 'requested'
+            const canReject = order?.returnStatus === 'requested'
+            const canRefund = ['requested', 'approved'].includes(order?.returnStatus)
             return (
               <div key={order._id} className="rounded-2xl border border-gray-100 p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
@@ -292,14 +295,14 @@ export default function AdminOrders() {
                     <Trash2 size={18} />
                   </Button>
                 </div>
+                {order.returnReason && (
+                  <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50/60 p-3 text-[11px] font-medium text-amber-800">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 block mb-1">Customer Reason</span>
+                    {order.returnReason}
+                  </div>
+                )}
                 {canHandleReturn && (
                   <div className="mt-3 space-y-2">
-                    {order.returnReason && (
-                      <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-3 text-[11px] font-medium text-amber-800">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 block mb-1">Customer Reason</span>
-                        {order.returnReason}
-                      </div>
-                    )}
                     <textarea
                       value={returnNotes[order._id] || ''}
                       onChange={(e) => setReturnNotes(prev => ({ ...prev, [order._id]: e.target.value }))}
@@ -318,7 +321,7 @@ export default function AdminOrders() {
                       <Button
                         variant="outline"
                         className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-emerald-200 text-emerald-700 w-full"
-                        disabled={isUpdatingReturn || isRefunding}
+                        disabled={!canApprove || isUpdatingReturn || isRefunding}
                         onClick={() => handleReturnUpdate(order._id, 'approved')}
                       >
                         Approve Return
@@ -326,7 +329,7 @@ export default function AdminOrders() {
                       <Button
                         variant="outline"
                         className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-rose-200 text-rose-700 w-full"
-                        disabled={isUpdatingReturn || isRefunding}
+                        disabled={!canReject || isUpdatingReturn || isRefunding}
                         onClick={() => handleReturnUpdate(order._id, 'rejected')}
                       >
                         Reject Return
@@ -334,7 +337,7 @@ export default function AdminOrders() {
                       <Button
                         variant="outline"
                         className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-blue-200 text-blue-700 w-full"
-                        disabled={isUpdatingReturn || isRefunding}
+                        disabled={!canRefund || isUpdatingReturn || isRefunding}
                         onClick={() => handleReturnUpdate(order._id, 'refunded')}
                       >
                         Mark Refunded
@@ -366,7 +369,10 @@ export default function AdminOrders() {
                 const isReserved = order?.paymentStatus === 'pending'
                 const expiresAt = order?.expiresAt ? new Date(order.expiresAt) : null
                 const minutesLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - nowTick) / 60000)) : null
-                const canHandleReturn = order?.returnStatus === 'requested'
+                const canHandleReturn = ['requested', 'approved'].includes(order?.returnStatus)
+                const canApprove = order?.returnStatus === 'requested'
+                const canReject = order?.returnStatus === 'requested'
+                const canRefund = ['requested', 'approved'].includes(order?.returnStatus)
                 return (
                 <tr key={order._id} className="h-16 hover:bg-gray-50/60 transition-colors">
                   <td className="px-6 py-4 align-middle">
@@ -488,14 +494,14 @@ export default function AdminOrders() {
                     >
                       <Trash2 size={18} />
                     </Button>
+                    {order.returnReason && (
+                      <div className="mt-2 w-56 rounded-xl border border-amber-100 bg-amber-50/60 p-2 text-[10px] font-medium text-amber-800 text-left">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 block mb-1">Customer Reason</span>
+                        {order.returnReason}
+                      </div>
+                    )}
                     {canHandleReturn && (
                       <div className="mt-2 flex flex-col items-end gap-2">
-                        {order.returnReason && (
-                          <div className="w-56 rounded-xl border border-amber-100 bg-amber-50/60 p-2 text-[10px] font-medium text-amber-800 text-left">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 block mb-1">Customer Reason</span>
-                            {order.returnReason}
-                          </div>
-                        )}
                         <textarea
                           value={returnNotes[order._id] || ''}
                           onChange={(e) => setReturnNotes(prev => ({ ...prev, [order._id]: e.target.value }))}
@@ -514,7 +520,7 @@ export default function AdminOrders() {
                           <Button
                             variant="outline"
                             className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest border-emerald-200 text-emerald-700"
-                            disabled={isUpdatingReturn || isRefunding}
+                            disabled={!canApprove || isUpdatingReturn || isRefunding}
                             onClick={() => handleReturnUpdate(order._id, 'approved')}
                           >
                             Approve
@@ -522,7 +528,7 @@ export default function AdminOrders() {
                           <Button
                             variant="outline"
                             className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest border-rose-200 text-rose-700"
-                            disabled={isUpdatingReturn || isRefunding}
+                            disabled={!canReject || isUpdatingReturn || isRefunding}
                             onClick={() => handleReturnUpdate(order._id, 'rejected')}
                           >
                             Reject
@@ -530,7 +536,7 @@ export default function AdminOrders() {
                           <Button
                             variant="outline"
                             className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest border-blue-200 text-blue-700"
-                            disabled={isUpdatingReturn || isRefunding}
+                            disabled={!canRefund || isUpdatingReturn || isRefunding}
                             onClick={() => handleReturnUpdate(order._id, 'refunded')}
                           >
                             Refunded

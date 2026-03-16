@@ -46,10 +46,33 @@ export default function Checkout() {
   })
 
   const handleChange = (e) => {
-    setAddress(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    const next = { ...address, [e.target.name]: e.target.value }
+    setAddress(next)
+    window.localStorage.setItem('shopluxe_shipping_address', JSON.stringify(next))
   }
 
   const isFormValid = address.fullName.trim() && address.phone.trim() && address.address.trim() && address.city.trim() && address.state.trim()
+
+  React.useEffect(() => {
+    if (!cart.length) {
+      cartApi.getCart()
+        .then((data) => dispatch(setCart(data)))
+        .catch(() => {})
+    }
+  }, [cart.length, dispatch])
+
+  React.useEffect(() => {
+    const raw = window.localStorage.getItem('shopluxe_shipping_address')
+    if (!raw) return
+    try {
+      const parsed = JSON.parse(raw)
+      if (parsed && typeof parsed === 'object') {
+        setAddress(prev => ({ ...prev, ...parsed }))
+      }
+    } catch {
+      // ignore
+    }
+  }, [])
 
   React.useEffect(() => {
     const raw = window.localStorage.getItem('shopluxe_reservation')
@@ -416,12 +439,17 @@ export default function Checkout() {
             </div>
 
             {(() => {
-              const totalAvailable = cart.reduce((sum, item) => {
+              const productMap = new Map()
+              cart.forEach(item => {
+                const productId = item.productId || item.product?._id || item.product
+                if (!productId || productMap.has(productId)) return
                 const stock = Number(item.productTotalStock ?? item.productStock ?? 0)
                 const reserved = Number(item.productTotalReserved ?? item.productReserved ?? 0)
-                return sum + Math.max(0, stock - reserved)
-              }, 0)
-              const totalReserved = cart.reduce((sum, item) => sum + Number(item.productTotalReserved ?? item.productReserved ?? 0), 0)
+                productMap.set(productId, { stock, reserved })
+              })
+              const totals = Array.from(productMap.values())
+              const totalAvailable = totals.reduce((sum, p) => sum + Math.max(0, p.stock - p.reserved), 0)
+              const totalReserved = totals.reduce((sum, p) => sum + p.reserved, 0)
               if (totalAvailable + totalReserved <= 0) return null
               const pct = Math.min(100, Math.max(0, (totalAvailable / Math.max(1, totalAvailable + totalReserved)) * 100))
               return (
