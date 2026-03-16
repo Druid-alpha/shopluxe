@@ -341,6 +341,11 @@ export default function OrderReceipt() {
               {order.returnStatus && order.returnStatus !== 'none' ? order.returnStatus : 'not requested'}
             </span>
           </div>
+          {order.returnNote && (
+            <div className="rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3 text-[11px] font-semibold text-amber-800">
+              Note from support: {order.returnNote}
+            </div>
+          )}
 
           {order.paymentStatus === 'paid' && order.returnStatus === 'none' && (
             <div className="space-y-3">

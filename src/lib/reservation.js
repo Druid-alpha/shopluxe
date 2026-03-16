@@ -19,16 +19,26 @@ export const clearReservationStorage = () => {
 
 export const releaseReservation = async ({ token } = {}) => {
   const stored = getStoredReservation()
-  if (!stored?.orderId) return
   try {
-    await fetch(`${import.meta.env.VITE_API_URL}/orders/${stored.orderId}`, {
-      method: 'DELETE',
+    await fetch(`${import.meta.env.VITE_API_URL}/orders/cancel-reservations`, {
+      method: 'POST',
       credentials: 'include',
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {})
       }
     })
   } catch {
-    // ignore release errors; server may already have cleared
+    if (!stored?.orderId) return
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/orders/${stored.orderId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      })
+    } catch {
+      // ignore release errors; server may already have cleared
+    }
   }
 }
