@@ -67,6 +67,15 @@ export const orderApi = api.injectEndpoints({
             }),
             invalidatesTags: (result, error, { id }) => [{ type: 'Order', id }, 'Order']
         }),
+        addReturnMessage: builder.mutation({
+            query: ({ id, message }) => ({
+                url: `/orders/${id}/return/message`,
+                method: 'POST',
+                body: { message },
+                credentials: 'include'
+            }),
+            invalidatesTags: (result, error, { id }) => [{ type: 'Order', id }, 'Order']
+        }),
         refundOrder: builder.mutation({
             query: ({ orderId, amount, reason }) => ({
                 url: `/payments/paystack/refund`,
@@ -89,5 +98,6 @@ export const {
     useDeleteOrderMutation,
     useRequestReturnMutation,
     useUpdateReturnStatusMutation,
+    useAddReturnMessageMutation,
     useRefundOrderMutation
 } = orderApi

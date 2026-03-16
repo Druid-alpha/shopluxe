@@ -4,6 +4,7 @@ import {
   useUpdateOrderStatusMutation,
   useDeleteOrderMutation,
   useUpdateReturnStatusMutation,
+  useAddReturnMessageMutation,
   useRefundOrderMutation
 } from '@/features/orders/orderApi'
 import { Loader2, RefreshCcw, Trash2 } from 'lucide-react'
@@ -40,6 +41,7 @@ export default function AdminOrders() {
   const [updateStatus, { isLoading: isUpdating }] = useUpdateOrderStatusMutation()
   const [deleteOrder] = useDeleteOrderMutation()
   const [updateReturnStatus, { isLoading: isUpdatingReturn }] = useUpdateReturnStatusMutation()
+  const [addReturnMessage, { isLoading: isSendingMessage }] = useAddReturnMessageMutation()
   const [refundOrder, { isLoading: isRefunding }] = useRefundOrderMutation()
   const [orderToDelete, setOrderToDelete] = React.useState(null)
 
@@ -130,6 +132,21 @@ export default function AdminOrders() {
       setRefundAmounts(prev => ({ ...prev, [id]: '' }))
     } catch (err) {
       toast({ title: 'Error', description: err.data?.message || 'Failed to update return', variant: 'destructive' })
+    }
+  }
+
+  const handleReturnMessage = async (id) => {
+    const note = returnNotes[id] || ''
+    if (!note.trim()) {
+      toast({ title: 'Message required', description: 'Type a message before sending.', variant: 'destructive' })
+      return
+    }
+    try {
+      await addReturnMessage({ id, message: note }).unwrap()
+      toast({ title: 'Message sent', description: 'Customer can see it in their order.' })
+      setReturnNotes(prev => ({ ...prev, [id]: '' }))
+    } catch (err) {
+      toast({ title: 'Error', description: err.data?.message || 'Failed to send message', variant: 'destructive' })
     }
   }
 
@@ -301,6 +318,19 @@ export default function AdminOrders() {
                     {order.returnReason}
                   </div>
                 )}
+                {Array.isArray(order.returnMessages) && order.returnMessages.length > 0 && (
+                  <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50/60 p-3 text-[11px] font-medium text-slate-700 space-y-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Message History</span>
+                    {order.returnMessages.map((msg, idx) => (
+                      <div key={idx} className="flex flex-col gap-1">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                          {msg.by}{msg.status ? ` • ${msg.status}` : ''}
+                        </span>
+                        <span>{msg.message}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {canHandleReturn && (
                   <div className="mt-3 space-y-2">
                     <textarea
@@ -343,6 +373,14 @@ export default function AdminOrders() {
                         Mark Refunded
                       </Button>
                     </div>
+                    <Button
+                      variant="outline"
+                      className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-gray-200 text-gray-700 w-full"
+                      disabled={isSendingMessage}
+                      onClick={() => handleReturnMessage(order._id)}
+                    >
+                      Send Message Only
+                    </Button>
                   </div>
                 )}
               </div>
@@ -500,6 +538,19 @@ export default function AdminOrders() {
                         {order.returnReason}
                       </div>
                     )}
+                    {Array.isArray(order.returnMessages) && order.returnMessages.length > 0 && (
+                      <div className="mt-2 w-56 rounded-xl border border-slate-100 bg-slate-50/60 p-2 text-[10px] font-medium text-slate-700 text-left space-y-2">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block">Message History</span>
+                        {order.returnMessages.map((msg, idx) => (
+                          <div key={idx} className="flex flex-col gap-1">
+                            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">
+                              {msg.by}{msg.status ? ` • ${msg.status}` : ''}
+                            </span>
+                            <span>{msg.message}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     {canHandleReturn && (
                       <div className="mt-2 flex flex-col items-end gap-2">
                         <textarea
@@ -542,6 +593,14 @@ export default function AdminOrders() {
                             Refunded
                           </Button>
                         </div>
+                        <Button
+                          variant="outline"
+                          className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest border-gray-200 text-gray-700"
+                          disabled={isSendingMessage}
+                          onClick={() => handleReturnMessage(order._id)}
+                        >
+                          Send Message Only
+                        </Button>
                       </div>
                     )}
                   </td>

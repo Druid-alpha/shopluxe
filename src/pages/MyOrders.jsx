@@ -158,6 +158,19 @@ export default function MyOrders() {
                       Note from support: {order.returnNote}
                     </div>
                   )}
+                  {Array.isArray(order.returnMessages) && order.returnMessages.length > 0 && (
+                    <div className="rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2 text-[11px] font-semibold text-slate-700 space-y-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Message History</span>
+                      {order.returnMessages.map((msg, idx) => (
+                        <div key={idx} className="flex flex-col gap-1">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                            {msg.by}{msg.status ? ` • ${msg.status}` : ''}
+                          </span>
+                          <span>{msg.message}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex gap-3">
                     <Button variant="outline" asChild className="rounded-xl">
                       <Link to={`/orders/${order._id}`}>Track Order</Link>
