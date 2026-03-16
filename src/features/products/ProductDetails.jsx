@@ -456,6 +456,7 @@ export default function ProductDetails() {
   const [purchaseMode, setPurchaseMode] = React.useState('base') // 'base' or 'variant'
   const [selectedVariantIndex, setSelectedVariantIndex] = React.useState(-1)
   const [selectedVariantId, setSelectedVariantId] = React.useState('')
+  const selectedVariantRef = React.useRef(null)
   const [selectedBaseSize, setSelectedBaseSize] = React.useState('')
   const [selectedColorKey, setSelectedColorKey] = React.useState('')
   const [selectedSize, setSelectedSize] = React.useState('')
@@ -759,6 +760,7 @@ export default function ProductDetails() {
         return colorMatch && sizeMatch
       })
       setSelectedVariantId(String(firstMatch?._id || ''))
+      selectedVariantRef.current = firstMatch || null
     }
   }, [product, variantColorOptions, purchaseMode, selectedSize, variantSizesByColor, variants])
 
@@ -778,6 +780,7 @@ export default function ProductDetails() {
       setSelectedSize('')
       setSelectedVariantIndex(-1)
       setSelectedVariantId('')
+      selectedVariantRef.current = null
     }
   }, [purchaseMode])
 
@@ -788,6 +791,7 @@ export default function ProductDetails() {
     setSelectedSize('')
     setSelectedVariantIndex(-1)
     setSelectedVariantId('')
+    selectedVariantRef.current = null
   }, [product?._id])
 
   // Sync selectedVariantIndex from color+size
@@ -803,12 +807,14 @@ export default function ProductDetails() {
     if (idx >= 0) {
       setSelectedVariantIndex(idx)
       setSelectedVariantId(String(variants[idx]?._id || ''))
+      selectedVariantRef.current = variants[idx] || null
       if (variants[idx]?.image?.url) setMainImage(variants[idx].image.url)
     } else {
       const colorIdx = variants.findIndex(v => getColorMeta(v.options?.color).key === selectedColorKey)
       if (colorIdx >= 0 && variants[colorIdx]?.image?.url) setMainImage(variants[colorIdx].image.url)
       setSelectedVariantIndex(-1)
       setSelectedVariantId('')
+      selectedVariantRef.current = null
     }
   }, [selectedColorKey, selectedSize, variants])
 
@@ -876,6 +882,10 @@ export default function ProductDetails() {
 
     const resolveVariantFromSelection = () => {
       if (!hasVariants) return null
+      if (selectedVariantRef.current) {
+        const refVariant = selectedVariantRef.current
+        if (refVariant?._id) return refVariant
+      }
       if (selectedVariantId) {
         const byId = variants.find(v => String(v._id) === String(selectedVariantId))
         if (byId) return byId
@@ -1175,6 +1185,7 @@ export default function ProductDetails() {
                                 return colorMatch && sizeMatch
                               })
                               setSelectedVariantId(String(nextVariant?._id || ''))
+                              selectedVariantRef.current = nextVariant || null
                             }}
                             title={c.name}
                             className={`w-10 h-10 rounded-full border-[3px] transition-all flex items-center justify-center shadow-md hover:scale-110 active:scale-95 overflow-hidden ${isSelected ? 'scale-110 ring-2 ring-black/30' : 'border-gray-200'}`}
@@ -1232,6 +1243,7 @@ export default function ProductDetails() {
                                 return colorMatch && sizeMatch
                               })
                               setSelectedVariantId(String(nextVariant?._id || ''))
+                              selectedVariantRef.current = nextVariant || null
                             }}
                             disabled={isOOS}
                             className={`relative px-4 py-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center min-w-[70px] ${isOOS ? 'opacity-50 bg-gray-50 border-gray-200 cursor-not-allowed text-gray-400' : 'hover:scale-105 active:scale-95 text-slate-700 bg-white border-gray-200'}`}
