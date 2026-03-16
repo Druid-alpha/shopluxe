@@ -142,12 +142,10 @@ export default function Checkout() {
   React.useEffect(() => {
     return () => {
       if (redirectingRef.current) return
-      if (reservationExpiresAt) {
-        void releaseReservation({ token })
-        clearReservationStorage()
-      }
+      // Keep reservation alive when navigating away from checkout.
+      // It should only clear on explicit cancel or expiration.
     }
-  }, [reservationExpiresAt, token])
+  }, [])
 
   const formatRemaining = (ms) => {
     const totalSeconds = Math.max(0, Math.floor(ms / 1000))
