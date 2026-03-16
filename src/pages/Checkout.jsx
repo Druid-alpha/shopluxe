@@ -81,16 +81,22 @@ export default function Checkout() {
       const parsed = JSON.parse(raw)
       const expiresAt = Number(parsed?.expiresAt || 0)
       if (!expiresAt || Number.isNaN(expiresAt)) {
-        clearReservation()
+        clearReservationStorage()
+        setReservationExpiresAt(null)
+        setReservationRemaining(null)
         return
       }
       if (expiresAt <= Date.now()) {
-        clearReservation()
+        clearReservationStorage()
+        setReservationExpiresAt(null)
+        setReservationRemaining(null)
         return
       }
       setReservationExpiresAt(expiresAt)
     } catch {
-      clearReservation()
+      clearReservationStorage()
+      setReservationExpiresAt(null)
+      setReservationRemaining(null)
     }
   }, [clearReservation])
 

@@ -596,14 +596,12 @@ export default function ProductDetails() {
       const parsed = JSON.parse(raw)
       const expiresAt = Number(parsed?.expiresAt || 0)
       if (!expiresAt || Number.isNaN(expiresAt)) {
-        void releaseReservation({ token })
         clearReservationStorage()
         setReservationExpiresAt(null)
         setReservationRemaining(null)
         return
       }
       if (expiresAt <= Date.now()) {
-        void releaseReservation({ token })
         clearReservationStorage()
         setReservationExpiresAt(null)
         setReservationRemaining(null)
@@ -611,7 +609,6 @@ export default function ProductDetails() {
       }
       setReservationExpiresAt(expiresAt)
     } catch {
-      void releaseReservation({ token })
       clearReservationStorage()
       setReservationExpiresAt(null)
       setReservationRemaining(null)

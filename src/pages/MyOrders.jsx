@@ -1,9 +1,10 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { useGetMyOrdersQuery } from '@/features/orders/orderApi'
+import { useGetMyOrdersQuery, useAddReturnMessageUserMutation } from '@/features/orders/orderApi'
 import { Button } from '@/components/ui/button'
 import { estimateEtaRange } from '@/lib/eta'
 import { CheckCircle2, Clock, Package, Truck, XCircle } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 const STATUS_META = {
   pending: { label: 'Pending', tone: 'bg-amber-50 text-amber-700 border-amber-100', icon: Clock },
@@ -33,11 +34,14 @@ const progressIndex = (status) => {
 }
 
 export default function MyOrders() {
+  const { toast } = useToast()
   const { data, isLoading, isError, refetch } = useGetMyOrdersQuery(undefined, {
     pollingInterval: 15000,
     refetchOnFocus: true,
     refetchOnReconnect: true,
   })
+  const [sendReturnMessage, { isLoading: isSendingMessage }] = useAddReturnMessageUserMutation()
+  const [draftMessages, setDraftMessages] = React.useState({})
   const ordersRaw = data?.orders || data || []
   const orders = Array.isArray(ordersRaw)
     ? [...ordersRaw].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -94,6 +98,26 @@ export default function MyOrders() {
             const returnStatus = order?.returnStatus && order.returnStatus !== 'none'
               ? order.returnStatus
               : null
+            const canMessage = ['requested', 'approved'].includes(order?.returnStatus)
+            const draft = draftMessages[order._id] || ''
+
+            const handleMessageSend = async () => {
+              if (!draft.trim()) {
+                toast({ title: 'Message required', description: 'Type a message before sending.', variant: 'destructive' })
+                return
+              }
+              try {
+                await sendReturnMessage({ id: order._id, message: draft }).unwrap()
+                toast({ title: 'Message sent', description: 'Support will get back to you shortly.' })
+                setDraftMessages(prev => ({ ...prev, [order._id]: '' }))
+              } catch (err) {
+                toast({
+                  title: 'Message failed',
+                  description: err?.data?.message || 'Please try again.',
+                  variant: 'destructive'
+                })
+              }
+            }
 
             return (
               <div key={order._id} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-5">
@@ -169,6 +193,23 @@ export default function MyOrders() {
                           <span>{msg.message}</span>
                         </div>
                       ))}
+                    </div>
+                  )}
+                  {canMessage && (
+                    <div className="rounded-xl border border-gray-100 bg-white px-3 py-2 space-y-2">
+                      <textarea
+                        value={draft}
+                        onChange={(e) => setDraftMessages(prev => ({ ...prev, [order._id]: e.target.value }))}
+                        placeholder="Message support about this return..."
+                        className="w-full border rounded-lg p-2 text-[11px] font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all min-h-[70px]"
+                      />
+                      <Button
+                        onClick={handleMessageSend}
+                        disabled={isSendingMessage}
+                        className="h-9 rounded-lg bg-black text-white hover:bg-gray-800"
+                      >
+                        {isSendingMessage ? 'Sending...' : 'Send Message'}
+                      </Button>
                     </div>
                   )}
                   <div className="flex gap-3">

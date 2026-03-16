@@ -275,18 +275,15 @@ export default function Cart() {
       const parsed = JSON.parse(raw)
       const expiresAt = Number(parsed?.expiresAt || 0)
       if (!expiresAt || Number.isNaN(expiresAt)) {
-        void releaseReservation({ token })
         clearReservationStorage()
         return
       }
       if (expiresAt <= Date.now()) {
-        void releaseReservation({ token })
         clearReservationStorage()
         return
       }
       setReservationExpiresAt(expiresAt)
     } catch {
-      void releaseReservation({ token })
       clearReservationStorage()
     }
   }, [token])
