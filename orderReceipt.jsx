@@ -6,7 +6,7 @@ import html2pdf from 'html2pdf.js'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { logout } from '@/features/auth/authSlice'
 import { productApi } from '@/features/products/productApi'
-import { useGenerateOrderInvoiceMutation, useGetOrderQuery, useRequestReturnMutation } from '@/features/orders/orderApi'
+import { useGenerateOrderInvoiceMutation, useGetOrderQuery, useRequestReturnMutation, useAddReturnMessageUserMutation } from '@/features/orders/orderApi'
 import { useToast } from '@/hooks/use-toast'
 import { estimateEtaRange } from '@/lib/eta'
 
@@ -25,9 +25,11 @@ export default function OrderReceipt() {
   })
   const [generateInvoice, { isLoading: isGeneratingInvoice }] = useGenerateOrderInvoiceMutation()
   const [requestReturn, { isLoading: isRequestingReturn }] = useRequestReturnMutation()
+  const [sendReturnMessage, { isLoading: isSendingReturnMessage }] = useAddReturnMessageUserMutation()
   const [isDownloading, setIsDownloading] = React.useState(false)
   const [invoiceUrl, setInvoiceUrl] = React.useState(null)
   const [returnReason, setReturnReason] = React.useState('')
+  const [returnMessage, setReturnMessage] = React.useState('')
   const order = data?.order
   const eta = estimateEtaRange(order)
   const timelineSteps = ['pending', 'paid', 'processing', 'shipped', 'delivered']
@@ -231,6 +233,26 @@ export default function OrderReceipt() {
     }
   }
 
+  const handleReturnMessage = async () => {
+    if (!order?._id) return
+    if (!returnMessage.trim()) {
+      toast({ title: 'Message required', description: 'Type a message before sending.', variant: 'destructive' })
+      return
+    }
+    try {
+      await sendReturnMessage({ id: order._id, message: returnMessage }).unwrap()
+      toast({ title: 'Message sent', description: 'Support will get back to you shortly.' })
+      setReturnMessage('')
+      refetch()
+    } catch (err) {
+      toast({
+        title: 'Message failed',
+        description: err?.data?.message || 'Please try again.',
+        variant: 'destructive'
+      })
+    }
+  }
+
   if (queryError) return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-4">
       <div className="bg-red-50 p-4 rounded-full text-red-500"><LogOut size={32} /></div>
@@ -374,6 +396,23 @@ export default function OrderReceipt() {
                 className="h-11 rounded-xl bg-black text-white hover:bg-gray-800"
               >
                 {isRequestingReturn ? 'Submitting...' : 'Request Return'}
+              </Button>
+            </div>
+          )}
+          {['requested', 'approved'].includes(order.returnStatus) && (
+            <div className="space-y-3">
+              <textarea
+                value={returnMessage}
+                onChange={(e) => setReturnMessage(e.target.value)}
+                placeholder="Send a message to support about this return..."
+                className="w-full border rounded-xl p-4 text-sm font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all min-h-[90px]"
+              />
+              <Button
+                onClick={handleReturnMessage}
+                disabled={isSendingReturnMessage}
+                className="h-11 rounded-xl bg-black text-white hover:bg-gray-800"
+              >
+                {isSendingReturnMessage ? 'Sending...' : 'Send Message'}
               </Button>
             </div>
           )}

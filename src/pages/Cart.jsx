@@ -7,7 +7,7 @@ import { removeGuestCartItem, setCart, updateGuestCartQty, updateGuestCartVarian
 import * as cartApi from '@/features/cart/cartApi';
 import { Trash, Loader2, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { releaseReservation, clearReservationStorage } from '@/lib/reservation';
+import { releaseReservation, clearReservationStorage, cancelAllReservations } from '@/lib/reservation';
 import { productApi } from '@/features/products/productApi';
 
 const CLOTHING_TYPES = new Set(['clothes', 'shoes', 'bags', 'eyeglass'])
@@ -349,7 +349,7 @@ export default function Cart() {
     if (isReleasing) return
     setIsReleasing(true)
     try {
-      await releaseReservation({ token })
+      await cancelAllReservations({ token })
       clearReservationStorage()
       setReservationExpiresAt(null)
       setReservationRemaining(null)

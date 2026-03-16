@@ -19,6 +19,21 @@ export const clearReservationStorage = () => {
 
 export const releaseReservation = async ({ token } = {}) => {
   const stored = getStoredReservation()
+  if (!stored?.orderId) return
+  try {
+    await fetch(`${import.meta.env.VITE_API_URL}/orders/${stored.orderId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      }
+    })
+  } catch {
+    // ignore release errors; server may already have cleared
+  }
+}
+
+export const cancelAllReservations = async ({ token } = {}) => {
   try {
     await fetch(`${import.meta.env.VITE_API_URL}/orders/cancel-reservations`, {
       method: 'POST',
@@ -28,17 +43,6 @@ export const releaseReservation = async ({ token } = {}) => {
       }
     })
   } catch {
-    if (!stored?.orderId) return
-    try {
-      await fetch(`${import.meta.env.VITE_API_URL}/orders/${stored.orderId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        }
-      })
-    } catch {
-      // ignore release errors; server may already have cleared
-    }
+    // ignore cancellation errors
   }
 }
