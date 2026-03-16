@@ -6,7 +6,7 @@ import html2pdf from 'html2pdf.js'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { logout } from '@/features/auth/authSlice'
 import { productApi } from '@/features/products/productApi'
-import { useGenerateOrderInvoiceMutation, useGetOrderQuery, useRequestReturnMutation, useAddReturnMessageUserMutation } from '@/features/orders/orderApi'
+import { useGenerateOrderInvoiceMutation, useGetOrderQuery, useRequestReturnMutation, useAddReturnMessageUserMutation, useUploadReturnAttachmentsUserMutation } from '@/features/orders/orderApi'
 import { useToast } from '@/hooks/use-toast'
 import { estimateEtaRange } from '@/lib/eta'
 
@@ -26,10 +26,12 @@ export default function OrderReceipt() {
   const [generateInvoice, { isLoading: isGeneratingInvoice }] = useGenerateOrderInvoiceMutation()
   const [requestReturn, { isLoading: isRequestingReturn }] = useRequestReturnMutation()
   const [sendReturnMessage, { isLoading: isSendingReturnMessage }] = useAddReturnMessageUserMutation()
+  const [uploadReturnAttachments, { isLoading: isUploadingAttachments }] = useUploadReturnAttachmentsUserMutation()
   const [isDownloading, setIsDownloading] = React.useState(false)
   const [invoiceUrl, setInvoiceUrl] = React.useState(null)
   const [returnReason, setReturnReason] = React.useState('')
   const [returnMessage, setReturnMessage] = React.useState('')
+  const [returnFiles, setReturnFiles] = React.useState([])
   const order = data?.order
   const eta = estimateEtaRange(order)
   const timelineSteps = ['pending', 'paid', 'processing', 'shipped', 'delivered']
@@ -240,9 +242,14 @@ export default function OrderReceipt() {
       return
     }
     try {
-      await sendReturnMessage({ id: order._id, message: returnMessage }).unwrap()
+      await sendReturnMessage({
+        id: order._id,
+        message: returnMessage,
+        attachments: returnFiles.map(f => f?.remoteUrl).filter(Boolean)
+      }).unwrap()
       toast({ title: 'Message sent', description: 'Support will get back to you shortly.' })
       setReturnMessage('')
+      setReturnFiles([])
       refetch()
     } catch (err) {
       toast({
@@ -377,6 +384,21 @@ export default function OrderReceipt() {
                     {msg.by}{msg.status ? ` • ${msg.status}` : ''}
                   </span>
                   <span>{msg.message}</span>
+                  {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {msg.attachments.map((url, fileIdx) => (
+                        <a
+                          key={`${url}-${fileIdx}`}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] font-black uppercase tracking-widest text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full"
+                        >
+                          View File {fileIdx + 1}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -401,6 +423,34 @@ export default function OrderReceipt() {
           )}
           {['requested', 'approved'].includes(order.returnStatus) && (
             <div className="space-y-3">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleAttachmentChange}
+                className="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-100 file:text-gray-700 file:text-xs file:font-semibold hover:file:bg-gray-200"
+              />
+              {returnFiles.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {returnFiles.map((file, idx) => (
+                    <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
+                      <img src={file.previewUrl} alt={`Attachment ${idx + 1}`} className="w-full h-full object-cover" />
+                      {isUploadingAttachments && (
+                        <div className="absolute inset-0 bg-white/70 flex items-center justify-center text-[10px] font-bold text-gray-600">
+                          Uploading
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setReturnFiles(prev => prev.filter((_, i) => i !== idx))}
+                        className="absolute top-1 right-1 bg-white/90 text-gray-700 text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <textarea
                 value={returnMessage}
                 onChange={(e) => setReturnMessage(e.target.value)}
@@ -587,3 +637,31 @@ export default function OrderReceipt() {
     </div>
   )
 }
+  const handleAttachmentChange = async (e) => {
+    if (!order?._id) return
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+    const previews = files.slice(0, 5).map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+      remoteUrl: null
+    }))
+    setReturnFiles(previews)
+
+    try {
+      const formData = new FormData()
+      files.slice(0, 5).forEach((file) => formData.append('files', file))
+      const res = await uploadReturnAttachments({ id: order._id, formData }).unwrap()
+      const urls = Array.isArray(res?.attachments) ? res.attachments : []
+      setReturnFiles(prev => prev.map((item, idx) => ({
+        ...item,
+        remoteUrl: urls[idx] || item.remoteUrl
+      })))
+    } catch (err) {
+      toast({
+        title: 'Upload failed',
+        description: err?.data?.message || 'Could not upload attachments.',
+        variant: 'destructive'
+      })
+    }
+  }

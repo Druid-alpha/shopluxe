@@ -77,13 +77,21 @@ export const orderApi = api.injectEndpoints({
             invalidatesTags: (result, error, { id }) => [{ type: 'Order', id }, 'Order']
         }),
         addReturnMessageUser: builder.mutation({
-            query: ({ id, message }) => ({
+            query: ({ id, message, attachments }) => ({
                 url: `/orders/${id}/return/message/user`,
                 method: 'POST',
-                body: { message },
+                body: { message, attachments },
                 credentials: 'include'
             }),
             invalidatesTags: (result, error, { id }) => [{ type: 'Order', id }, 'Order']
+        }),
+        uploadReturnAttachmentsUser: builder.mutation({
+            query: ({ id, formData }) => ({
+                url: `/orders/${id}/return/attachments`,
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            })
         }),
         refundOrder: builder.mutation({
             query: ({ orderId, amount, reason }) => ({
@@ -109,5 +117,6 @@ export const {
     useUpdateReturnStatusMutation,
     useAddReturnMessageMutation,
     useAddReturnMessageUserMutation,
+    useUploadReturnAttachmentsUserMutation,
     useRefundOrderMutation
 } = orderApi

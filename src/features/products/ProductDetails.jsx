@@ -810,8 +810,7 @@ export default function ProductDetails() {
   const variantReservedTotal = variants.reduce((sum, v) => sum + Number(v?.reserved || 0), 0)
   const totalStock = toNumberOrNull(product?.totalStock) ?? (baseStock + variantStockTotal)
   const totalReserved = toNumberOrNull(product?.totalReserved) ?? (baseReserved + variantReservedTotal)
-  const availableFromApi = toNumberOrNull(product?.availableStock)
-  const totalAvailable = availableFromApi ?? Math.max(0, totalStock - totalReserved)
+  const totalAvailable = Math.max(0, totalStock - totalReserved)
 
   const isInWishlist = wishlistItems.some(item => {
     const pId = item?.productId?._id || item?.productId || item
