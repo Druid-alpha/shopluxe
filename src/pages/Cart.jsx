@@ -250,6 +250,8 @@ export default function Cart() {
   const [reservationExpiresAt, setReservationExpiresAt] = useState(null)
   const [reservationRemaining, setReservationRemaining] = useState(null)
   const [isReleasing, setIsReleasing] = useState(false)
+  const [reservationDebug, setReservationDebug] = useState(null)
+  const [isDebugging, setIsDebugging] = useState(false)
 
   /* ================= LOAD CART ================= */
   useEffect(() => {
@@ -366,6 +368,43 @@ export default function Cart() {
       })
     } finally {
       setIsReleasing(false)
+    }
+  }
+
+  const handleReservationDebug = async () => {
+    const stored = window.localStorage.getItem('shopluxe_reservation')
+    if (!stored) {
+      toast({ title: 'No reservation found', description: 'Create a reservation first.', variant: 'destructive' })
+      return
+    }
+    let orderId = null
+    try {
+      const parsed = JSON.parse(stored)
+      orderId = parsed?.orderId || null
+    } catch {
+      orderId = null
+    }
+    if (!orderId) {
+      toast({ title: 'No reservation order ID', description: 'Unable to locate the reservation order.', variant: 'destructive' })
+      return
+    }
+    setIsDebugging(true)
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/reservation-debug`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.message || 'Failed to fetch debug info')
+      setReservationDebug(data)
+      toast({ title: 'Debug loaded', description: 'Reservation details fetched.' })
+    } catch (err) {
+      toast({ title: 'Debug failed', description: err.message || 'Unable to fetch debug info.', variant: 'destructive' })
+    } finally {
+      setIsDebugging(false)
     }
   }
 
@@ -679,6 +718,19 @@ export default function Cart() {
               >
                 {isReleasing ? 'Clearing...' : 'Cancel Reservation'}
               </Button>
+            )}
+            <Button
+              variant="outline"
+              className="w-full h-11 rounded-xl border-gray-200 text-gray-600 hover:bg-gray-50 mt-3"
+              onClick={handleReservationDebug}
+              disabled={isDebugging}
+            >
+              {isDebugging ? 'Loading...' : 'Reservation Debug'}
+            </Button>
+            {reservationDebug && (
+              <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50 p-3 text-[11px] font-mono text-gray-600 whitespace-pre-wrap">
+                {JSON.stringify(reservationDebug, null, 2)}
+              </div>
             )}
 
             <Button

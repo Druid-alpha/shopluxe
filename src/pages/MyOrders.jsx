@@ -42,6 +42,7 @@ export default function MyOrders() {
   })
   const [sendReturnMessage, { isLoading: isSendingMessage }] = useAddReturnMessageUserMutation()
   const [draftMessages, setDraftMessages] = React.useState({})
+  const [draftFiles, setDraftFiles] = React.useState({})
   const ordersRaw = data?.orders || data || []
   const orders = Array.isArray(ordersRaw)
     ? [...ordersRaw].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -100,6 +101,7 @@ export default function MyOrders() {
               : null
             const canMessage = ['requested', 'approved'].includes(order?.returnStatus)
             const draft = draftMessages[order._id] || ''
+            const files = draftFiles[order._id] || []
 
             const handleMessageSend = async () => {
               if (!draft.trim()) {
@@ -107,9 +109,15 @@ export default function MyOrders() {
                 return
               }
               try {
-                await sendReturnMessage({ id: order._id, message: draft }).unwrap()
+                const formData = new FormData()
+                formData.append('message', draft)
+                files.forEach((f) => {
+                  if (f?.file) formData.append('files', f.file)
+                })
+                await sendReturnMessage({ id: order._id, message: draft, formData }).unwrap()
                 toast({ title: 'Message sent', description: 'Support will get back to you shortly.' })
                 setDraftMessages(prev => ({ ...prev, [order._id]: '' }))
+                setDraftFiles(prev => ({ ...prev, [order._id]: [] }))
               } catch (err) {
                 toast({
                   title: 'Message failed',
@@ -212,6 +220,35 @@ export default function MyOrders() {
                   )}
                   {canMessage && (
                     <div className="rounded-xl border border-gray-100 bg-white px-3 py-2 space-y-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => {
+                          const selected = Array.from(e.target.files || []).slice(0, 5).map((file) => ({
+                            file,
+                            previewUrl: URL.createObjectURL(file)
+                          }))
+                          setDraftFiles(prev => ({ ...prev, [order._id]: selected }))
+                        }}
+                        className="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-100 file:text-gray-700 file:text-xs file:font-semibold hover:file:bg-gray-200"
+                      />
+                      {files.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {files.map((file, idx) => (
+                            <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200">
+                              <img src={file.previewUrl} alt={`Attachment ${idx + 1}`} className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => setDraftFiles(prev => ({ ...prev, [order._id]: prev[order._id].filter((_, i) => i !== idx) }))}
+                                className="absolute top-1 right-1 bg-white/90 text-gray-700 text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       <textarea
                         value={draft}
                         onChange={(e) => setDraftMessages(prev => ({ ...prev, [order._id]: e.target.value }))}
