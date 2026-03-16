@@ -77,10 +77,10 @@ export const orderApi = api.injectEndpoints({
             invalidatesTags: (result, error, { id }) => [{ type: 'Order', id }, 'Order']
         }),
         addReturnMessageUser: builder.mutation({
-            query: ({ id, message, attachments }) => ({
+            query: ({ id, message, attachments, formData }) => ({
                 url: `/orders/${id}/return/message/user`,
                 method: 'POST',
-                body: { message, attachments },
+                body: formData ?? { message, attachments },
                 credentials: 'include'
             }),
             invalidatesTags: (result, error, { id }) => [{ type: 'Order', id }, 'Order']

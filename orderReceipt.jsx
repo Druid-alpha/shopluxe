@@ -6,7 +6,7 @@ import html2pdf from 'html2pdf.js'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { logout } from '@/features/auth/authSlice'
 import { productApi } from '@/features/products/productApi'
-import { useGenerateOrderInvoiceMutation, useGetOrderQuery, useRequestReturnMutation, useAddReturnMessageUserMutation, useUploadReturnAttachmentsUserMutation } from '@/features/orders/orderApi'
+import { useGenerateOrderInvoiceMutation, useGetOrderQuery, useRequestReturnMutation, useAddReturnMessageUserMutation } from '@/features/orders/orderApi'
 import { useToast } from '@/hooks/use-toast'
 import { estimateEtaRange } from '@/lib/eta'
 
@@ -26,7 +26,6 @@ export default function OrderReceipt() {
   const [generateInvoice, { isLoading: isGeneratingInvoice }] = useGenerateOrderInvoiceMutation()
   const [requestReturn, { isLoading: isRequestingReturn }] = useRequestReturnMutation()
   const [sendReturnMessage, { isLoading: isSendingReturnMessage }] = useAddReturnMessageUserMutation()
-  const [uploadReturnAttachments, { isLoading: isUploadingAttachments }] = useUploadReturnAttachmentsUserMutation()
   const [isDownloading, setIsDownloading] = React.useState(false)
   const [invoiceUrl, setInvoiceUrl] = React.useState(null)
   const [returnReason, setReturnReason] = React.useState('')
@@ -241,15 +240,16 @@ export default function OrderReceipt() {
       toast({ title: 'Message required', description: 'Type a message before sending.', variant: 'destructive' })
       return
     }
-    if (returnFiles.length > 0 && returnFiles.some(f => !f.remoteUrl)) {
-      toast({ title: 'Upload in progress', description: 'Please wait for attachments to finish uploading.', variant: 'destructive' })
-      return
-    }
     try {
+      const formData = new FormData()
+      formData.append('message', returnMessage)
+      returnFiles.forEach((f) => {
+        if (f?.file) formData.append('files', f.file)
+      })
       await sendReturnMessage({
         id: order._id,
         message: returnMessage,
-        attachments: returnFiles.map(f => f?.remoteUrl).filter(Boolean)
+        formData
       }).unwrap()
       toast({ title: 'Message sent', description: 'Support will get back to you shortly.' })
       setReturnMessage('')
@@ -439,11 +439,6 @@ export default function OrderReceipt() {
                   {returnFiles.map((file, idx) => (
                     <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
                       <img src={file.previewUrl} alt={`Attachment ${idx + 1}`} className="w-full h-full object-cover" />
-                      {isUploadingAttachments && (
-                        <div className="absolute inset-0 bg-white/70 flex items-center justify-center text-[10px] font-bold text-gray-600">
-                          Uploading
-                        </div>
-                      )}
                       <button
                         type="button"
                         onClick={() => setReturnFiles(prev => prev.filter((_, i) => i !== idx))}
@@ -641,31 +636,13 @@ export default function OrderReceipt() {
     </div>
   )
 }
-  const handleAttachmentChange = async (e) => {
+  const handleAttachmentChange = (e) => {
     if (!order?._id) return
     const files = Array.from(e.target.files || [])
     if (files.length === 0) return
     const previews = files.slice(0, 5).map((file) => ({
       file,
-      previewUrl: URL.createObjectURL(file),
-      remoteUrl: null
+      previewUrl: URL.createObjectURL(file)
     }))
     setReturnFiles(previews)
-
-    try {
-      const formData = new FormData()
-      files.slice(0, 5).forEach((file) => formData.append('files', file))
-      const res = await uploadReturnAttachments({ id: order._id, formData }).unwrap()
-      const urls = Array.isArray(res?.attachments) ? res.attachments : []
-      setReturnFiles(prev => prev.map((item, idx) => ({
-        ...item,
-        remoteUrl: urls[idx] || item.remoteUrl
-      })))
-    } catch (err) {
-      toast({
-        title: 'Upload failed',
-        description: err?.data?.message || 'Could not upload attachments.',
-        variant: 'destructive'
-      })
-    }
   }
