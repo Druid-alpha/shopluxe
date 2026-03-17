@@ -27,6 +27,8 @@ export default function AdminProducts() {
   const [restockProduct, setRestockProduct] = useState(null)
   const [restockStock, setRestockStock] = useState('')
   const [restockBaseStock, setRestockBaseStock] = useState('')
+  const [restockBasePrice, setRestockBasePrice] = useState('')
+  const [restockBaseDiscount, setRestockBaseDiscount] = useState('')
   const [restockVariants, setRestockVariants] = useState([])
   const [filters, setFilters] = useState({
     search: '',
@@ -295,6 +297,8 @@ export default function AdminProducts() {
     if (!product?._id) return
     setRestockProduct(product)
     setRestockBaseStock(String(product.stock ?? 0))
+    setRestockBasePrice(String(product.price ?? 0))
+    setRestockBaseDiscount(String(product.discount ?? 0))
     if (product.variants?.length) {
       const normalized = product.variants.map((v) => ({
         _id: v._id,
@@ -318,6 +322,8 @@ export default function AdminProducts() {
     setRestockProduct(null)
     setRestockStock('')
     setRestockBaseStock('')
+    setRestockBasePrice('')
+    setRestockBaseDiscount('')
     setRestockVariants([])
   }
   const handleRestockSave = async () => {
@@ -325,7 +331,11 @@ export default function AdminProducts() {
     try {
       if (restockProduct.variants?.length) {
         const fdBase = new FormData()
-        fdBase.append('payload', JSON.stringify({ stock: Math.max(0, Number(restockBaseStock || 0)) }))
+        fdBase.append('payload', JSON.stringify({
+          stock: Math.max(0, Number(restockBaseStock || 0)),
+          price: Math.max(0, Number(restockBasePrice || 0)),
+          discount: Math.max(0, Math.min(100, Number(restockBaseDiscount || 0)))
+        }))
         await updateProduct({ id: restockProduct._id, formData: fdBase }).unwrap()
 
         const payloadVariants = restockVariants.map((v) => ({
@@ -335,8 +345,8 @@ export default function AdminProducts() {
             color: v.options?.color || undefined,
             size: v.options?.size || undefined
           },
-          price: Number(v.price || 0),
-          discount: Number(v.discount || 0),
+          price: Math.max(0, Number(v.price || 0)),
+          discount: Math.max(0, Math.min(100, Number(v.discount || 0))),
           stock: Math.max(0, Number(v.stock || 0))
         }))
         const fd = new FormData()
@@ -344,7 +354,11 @@ export default function AdminProducts() {
         await updateProductVariants({ id: restockProduct._id, formData: fd }).unwrap()
       } else {
         const fd = new FormData()
-        fd.append('payload', JSON.stringify({ stock: Math.max(0, Number(restockStock || 0)) }))
+        fd.append('payload', JSON.stringify({
+          stock: Math.max(0, Number(restockStock || 0)),
+          price: Math.max(0, Number(restockBasePrice || 0)),
+          discount: Math.max(0, Math.min(100, Number(restockBaseDiscount || 0)))
+        }))
         await updateProduct({ id: restockProduct._id, formData: fd }).unwrap()
       }
       toast({ title: 'Stock updated', description: restockProduct.title })
@@ -869,24 +883,44 @@ export default function AdminProducts() {
             {restockProduct.variants?.length ? (
               <div className="space-y-3">
                 <div className="text-xs font-black uppercase tracking-widest text-gray-400">
-                  Update base + variant stock
+                  Update base + variant stock, price, and discount
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-gray-100 p-3">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3 rounded-xl border border-gray-100 p-3">
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-gray-900 truncate">
-                      Base Product Stock
+                      Base Product (Stock + Price + Discount)
                     </div>
                     <div className="text-[10px] text-gray-400">
                       Applies to the main product alongside variants
                     </div>
                   </div>
-                  <input
-                    type="number"
-                    min="0"
-                    value={restockBaseStock}
-                    onChange={(e) => setRestockBaseStock(e.target.value)}
-                    className="h-10 w-full sm:w-32 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
-                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full lg:w-auto">
+                    <input
+                      type="number"
+                      min="0"
+                      value={restockBaseStock}
+                      onChange={(e) => setRestockBaseStock(e.target.value)}
+                      className="h-10 w-full sm:w-32 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
+                      placeholder="Stock"
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      value={restockBasePrice}
+                      onChange={(e) => setRestockBasePrice(e.target.value)}
+                      className="h-10 w-full sm:w-32 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
+                      placeholder="Price"
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={restockBaseDiscount}
+                      onChange={(e) => setRestockBaseDiscount(e.target.value)}
+                      className="h-10 w-full sm:w-32 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
+                      placeholder="Discount %"
+                    />
+                  </div>
                 </div>
                 {restockVariants.map((variant, idx) => (
                   <div
@@ -902,35 +936,89 @@ export default function AdminProducts() {
                         {variant.options?.size ? ` • Size: ${variant.options.size}` : ' • Size: -'}
                       </div>
                     </div>
-                    <input
-                      type="number"
-                      min="0"
-                      value={variant.stock}
-                      onChange={(e) => {
-                        const next = Number(e.target.value)
-                        setRestockVariants(prev => {
-                          const copy = [...prev]
-                          copy[idx] = { ...copy[idx], stock: Number.isFinite(next) ? next : 0 }
-                          return copy
-                        })
-                      }}
-                      className="h-10 w-full sm:w-32 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full sm:w-auto">
+                      <input
+                        type="number"
+                        min="0"
+                        value={variant.stock}
+                        onChange={(e) => {
+                          const next = Number(e.target.value)
+                          setRestockVariants(prev => {
+                            const copy = [...prev]
+                            copy[idx] = { ...copy[idx], stock: Number.isFinite(next) ? next : 0 }
+                            return copy
+                          })
+                        }}
+                        className="h-10 w-full sm:w-32 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
+                        placeholder="Stock"
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        value={variant.price}
+                        onChange={(e) => {
+                          const next = Number(e.target.value)
+                          setRestockVariants(prev => {
+                            const copy = [...prev]
+                            copy[idx] = { ...copy[idx], price: Number.isFinite(next) ? next : 0 }
+                            return copy
+                          })
+                        }}
+                        className="h-10 w-full sm:w-32 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
+                        placeholder="Price"
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={variant.discount}
+                        onChange={(e) => {
+                          const next = Number(e.target.value)
+                          setRestockVariants(prev => {
+                            const copy = [...prev]
+                            copy[idx] = { ...copy[idx], discount: Number.isFinite(next) ? next : 0 }
+                            return copy
+                          })
+                        }}
+                        className="h-10 w-full sm:w-32 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
+                        placeholder="Discount %"
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="space-y-2">
                 <div className="text-xs font-black uppercase tracking-widest text-gray-400">
-                  Update base stock
+                  Update base stock, price, and discount
                 </div>
-                <input
-                  type="number"
-                  min="0"
-                  value={restockStock}
-                  onChange={(e) => setRestockStock(e.target.value)}
-                  className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    value={restockStock}
+                    onChange={(e) => setRestockStock(e.target.value)}
+                    className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
+                    placeholder="Stock"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    value={restockBasePrice}
+                    onChange={(e) => setRestockBasePrice(e.target.value)}
+                    className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
+                    placeholder="Price"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={restockBaseDiscount}
+                    onChange={(e) => setRestockBaseDiscount(e.target.value)}
+                    className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
+                    placeholder="Discount %"
+                  />
+                </div>
               </div>
             )}
             <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
