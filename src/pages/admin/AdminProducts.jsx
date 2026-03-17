@@ -30,6 +30,7 @@ export default function AdminProducts() {
   const [restockBasePrice, setRestockBasePrice] = useState('')
   const [restockBaseDiscount, setRestockBaseDiscount] = useState('')
   const [restockVariants, setRestockVariants] = useState([])
+  const [restockLoadingDetails, setRestockLoadingDetails] = useState(false)
   const [filters, setFilters] = useState({
     search: '',
     category: '',
@@ -60,7 +61,8 @@ export default function AdminProducts() {
     })
     return map
   }, [options.colors])
-  const formatVariantColor = (raw) => {
+  const formatVariantColor = (raw, label) => {
+    if (label) return `Color: ${label}`
     if (!raw) return 'Color: -'
     const key = String(raw)
     const label = colorNameById.get(key) || key
@@ -331,6 +333,30 @@ export default function AdminProducts() {
       setRestockStock(String(product.stock ?? 0))
       setRestockVariants([])
     }
+
+    // Fetch full product details to resolve color names for variants.
+    setRestockLoadingDetails(true)
+    axios.get(`/products/${product._id}`)
+      .then((res) => {
+        const detailed = res.data?.product
+        if (!detailed?.variants?.length) return
+        const colorLabelById = new Map()
+        detailed.variants.forEach((v) => {
+          const colorObj = v?.options?.color
+          const colorId = colorObj?._id ? String(colorObj._id) : null
+          const colorLabel = colorObj?.name || colorObj?.hex || null
+          if (colorId && colorLabel) colorLabelById.set(colorId, colorLabel)
+        })
+        setRestockVariants((prev) => prev.map((v) => {
+          const colorId = v.options?.color ? String(v.options.color) : ''
+          const colorLabel = colorId ? (colorLabelById.get(colorId) || v.colorLabel) : v.colorLabel
+          return { ...v, colorLabel }
+        }))
+      })
+      .catch(() => {
+        // Silent fail: fallback to IDs if needed.
+      })
+      .finally(() => setRestockLoadingDetails(false))
   }
   const closeRestockModal = () => {
     setRestockProduct(null)
@@ -946,7 +972,7 @@ export default function AdminProducts() {
                         {variant.sku || 'Variant'}
                       </div>
                       <div className="text-[10px] text-gray-400">
-                        {formatVariantColor(variant.options?.color)}
+                        {formatVariantColor(variant.options?.color, variant.colorLabel)}
                         {variant.options?.size ? ` • Size: ${variant.options.size}` : ' • Size: -'}
                       </div>
                     </div>
