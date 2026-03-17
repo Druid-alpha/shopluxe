@@ -11,10 +11,12 @@ import {
   useHardDeleteProductMutation,
   useHardDeleteAllProductsMutation,
   useToggleFeaturedMutation,
+  useUpdateProductMutation,
+  useUpdateProductVariantsMutation,
 } from '@/features/products/productApi'
 import ProductForm from './ProductForm'
 import Modal from './Modal'
-import { Star, Edit, Trash2, RotateCcw, Trash, RefreshCw } from 'lucide-react'
+import { Star, Edit, Trash2, RotateCcw, Trash, RefreshCw, PackagePlus } from 'lucide-react'
 
 export default function AdminProducts() {
   const LOW_STOCK_THRESHOLD = 5
@@ -22,6 +24,9 @@ export default function AdminProducts() {
   const { toast } = useToast()
   const [page, setPage] = useState(1)
   const [editingProduct, setEditingProduct] = useState(null)
+  const [restockProduct, setRestockProduct] = useState(null)
+  const [restockStock, setRestockStock] = useState('')
+  const [restockVariants, setRestockVariants] = useState([])
   const [filters, setFilters] = useState({
     search: '',
     category: '',
@@ -89,6 +94,8 @@ export default function AdminProducts() {
   const [restoreProduct] = useRestoreProductMutation()
   const [hardDeleteProduct] = useHardDeleteProductMutation()
   const [hardDeleteAllProducts] = useHardDeleteAllProductsMutation()
+  const [updateProduct, { isLoading: isUpdatingProduct }] = useUpdateProductMutation()
+  const [updateProductVariants, { isLoading: isUpdatingVariants }] = useUpdateProductVariantsMutation()
 
   /* ================= FILTER OPTIONS ================= */
   const loadFilters = async () => {
@@ -280,6 +287,67 @@ export default function AdminProducts() {
         title: 'Reset failed',
         description: err?.response?.data?.message || 'Could not reset reservations',
         variant: 'destructive',
+      })
+    }
+  }
+  const openRestockModal = (product) => {
+    if (!product?._id) return
+    setRestockProduct(product)
+    if (product.variants?.length) {
+      const normalized = product.variants.map((v) => ({
+        _id: v._id,
+        sku: v.sku || '',
+        options: {
+          color: v.options?.color?._id || v.options?.color || '',
+          size: v.options?.size || ''
+        },
+        price: Number(v.price || 0),
+        discount: Number(v.discount || 0),
+        stock: Number(v.stock || 0)
+      }))
+      setRestockVariants(normalized)
+      setRestockStock('')
+    } else {
+      setRestockStock(String(product.stock ?? 0))
+      setRestockVariants([])
+    }
+  }
+  const closeRestockModal = () => {
+    setRestockProduct(null)
+    setRestockStock('')
+    setRestockVariants([])
+  }
+  const handleRestockSave = async () => {
+    if (!restockProduct?._id) return
+    try {
+      if (restockProduct.variants?.length) {
+        const payloadVariants = restockVariants.map((v) => ({
+          _id: v._id,
+          sku: v.sku,
+          options: {
+            color: v.options?.color || undefined,
+            size: v.options?.size || undefined
+          },
+          price: Number(v.price || 0),
+          discount: Number(v.discount || 0),
+          stock: Math.max(0, Number(v.stock || 0))
+        }))
+        const fd = new FormData()
+        fd.append('payload', JSON.stringify({ variants: payloadVariants }))
+        await updateProductVariants({ id: restockProduct._id, formData: fd }).unwrap()
+      } else {
+        const fd = new FormData()
+        fd.append('payload', JSON.stringify({ stock: Math.max(0, Number(restockStock || 0)) }))
+        await updateProduct({ id: restockProduct._id, formData: fd }).unwrap()
+      }
+      toast({ title: 'Stock updated', description: restockProduct.title })
+      closeRestockModal()
+      refetch()
+    } catch (err) {
+      toast({
+        title: 'Restock failed',
+        description: err?.data?.message || err?.message || 'Could not update stock',
+        variant: 'destructive'
       })
     }
   }
@@ -515,6 +583,13 @@ export default function AdminProducts() {
                   >
                     <Star size={16} fill={p.featured ? "currentColor" : "none"} />
                   </button>
+                  <button
+                    onClick={() => openRestockModal(p)}
+                    className="p-2 rounded-lg border border-emerald-100 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 transition-colors"
+                    title="Quick Restock"
+                  >
+                    <PackagePlus size={16} />
+                  </button>
                   {!p.isDeleted ? (
                     <>
                       <button
@@ -673,6 +748,13 @@ export default function AdminProducts() {
                       >
                         <Star size={16} fill={p.featured ? "currentColor" : "none"} />
                       </button>
+                      <button
+                        onClick={() => openRestockModal(p)}
+                        className="p-2 rounded-lg border border-emerald-100 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 transition-colors"
+                        title="Quick Restock"
+                      >
+                        <PackagePlus size={16} />
+                      </button>
 
                       {!p.isDeleted ? (
                         <>
@@ -768,6 +850,83 @@ export default function AdminProducts() {
             onSuccess={() => refetch()}
             closeOnSuccess
           />
+        </Modal>
+      )}
+
+      {restockProduct && (
+        <Modal
+          title={`Quick Restock · ${restockProduct.title}`}
+          onClose={closeRestockModal}
+        >
+          <div className="p-4 space-y-4">
+            {restockProduct.variants?.length ? (
+              <div className="space-y-3">
+                <div className="text-xs font-black uppercase tracking-widest text-gray-400">
+                  Update variant stock
+                </div>
+                {restockVariants.map((variant, idx) => (
+                  <div
+                    key={variant._id || `${variant.sku}-${idx}`}
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-gray-100 p-3"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-gray-900 truncate">
+                        {variant.sku || 'Variant'}
+                      </div>
+                      <div className="text-[10px] text-gray-400">
+                        {variant.options?.color ? `Color: ${variant.options.color}` : 'Color: -'}
+                        {variant.options?.size ? ` • Size: ${variant.options.size}` : ' • Size: -'}
+                      </div>
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      value={variant.stock}
+                      onChange={(e) => {
+                        const next = Number(e.target.value)
+                        setRestockVariants(prev => {
+                          const copy = [...prev]
+                          copy[idx] = { ...copy[idx], stock: Number.isFinite(next) ? next : 0 }
+                          return copy
+                        })
+                      }}
+                      className="h-10 w-full sm:w-32 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="text-xs font-black uppercase tracking-widest text-gray-400">
+                  Update base stock
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  value={restockStock}
+                  onChange={(e) => setRestockStock(e.target.value)}
+                  className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
+                />
+              </div>
+            )}
+            <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+              <Button
+                variant="outline"
+                className="rounded-xl"
+                onClick={closeRestockModal}
+                disabled={isUpdatingProduct || isUpdatingVariants}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="rounded-xl bg-black hover:bg-gray-800"
+                onClick={handleRestockSave}
+                disabled={isUpdatingProduct || isUpdatingVariants}
+              >
+                {isUpdatingProduct || isUpdatingVariants ? 'Saving...' : 'Save Stock'}
+              </Button>
+            </div>
+          </div>
         </Modal>
       )}
     </div>

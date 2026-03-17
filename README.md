@@ -1,6 +1,32 @@
-# ShopLuxe Frontend (myapp)
+# ShopLuxe — Full‑Stack Ecommerce Platform
 
 React + Vite ecommerce client for ShopLuxe. This app is designed to run with the ShopLuxe backend in the sibling folder `../shop-luxe-BE`.
+
+## LinkedIn Snapshot
+
+ShopLuxe is a premium, full‑stack ecommerce platform built with React 19 + Vite 7, Node/Express, and MongoDB. It features a modern shopping experience, real‑time admin dashboards, Paystack payments, and robust order/return workflows. Designed for performance, clarity, and scale.
+
+Suggested post highlights:
+- End‑to‑end ecommerce flow with payments, returns, and admin tooling.
+- Real‑time admin notifications (new orders, return requests, new users).
+- Variant‑aware inventory & quick restock tooling.
+- Cloudinary media + invoice PDFs.
+
+Add links in your post:
+- Live demo: `[ADD_LINK_HERE]`
+- GitHub repo: `[ADD_LINK_HERE]`
+- Short walkthrough video: `[ADD_LINK_HERE]`
+
+Demo credentials (add to your post or README):
+- Admin: `[ADMIN_EMAIL]` / `[ADMIN_PASSWORD]`
+- User: `[USER_EMAIL]` / `[USER_PASSWORD]`
+
+## Recent Updates
+
+- Smooth hero banner transitions.
+- Quick Restock modal for base and variant stock.
+- Admin notifications with sound + toast for new orders/returns.
+- New‑user badge in Admin dashboard.
 
 ## Project Overview
 
@@ -21,11 +47,13 @@ Additional UX:
 
 Core admin flow:
 - Manage products, variants, pricing, stock, and images.
+- Quick Restock modal for instant stock refills.
 - Manage orders and fulfillment status.
 - Handle returns (approve/reject/refund) with notes and refund amounts.
 - Refund actions can include admin notes (emailed to customers).
 - Manage users and reviews.
 - Export products and orders as CSV backups.
+- Admin notifications for new orders, return requests, and user signups.
 
 ## Architecture
 
@@ -275,6 +303,26 @@ Exact schema definitions live in the backend repo models.
 - Admin refunds run through Paystack via `/payments/paystack/refund` (partial or full).
 - Returns are requested by customers and approved/rejected/refunded by admin in the Orders screen.
 
+## Screenshots (Add Yours)
+
+- Home / Hero
+- Product details + variants
+- Cart + Checkout
+- Admin dashboard
+- Admin orders (returns/refunds)
+
+## Roadmap / What’s Next
+
+- Stripe (or multi‑gateway) support.
+- Websocket‑based notifications (replace polling).
+- Admin audit log + activity feed.
+- Role‑based access (staff vs admin).
+- Bulk inventory import/export (CSV upload).
+- Automated low‑stock alerts.
+- E2E tests (Playwright/Cypress) + CI pipeline.
+- Accessibility sweep (keyboard, contrast, ARIA).
+- SEO improvements (structured data, meta, sitemap).
+
 ## Troubleshooting
 
 - If the receipt shows "Awaiting Payment Confirmation" after a successful Paystack redirect, wait a few seconds. The receipt view refetches automatically.
@@ -306,3 +354,22 @@ Environment:
 ## License
 
 No license file is currently present.
+
+## Demo Credentials
+
+Use these for demo access (replace with real values before sharing):
+- Admin: `[ADMIN_EMAIL]` / `[ADMIN_PASSWORD]`
+- User: `[USER_EMAIL]` / `[USER_PASSWORD]`
+
+## Demo Walkthrough (Short Video Checklist)
+
+1. Home hero + category browsing.
+2. Filters + search on Products page.
+3. Product details: variants, sizes, add to cart.
+4. Cart updates (qty + variant change).
+5. Checkout + payment flow (Paystack test).
+6. Order receipt + invoice download.
+7. Return request from receipt page.
+8. Admin dashboard badges (new orders/returns/users).
+9. Admin Orders: approve/reject/refund.
+10. Admin Products: quick restock + edit product.

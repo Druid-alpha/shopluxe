@@ -159,13 +159,16 @@ export default function Home() {
   const sliderSettings = {
     dots: true,
     infinite: true,
-    speed: 800,
+    speed: 1200,
     slidesToShow: 1,
     slidesToScroll: 1,
     arrows: false,
     autoplay: true,
     autoplaySpeed: 5000,
     fade: true,
+    cssEase: 'ease-in-out',
+    pauseOnHover: false,
+    waitForAnimate: true,
   }
 
   return (
@@ -177,7 +180,7 @@ export default function Home() {
             <div key={slide.id} className="relative h-[60vh] md:h-[90vh] w-full outline-none">
               <img
                 src={slide.image}
-                className="absolute inset-0 h-full w-full object-cover transform scale-105"
+                className="absolute inset-0 h-full w-full object-cover transform scale-105 transition-transform duration-[1200ms] ease-out"
                 alt={slide.title}
               />
               <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />

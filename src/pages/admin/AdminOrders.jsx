@@ -41,6 +41,27 @@ export default function AdminOrders() {
   const [nowTick, setNowTick] = React.useState(Date.now())
   const [returnNotes, setReturnNotes] = React.useState({})
   const [refundAmounts, setRefundAmounts] = React.useState({})
+  const prevCountsRef = React.useRef(null)
+
+  const playNotificationSound = React.useCallback((frequency = 880) => {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext
+      if (!AudioContext) return
+      const ctx = new AudioContext()
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.value = frequency
+      gain.gain.value = 0.05
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start()
+      osc.stop(ctx.currentTime + 0.12)
+      osc.onended = () => ctx.close()
+    } catch (err) {
+      // Audio might be blocked; ignore.
+    }
+  }, [])
 
   // Use RTK Query for fetching orders with polling
   const { data, isLoading, isError, isFetching, refetch } = useGetAllOrdersQuery(undefined, {
@@ -70,6 +91,32 @@ export default function AdminOrders() {
   React.useEffect(() => {
     if (data) setLastUpdated(new Date().toLocaleString())
   }, [data])
+
+  React.useEffect(() => {
+    const current = { newOrderCount, returnRequestCount }
+    if (!prevCountsRef.current) {
+      prevCountsRef.current = current
+      return
+    }
+    const prev = prevCountsRef.current
+    const newOrdersDelta = current.newOrderCount - prev.newOrderCount
+    const returnDelta = current.returnRequestCount - prev.returnRequestCount
+    if (newOrdersDelta > 0) {
+      toast({
+        title: 'New order received',
+        description: `${newOrdersDelta} new order${newOrdersDelta > 1 ? 's' : ''} just came in.`
+      })
+      playNotificationSound(880)
+    }
+    if (returnDelta > 0) {
+      toast({
+        title: 'New return request',
+        description: `${returnDelta} return request${returnDelta > 1 ? 's' : ''} waiting for review.`
+      })
+      playNotificationSound(620)
+    }
+    prevCountsRef.current = current
+  }, [newOrderCount, returnRequestCount, playNotificationSound, toast])
 
   React.useEffect(() => {
     const timer = setInterval(() => setNowTick(Date.now()), 60 * 1000)
