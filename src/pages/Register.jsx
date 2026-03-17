@@ -92,6 +92,15 @@ export default function Register() {
       toast({ title: "Registration successful" })
       navigate("/verify-email", { state: { email: data.email } })
     } catch (err) {
+      const message = err?.data?.message || ""
+      if (String(message).toLowerCase().includes("not verified")) {
+        toast({
+          title: "Email not verified",
+          description: "OTP sent. Please verify to continue.",
+        })
+        navigate("/verify-email", { state: { email: data.email } })
+        return
+      }
       toast({
         title: "Registration failed",
         description: err?.data?.message || "Something went wrong",
