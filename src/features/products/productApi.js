@@ -88,6 +88,16 @@ export const productApi = api.injectEndpoints({
       providesTags: ["Product"],
     }),
 
+    getProductsByIds: builder.query({
+      query: ({ ids = [] } = {}) => ({
+        url: "/products/by-ids",
+        params: cleanParams({
+          ids: Array.isArray(ids) ? ids.join(',') : ids
+        })
+      }),
+      providesTags: ["Product"],
+    }),
+
     getProduct: builder.query({
       query: (id) => `/products/${id}`,
       providesTags: (result, error, id) => [
@@ -346,6 +356,7 @@ export const {
   // PUBLIC
   useGetProductsQuery,
   useGetFeaturedProductsQuery,
+  useGetProductsByIdsQuery,
   useGetProductQuery,
 
   // REVIEWS

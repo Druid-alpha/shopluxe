@@ -54,6 +54,7 @@ const SOCIAL_LINKS = [
 export default function Navbar() {
   const { user } = useAppSelector((state) => state.auth)
   const cartCount = useAppSelector((state) => state.cart.items.length)
+  const guestWishlistCount = useAppSelector((state) => state.wishlist.items.length)
   const dispatch = useAppDispatch()
   const location = useLocation()
   const navigate = useNavigate()
@@ -65,7 +66,9 @@ export default function Navbar() {
   
   // Wishlist count
   const { data: wishlistData } = useGetWishlistQuery(undefined, { skip: !user })
-  const wishlistCount = wishlistData?.wishlist?.length || 0
+  const wishlistCount = user
+    ? (wishlistData?.wishlist?.length || 0)
+    : guestWishlistCount
 
   const [logoutApi] = useLogoutMutation()
 

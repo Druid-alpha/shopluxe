@@ -36,11 +36,15 @@ export default function ProductCard({ product }) {
   const [isAdding, setIsAdding] = React.useState(false)
   const [wishlistLoading, setWishlistLoading] = React.useState(false)
 
-  const { data } = useGetWishlistQuery()
+  const user = useAppSelector((state) => state.auth.user)
+  const guestWishlist = useAppSelector((state) => state.wishlist.items)
+  const { data } = useGetWishlistQuery(undefined, { skip: !user })
   const [toggleWishlist] = useToggleWishlistMutation()
   const wishlist = data?.wishlist || []
 
-  const isWishlisted = wishlist.some((p) => p?._id === product?._id)
+  const isWishlisted = user
+    ? wishlist.some((p) => p?._id === product?._id)
+    : guestWishlist.includes(product?._id)
   const [isCompared, setIsCompared] = React.useState(false)
 
   const baseTotalStock = (product?.stock > 0)
@@ -161,7 +165,6 @@ export default function ProductCard({ product }) {
     }
   }
 
-  const user = useAppSelector((state) => state.auth.user)
   const handleAddToCart = async (e) => {
     e.preventDefault()
     e.stopPropagation()

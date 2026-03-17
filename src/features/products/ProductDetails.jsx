@@ -463,7 +463,8 @@ export default function ProductDetails() {
 
   const reviews = reviewsData?.reviews || []
 
-  const { data: wishlistData } = useGetWishlistQuery()
+  const guestWishlist = useAppSelector(state => state.wishlist.items)
+  const { data: wishlistData } = useGetWishlistQuery(undefined, { skip: !user })
   const wishlistItems = wishlistData?.wishlist || []
   const [toggleWishlist] = useToggleWishlistMutation()
 
@@ -860,10 +861,12 @@ export default function ProductDetails() {
   const totalReserved = baseReserved + variantReservedTotal
   const totalAvailable = Math.max(0, totalStock - totalReserved)
 
-  const isInWishlist = wishlistItems.some(item => {
-    const pId = item?.productId?._id || item?.productId || item
-    return pId.toString() === product._id.toString()
-  })
+  const isInWishlist = user
+    ? wishlistItems.some(item => {
+      const pId = item?.productId?._id || item?.productId || item
+      return pId.toString() === product._id.toString()
+    })
+    : guestWishlist.includes(product?._id)
 
   const effectiveVariant = purchaseMode === 'variant' ? selectedVariant : null
   const currentStock = effectiveVariant ? effectiveVariant.stock : (product.stock ?? 0)

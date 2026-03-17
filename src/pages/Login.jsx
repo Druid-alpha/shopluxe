@@ -100,13 +100,39 @@ export default function Login() {
 
   return (
     <section className="min-h-[calc(100vh-130px)] bg-gradient-to-b from-white via-slate-50 to-slate-100 px-4 py-10 sm:px-6">
-      <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">Sign in to ShopLuxe</h1>
-          <p className="mt-2 text-sm text-slate-600">Access your orders, wishlist, and checkout securely.</p>
+      <div className="mx-auto w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        <div className="hidden lg:flex flex-col justify-between rounded-3xl overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white p-10 shadow-xl">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[0.35em] text-white/60">ShopLuxe</div>
+            <h2 className="mt-4 text-4xl font-black tracking-tight leading-tight font-display">
+              A premium shopping experience built for speed and trust.
+            </h2>
+            <p className="mt-4 text-sm text-white/70 max-w-md">
+              Sign in to manage orders, save favorites, and enjoy a seamless checkout every time.
+            </p>
+            <div className="mt-8 space-y-3 text-sm">
+              {[
+                'Fast checkout + secure payments',
+                'Track shipments in real time',
+                'Save items to your wishlist',
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-3">
+                  <span className="h-2 w-2 rounded-full bg-white/80" />
+                  <span className="text-white/80">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="text-xs text-white/50">Need help? support@shopluxe.com</div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="mb-8 text-center">
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">Sign in to ShopLuxe</h1>
+            <p className="mt-2 text-sm text-slate-600">Access your orders, wishlist, and checkout securely.</p>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-slate-800">Email address</label>
             <Input
@@ -146,15 +172,16 @@ export default function Login() {
           <Button type="submit" disabled={isLoading} className="h-11 w-full text-sm font-bold">
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Sign in"}
           </Button>
-        </form>
+          </form>
 
-        <div className="mt-8 border-t border-slate-200 pt-6 text-center">
-          <p className="text-sm text-slate-600">
-            New to ShopLuxe?{" "}
-            <Link to="/register" className="font-semibold text-slate-900 hover:underline">
-              Create an account
-            </Link>
-          </p>
+          <div className="mt-8 border-t border-slate-200 pt-6 text-center">
+            <p className="text-sm text-slate-600">
+              New to ShopLuxe?{" "}
+              <Link to="/register" className="font-semibold text-slate-900 hover:underline">
+                Create an account
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </section>

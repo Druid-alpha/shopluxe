@@ -81,11 +81,7 @@ export default function App() {
 
             <Route
               path="/wishlist"
-              element={
-                <ProtectedRoute roles={['user', 'admin']}>
-                  <PageTransition><Wishlist /></PageTransition>
-                </ProtectedRoute>
-              }
+              element={<PageTransition><Wishlist /></PageTransition>}
             />
             <Route
               path="/orders/:id"

@@ -3,26 +3,38 @@ import { Heart, ShoppingCart, X } from 'lucide-react'
 import * as React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useGetWishlistQuery, useToggleWishlistMutation } from './wishlistApi'
-import { useAppDispatch } from '@/app/hooks'
+import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { useToast } from '@/hooks/use-toast'
-import { setCart } from '../cart/cartSlice'
+import { addGuestCart, setCart } from '../cart/cartSlice'
 import * as cartApi from '../cart/cartApi'
-import { useGetFeaturedProductsQuery } from '@/features/products/productApi'
+import { useGetFeaturedProductsQuery, useGetProductsByIdsQuery } from '@/features/products/productApi'
 import ProductCard from '@/features/products/ProductCard'
+import { toggleGuestWishlist } from './wishlistSlice'
 
 export default function Wishlist() {
   const dispatch = useAppDispatch()
   const { toast } = useToast()
   const navigate = useNavigate()
   const [isAdding, setIsAdding] = React.useState(false)
+  const user = useAppSelector((state) => state.auth.user)
+  const guestWishlist = useAppSelector((state) => state.wishlist.items)
 
   // Fetch wishlist from backend
-  const { data, isLoading, isError } = useGetWishlistQuery()
+  const { data, isLoading, isError } = useGetWishlistQuery(undefined, { skip: !user })
   const { data: featuredData } = useGetFeaturedProductsQuery()
   const [toggleWishlist] = useToggleWishlistMutation()
+  const { data: guestProductsData, isLoading: isGuestLoading } = useGetProductsByIdsQuery(
+    { ids: guestWishlist },
+    { skip: !!user || guestWishlist.length === 0 }
+  )
 
   const handleRemoveWishlist = async (product) => {
     try {
+      if (!user) {
+        dispatch(toggleGuestWishlist(product._id))
+        toast({ title: 'Removed from wishlist (Guest)' })
+        return
+      }
       await toggleWishlist(product._id).unwrap()
       toast({ title: 'Removed from wishlist' })
     } catch (err) {
@@ -33,6 +45,26 @@ export default function Wishlist() {
   const handleAddToCart = async (product) => {
     setIsAdding(true)
     try {
+      if (!user) {
+        dispatch(addGuestCart({
+          productId: product._id,
+          title: product.title,
+          price: product.price || 0,
+          basePrice: product.price || 0,
+          discount: product.discount || 0,
+          productImage: product.images?.[0]?.url || '/placeholder.png',
+          baseProductImage: product.images?.[0]?.url || '/placeholder.png',
+          productStock: product.totalStock ?? product.stock ?? 0,
+          qty: 1,
+          variant: null,
+          productVariants: [],
+          addedAt: new Date().toISOString(),
+          key: `${product._id}-default`
+        }))
+        toast({ title: 'Added to cart (Guest)' })
+        navigate('/cart')
+        return
+      }
       // Add as base product (no variant selected in wishlist usually)
       const updatedCart = await cartApi.addToCart(product._id, 1, null)
       dispatch(setCart(updatedCart))
@@ -45,10 +77,12 @@ export default function Wishlist() {
     }
   }
 
-  if (isLoading) return <p className="text-center p-10">Loading...</p>
-  if (isError) return <p className="text-center p-10">Error fetching wishlist</p>
+  if (isLoading || isGuestLoading) return <p className="text-center p-10">Loading...</p>
+  if (isError && user) return <p className="text-center p-10">Error fetching wishlist</p>
 
-  const wishlist = (data?.wishlist || []).filter(p => p !== null)
+  const wishlist = user
+    ? (data?.wishlist || []).filter(p => p !== null)
+    : (guestProductsData?.products || []).filter(p => p !== null)
 
   if (!wishlist.length) {
     const featured = featuredData?.products || []
@@ -85,11 +119,11 @@ export default function Wishlist() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="flex items-center justify-between mb-10">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Saved Items</h1>
-          <p className="text-gray-500 mt-1">{wishlist.length} item{wishlist.length !== 1 ? 's' : ''} in your wishlist</p>
-        </div>
+        <div className="flex items-center justify-between mb-10">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Saved Items</h1>
+            <p className="text-gray-500 mt-1">{wishlist.length} item{wishlist.length !== 1 ? 's' : ''} in your wishlist</p>
+          </div>
         <Button variant="outline" asChild className="hidden sm:flex rounded-full border-gray-200">
           <Link to="/products">Continue Shopping</Link>
         </Button>
