@@ -65,8 +65,8 @@ export default function AdminProducts() {
     if (label) return `Color: ${label}`
     if (!raw) return 'Color: -'
     const key = String(raw)
-    const label = colorNameById.get(key) || key
-    return `Color: ${label}`
+    const resolvedLabel = colorNameById.get(key) || key
+    return `Color: ${resolvedLabel}`
   }
   const listTopRef = useRef(null)
   const scrollToListTop = useCallback(() => {
