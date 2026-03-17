@@ -42,7 +42,7 @@ export default function AdminOrders() {
   const [returnNotes, setReturnNotes] = React.useState({})
   const [refundAmounts, setRefundAmounts] = React.useState({})
   const prevCountsRef = React.useRef(null)
-  const [expandedOrders, setExpandedOrders] = React.useState(() => new Set())
+  const [activeDrawerOrderId, setActiveDrawerOrderId] = React.useState(null)
   const isHexColor = (value) => typeof value === 'string' && /^#[0-9a-f]{3,8}$/i.test(value.trim())
   const formatVariantLabel = (item) => {
     const parts = []
@@ -51,15 +51,8 @@ export default function AdminOrders() {
     if (item?.variant?.size) parts.push(`Size ${item.variant.size}`)
     return parts
   }
-  const toggleOrderExpanded = (orderId) => {
-    if (!orderId) return
-    setExpandedOrders(prev => {
-      const next = new Set(prev)
-      if (next.has(orderId)) next.delete(orderId)
-      else next.add(orderId)
-      return next
-    })
-  }
+  const openDrawer = (orderId) => setActiveDrawerOrderId(orderId)
+  const closeDrawer = () => setActiveDrawerOrderId(null)
 
   const playNotificationSound = React.useCallback((frequency = 880) => {
     try {
@@ -106,6 +99,9 @@ export default function AdminOrders() {
     if (showReturnOnly && o?.returnStatus !== 'requested') return false
     return true
   })
+  const activeDrawerOrder = activeDrawerOrderId
+    ? filteredOrders.find(o => o._id === activeDrawerOrderId)
+    : null
   React.useEffect(() => {
     if (data) setLastUpdated(new Date().toLocaleString())
   }, [data])
@@ -335,11 +331,6 @@ export default function AdminOrders() {
             const isReserved = order?.paymentStatus === 'pending'
             const expiresAt = order?.expiresAt ? new Date(order.expiresAt) : null
             const minutesLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - nowTick) / 60000)) : null
-            const canHandleReturn = ['requested', 'approved'].includes(order?.returnStatus)
-            const canApprove = order?.returnStatus === 'requested'
-            const canReject = order?.returnStatus === 'requested'
-            const canRefund = ['requested', 'approved'].includes(order?.returnStatus)
-            const isExpanded = expandedOrders.has(order._id)
             return (
               <div key={order._id} className="rounded-2xl border border-gray-100 p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
@@ -374,50 +365,8 @@ export default function AdminOrders() {
                 <div className="mt-3 text-sm font-semibold text-gray-900">{order.user?.name || 'Guest'}</div>
                 <div className="text-xs text-gray-400">{order.user?.email || 'N/A'}</div>
 
-                <div className="mt-3">
-                  <button
-                    type="button"
-                    onClick={() => toggleOrderExpanded(order._id)}
-                    className="text-[10px] font-black uppercase tracking-widest text-gray-500 border border-gray-200 rounded-full px-3 py-1 hover:text-black hover:border-black transition-colors"
-                  >
-                    {isExpanded ? 'Hide items' : `View items (${order.items?.length || 0})`}
-                  </button>
-                  {isExpanded && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {order.items?.map((item, idx) => (
-                        <div key={idx} className="flex flex-col gap-1">
-                          <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px] font-medium text-gray-700 border border-gray-200">
-                            {item.title || 'Product'} x{item.qty}
-                          </span>
-                          {formatVariantLabel(item).length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {item.variant?.color && (
-                                <span className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-gray-500">
-                                  <span
-                                    className="w-2.5 h-2.5 rounded-full border border-gray-300 flex-shrink-0"
-                                    style={{ backgroundColor: isHexColor(item.variant.color) ? item.variant.color : undefined }}
-                                  />
-                                  {item.variant.color}
-                                </span>
-                              )}
-                              {item.variant?.size && (
-                                <span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-slate-600">
-                                  Size: {item.variant.size}
-                                </span>
-                              )}
-                              {item.variant?.sku && (
-                                <span className="bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-indigo-600">
-                                  SKU: {item.variant.sku}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-gray-300">Base product</span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                <div className="mt-3 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  Items: {order.items?.length || 0}
                 </div>
 
                 <div className="mt-3 flex items-center justify-between">
@@ -464,94 +413,16 @@ export default function AdminOrders() {
                     <Trash2 size={18} />
                   </Button>
                 </div>
-                {order.returnReason && (
-                  <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50/60 p-3 text-[11px] font-medium text-amber-800">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 block mb-1">Customer Reason</span>
-                    {order.returnReason}
-                  </div>
-                )}
-                    {Array.isArray(order.returnMessages) && order.returnMessages.length > 0 && (
-                      <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50/60 p-3 text-[11px] font-medium text-slate-700 space-y-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Message History</span>
-                        {order.returnMessages.map((msg, idx) => {
-                          const timeLabel = formatMessageTime(msg)
-                          return (
-                          <div key={idx} className="flex flex-col gap-1">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                              {msg.by}{msg.status ? ` • ${msg.status}` : ''}{timeLabel ? ` • ${timeLabel}` : ''}
-                            </span>
-                            <span>{msg.message}</span>
-                            {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
-                              <div className="flex flex-wrap gap-2 pt-1">
-                                {msg.attachments.map((url, fileIdx) => (
-                                  <a
-                                    key={`${url}-${fileIdx}`}
-                                    href={url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[10px] font-black uppercase tracking-widest text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full"
-                                  >
-                                    View File {fileIdx + 1}
-                                  </a>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )})}
-                      </div>
-                    )}
-                {canHandleReturn && (
-                  <div className="mt-3 space-y-2">
-                    <textarea
-                      value={returnNotes[order._id] || ''}
-                      onChange={(e) => setReturnNotes(prev => ({ ...prev, [order._id]: e.target.value }))}
-                      placeholder="Admin note (emailed to customer)"
-                      className="w-full border rounded-xl p-3 text-[11px] font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all min-h-[80px]"
-                    />
-                    <input
-                      type="number"
-                      min="0"
-                      value={refundAmounts[order._id] || ''}
-                      onChange={(e) => setRefundAmounts(prev => ({ ...prev, [order._id]: e.target.value }))}
-                      placeholder="Refund amount (optional)"
-                      className="w-full border rounded-xl p-3 text-[11px] font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all"
-                    />
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <Button
-                        variant="outline"
-                        className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-emerald-200 text-emerald-700 w-full"
-                        disabled={!canApprove || isUpdatingReturn || isRefunding}
-                        onClick={() => handleReturnUpdate(order._id, 'approved')}
-                      >
-                        Approve Return
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-rose-200 text-rose-700 w-full"
-                        disabled={!canReject || isUpdatingReturn || isRefunding}
-                        onClick={() => handleReturnUpdate(order._id, 'rejected')}
-                      >
-                        Reject Return
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-blue-200 text-blue-700 w-full"
-                        disabled={!canRefund || isUpdatingReturn || isRefunding}
-                        onClick={() => handleReturnUpdate(order._id, 'refunded')}
-                      >
-                        Mark Refunded
-                      </Button>
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-gray-200 text-gray-700 w-full"
-                      disabled={isSendingMessage}
-                      onClick={() => handleReturnMessage(order._id)}
-                    >
-                      Send Message Only
-                    </Button>
-                  </div>
-                )}
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full text-[10px] font-black uppercase tracking-widest"
+                    onClick={() => openDrawer(order._id)}
+                  >
+                    View Details
+                  </Button>
+                </div>
               </div>
             )
           })}
@@ -812,6 +683,154 @@ export default function AdminOrders() {
           </div>
         )}
       </div>
+
+      {activeDrawerOrder && (
+        <div className="fixed inset-0 z-[60]">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={closeDrawer}
+          />
+          <div className="absolute inset-y-0 right-0 w-full sm:w-[420px] bg-white shadow-2xl p-4 sm:p-6 overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-gray-400">Order</p>
+                <p className="text-lg font-black text-gray-900">#{String(activeDrawerOrder._id || '').slice(-8).toUpperCase()}</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={closeDrawer}>Close</Button>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <div className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Items</div>
+                <div className="flex flex-wrap gap-2">
+                  {activeDrawerOrder.items?.map((item, idx) => (
+                    <div key={idx} className="rounded-xl border border-gray-100 p-3 text-[11px]">
+                      <div className="font-bold text-gray-900">{item.title || 'Product'} x{item.qty}</div>
+                      {formatVariantLabel(item).length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {item.variant?.color && (
+                            <span className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-gray-500">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full border border-gray-300 flex-shrink-0"
+                                style={{ backgroundColor: isHexColor(item.variant.color) ? item.variant.color : undefined }}
+                              />
+                              {item.variant.color}
+                            </span>
+                          )}
+                          {item.variant?.size && (
+                            <span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-slate-600">
+                              Size: {item.variant.size}
+                            </span>
+                          )}
+                          {item.variant?.sku && (
+                            <span className="bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-indigo-600">
+                              SKU: {item.variant.sku}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-[9px] font-bold uppercase tracking-widest text-gray-300 mt-1">Base product</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {activeDrawerOrder.returnReason && (
+                <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-3 text-[11px] font-medium text-amber-800">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 block mb-1">Customer Reason</span>
+                  {activeDrawerOrder.returnReason}
+                </div>
+              )}
+
+              {Array.isArray(activeDrawerOrder.returnMessages) && activeDrawerOrder.returnMessages.length > 0 && (
+                <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3 text-[11px] font-medium text-slate-700 space-y-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Message History</span>
+                  {activeDrawerOrder.returnMessages.map((msg, idx) => {
+                    const timeLabel = formatMessageTime(msg)
+                    return (
+                      <div key={idx} className="flex flex-col gap-1">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                          {msg.by}{msg.status ? ` • ${msg.status}` : ''}{timeLabel ? ` • ${timeLabel}` : ''}
+                        </span>
+                        <span>{msg.message}</span>
+                        {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            {msg.attachments.map((url, fileIdx) => (
+                              <a
+                                key={`${url}-${fileIdx}`}
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] font-black uppercase tracking-widest text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full"
+                              >
+                                View File {fileIdx + 1}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {['requested', 'approved'].includes(activeDrawerOrder?.returnStatus) && (
+                <div className="space-y-2">
+                  <textarea
+                    value={returnNotes[activeDrawerOrder._id] || ''}
+                    onChange={(e) => setReturnNotes(prev => ({ ...prev, [activeDrawerOrder._id]: e.target.value }))}
+                    placeholder="Admin note (emailed to customer)"
+                    className="w-full border rounded-xl p-3 text-[11px] font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all min-h-[80px]"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    value={refundAmounts[activeDrawerOrder._id] || ''}
+                    onChange={(e) => setRefundAmounts(prev => ({ ...prev, [activeDrawerOrder._id]: e.target.value }))}
+                    placeholder="Refund amount (optional)"
+                    className="w-full border rounded-xl p-3 text-[11px] font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all"
+                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <Button
+                      variant="outline"
+                      className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-emerald-200 text-emerald-700 w-full"
+                      disabled={activeDrawerOrder?.returnStatus !== 'requested' || isUpdatingReturn || isRefunding}
+                      onClick={() => handleReturnUpdate(activeDrawerOrder._id, 'approved')}
+                    >
+                      Approve Return
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-rose-200 text-rose-700 w-full"
+                      disabled={activeDrawerOrder?.returnStatus !== 'requested' || isUpdatingReturn || isRefunding}
+                      onClick={() => handleReturnUpdate(activeDrawerOrder._id, 'rejected')}
+                    >
+                      Reject Return
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-blue-200 text-blue-700 w-full"
+                      disabled={!['requested', 'approved'].includes(activeDrawerOrder?.returnStatus) || isUpdatingReturn || isRefunding}
+                      onClick={() => handleReturnUpdate(activeDrawerOrder._id, 'refunded')}
+                    >
+                      Mark Refunded
+                    </Button>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border-gray-200 text-gray-700 w-full"
+                    disabled={isSendingMessage}
+                    onClick={() => handleReturnMessage(activeDrawerOrder._id)}
+                  >
+                    Send Message Only
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <AlertDialog open={!!orderToDelete} onOpenChange={() => setOrderToDelete(null)}>
         <AlertDialogContent className="rounded-2xl">

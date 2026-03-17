@@ -76,6 +76,17 @@ export default function AdminProducts() {
     }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
+  const buildPageItems = (current, total) => {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+    const items = [1]
+    const start = Math.max(2, current - 1)
+    const end = Math.min(total - 1, current + 1)
+    if (start > 2) items.push('...')
+    for (let i = start; i <= end; i += 1) items.push(i)
+    if (end < total - 1) items.push('...')
+    items.push(total)
+    return items
+  }
 
   /* ================= ADMIN QUERY ================= */
   const { data, isLoading, isFetching, isError, error, refetch } = useGetAdminProductsQuery(
@@ -879,7 +890,7 @@ export default function AdminProducts() {
 
       {/* PAGINATION */}
       {totalPages > 1 && (
-        <div className="flex gap-2 justify-center">
+        <div className="flex flex-wrap gap-2 justify-center items-center">
           <Button
             disabled={page === 1}
             onClick={() => {
@@ -889,7 +900,28 @@ export default function AdminProducts() {
           >
             Prev
           </Button>
-          <span>Page {page} of {totalPages}</span>
+          <div className="flex flex-wrap items-center gap-1">
+            {buildPageItems(page, totalPages).map((p, idx) => (
+              p === '...'
+                ? <span key={`ellipsis-${idx}`} className="px-2 text-xs text-gray-400">…</span>
+                : (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => {
+                      setPage(p)
+                      scrollToListTop()
+                    }}
+                    className={`h-8 min-w-8 px-3 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-colors ${p === page
+                      ? 'bg-black text-white border-black'
+                      : 'bg-white text-gray-500 border-gray-200 hover:text-black hover:border-black'
+                      }`}
+                  >
+                    {p}
+                  </button>
+                )
+            ))}
+          </div>
           <Button
             disabled={page === totalPages}
             onClick={() => {
