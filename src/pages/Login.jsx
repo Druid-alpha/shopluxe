@@ -1,10 +1,11 @@
+import { useEffect, useRef, useState } from "react"
 import { useSelector } from "react-redux"
 import { clearCart, setCart } from "@/features/cart/cartSlice"
 import { syncCart, getCart } from "@/features/cart/cartApi"
 import { useNavigate, Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { useLoginMutation } from "@/features/auth/authApi"
 import { useToast } from "@/hooks/use-toast"
 import { useAppDispatch } from "@/app/hooks"
@@ -23,6 +24,8 @@ export default function Login() {
   const dispatch = useAppDispatch()
   const guestCart = useSelector((state) => state.cart.items)
   const { toast } = useToast()
+  const [showPassword, setShowPassword] = useState(false)
+  const passwordTimerRef = useRef(null)
 
   const {
     register,
@@ -34,6 +37,25 @@ export default function Login() {
   })
 
   const [login, { isLoading }] = useLoginMutation()
+
+  useEffect(() => {
+    return () => {
+      if (passwordTimerRef.current) clearTimeout(passwordTimerRef.current)
+    }
+  }, [])
+
+  const handleTogglePassword = () => {
+    setShowPassword((prev) => {
+      const next = !prev
+      if (next) {
+        if (passwordTimerRef.current) clearTimeout(passwordTimerRef.current)
+        passwordTimerRef.current = setTimeout(() => setShowPassword(false), 2000)
+      } else if (passwordTimerRef.current) {
+        clearTimeout(passwordTimerRef.current)
+      }
+      return next
+    })
+  }
 
   const onSubmit = async (data) => {
     try {
@@ -103,12 +125,21 @@ export default function Login() {
                 Forgot password?
               </Link>
             </div>
-            <Input
-              type="password"
-              placeholder="Enter your password"
-              {...register("password")}
-              className={errors.password ? "border-red-500 focus-visible:ring-red-400" : ""}
-            />
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                {...register("password")}
+                className={`pr-10 ${errors.password ? "border-red-500 focus-visible:ring-red-400" : ""}`}
+              />
+              <button
+                type="button"
+                onClick={handleTogglePassword}
+                className="absolute inset-y-0 right-0 px-3 text-slate-500 hover:text-slate-700"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
             {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
           </div>
 

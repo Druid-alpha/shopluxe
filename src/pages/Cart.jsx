@@ -496,6 +496,7 @@ export default function Cart() {
         colorName: '',
         colorHex: null,
         imageUrl: item.baseProductImage || item.productImage || null,
+        stock: Number(item.productStock ?? 0),
         basePrice: Number(item.basePrice ?? 0),
         discount: Number(item.discount ?? 0)
       }
@@ -504,6 +505,7 @@ export default function Cart() {
         colorName: nextVariant.colorName || '',
         colorHex: nextVariant.colorHex || null,
         imageUrl: nextVariant.imageUrl || null,
+        stock: Number(nextVariant.stock ?? 0),
         basePrice: Number(nextVariant.price ?? item.basePrice ?? 0),
         discount: Number(nextVariant.discount ?? item.discount ?? 0)
       }

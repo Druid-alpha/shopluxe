@@ -8,6 +8,8 @@ const getVariantKey = (variant) => {
   if (variant?.sku) return variant.sku;
   const size = variant?.size || "";
   const color = variant?.color || "";
+  if (size && !color) return size;
+  if (color && !size) return color;
   const combined = `${color}|${size}`.trim();
   return combined === "|" ? "default" : combined;
 };

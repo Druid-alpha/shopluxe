@@ -24,6 +24,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/AlertDialog"
 
+const formatMessageTime = (msg) => {
+  const raw = msg?.createdAt || msg?.sentAt || msg?.timestamp || msg?.time || msg?.date
+  if (!raw) return ''
+  const date = new Date(raw)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleString()
+}
+
 export default function AdminOrders() {
   const { toast } = useToast()
   const orderStatusOptions = ['pending', 'processing', 'shipped', 'delivered']
@@ -50,6 +58,10 @@ export default function AdminOrders() {
 
   const orders = data?.orders || []
   const returnRequestCount = orders.filter(o => o?.returnStatus === 'requested').length
+  const newOrderCount = orders.filter(o => {
+    const status = String(o?.status || 'pending').toLowerCase()
+    return status === 'pending' && o?.paymentStatus !== 'failed' && o?.paymentStatus !== 'refunded'
+  }).length
   const filteredOrders = orders.filter(o => {
     if (showReservedOnly && o?.paymentStatus !== 'pending') return false
     if (showReturnOnly && o?.returnStatus !== 'requested') return false
@@ -243,6 +255,11 @@ export default function AdminOrders() {
               {returnRequestCount} return request{returnRequestCount > 1 ? 's' : ''}
             </span>
           )}
+          {newOrderCount > 0 && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-100">
+              {newOrderCount} new order{newOrderCount > 1 ? 's' : ''}
+            </span>
+          )}
         </div>
       </div>
 
@@ -352,10 +369,12 @@ export default function AdminOrders() {
                     {Array.isArray(order.returnMessages) && order.returnMessages.length > 0 && (
                       <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50/60 p-3 text-[11px] font-medium text-slate-700 space-y-2">
                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Message History</span>
-                        {order.returnMessages.map((msg, idx) => (
+                        {order.returnMessages.map((msg, idx) => {
+                          const timeLabel = formatMessageTime(msg)
+                          return (
                           <div key={idx} className="flex flex-col gap-1">
                             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                              {msg.by}{msg.status ? ` • ${msg.status}` : ''}
+                              {msg.by}{msg.status ? ` • ${msg.status}` : ''}{timeLabel ? ` • ${timeLabel}` : ''}
                             </span>
                             <span>{msg.message}</span>
                             {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
@@ -374,7 +393,7 @@ export default function AdminOrders() {
                               </div>
                             )}
                           </div>
-                        ))}
+                        )})}
                       </div>
                     )}
                 {canHandleReturn && (
@@ -587,10 +606,12 @@ export default function AdminOrders() {
                     {Array.isArray(order.returnMessages) && order.returnMessages.length > 0 && (
                       <div className="mt-2 w-56 rounded-xl border border-slate-100 bg-slate-50/60 p-2 text-[10px] font-medium text-slate-700 text-left space-y-2">
                         <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block">Message History</span>
-                        {order.returnMessages.map((msg, idx) => (
+                        {order.returnMessages.map((msg, idx) => {
+                          const timeLabel = formatMessageTime(msg)
+                          return (
                           <div key={idx} className="flex flex-col gap-1">
                             <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">
-                              {msg.by}{msg.status ? ` • ${msg.status}` : ''}
+                              {msg.by}{msg.status ? ` • ${msg.status}` : ''}{timeLabel ? ` • ${timeLabel}` : ''}
                             </span>
                             <span>{msg.message}</span>
                             {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
@@ -609,7 +630,7 @@ export default function AdminOrders() {
                               </div>
                             )}
                           </div>
-                        ))}
+                        )})}
                       </div>
                     )}
                     {canHandleReturn && (

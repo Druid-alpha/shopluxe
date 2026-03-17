@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,6 +27,8 @@ export default function Register() {
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const passwordTimerRef = useRef(null)
+  const confirmTimerRef = useRef(null)
 
   const {
     register,
@@ -38,6 +40,42 @@ export default function Register() {
   })
 
   const [registerApi, { isLoading }] = useRegisterMutation()
+
+  useEffect(() => {
+    return () => {
+      if (passwordTimerRef.current) clearTimeout(passwordTimerRef.current)
+      if (confirmTimerRef.current) clearTimeout(confirmTimerRef.current)
+    }
+  }, [])
+
+  const startAutoHide = (ref, setter) => {
+    if (ref.current) clearTimeout(ref.current)
+    ref.current = setTimeout(() => setter(false), 2000)
+  }
+
+  const handleTogglePassword = () => {
+    setShowPassword((prev) => {
+      const next = !prev
+      if (next) {
+        startAutoHide(passwordTimerRef, setShowPassword)
+      } else if (passwordTimerRef.current) {
+        clearTimeout(passwordTimerRef.current)
+      }
+      return next
+    })
+  }
+
+  const handleToggleConfirmPassword = () => {
+    setShowConfirmPassword((prev) => {
+      const next = !prev
+      if (next) {
+        startAutoHide(confirmTimerRef, setShowConfirmPassword)
+      } else if (confirmTimerRef.current) {
+        clearTimeout(confirmTimerRef.current)
+      }
+      return next
+    })
+  }
 
   const onSubmit = async (data) => {
     const formData = new FormData()
@@ -103,7 +141,7 @@ export default function Register() {
               />
               <button
                 type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
+                onClick={handleTogglePassword}
                 className="absolute inset-y-0 right-0 px-3 text-slate-500 hover:text-slate-700"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -123,7 +161,7 @@ export default function Register() {
               />
               <button
                 type="button"
-                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                onClick={handleToggleConfirmPassword}
                 className="absolute inset-y-0 right-0 px-3 text-slate-500 hover:text-slate-700"
               >
                 {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}

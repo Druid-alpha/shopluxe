@@ -17,6 +17,10 @@ export default function AdminDashboard() {
   })
   const orders = data?.orders || []
   const returnRequestCount = orders.filter(o => o?.returnStatus === 'requested').length
+  const newOrderCount = orders.filter(o => {
+    const status = String(o?.status || 'pending').toLowerCase()
+    return status === 'pending' && o?.paymentStatus !== 'failed' && o?.paymentStatus !== 'refunded'
+  }).length
   return (
     <div className='p-6 space-y-6'>
       <div>
@@ -41,6 +45,11 @@ export default function AdminDashboard() {
           >
             <t.icon size={14} />
             {t.label}
+            {t.id === 'orders' && newOrderCount > 0 && (
+              <span className="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-100">
+                {newOrderCount}
+              </span>
+            )}
             {t.id === 'orders' && returnRequestCount > 0 && (
               <span className="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-100">
                 {returnRequestCount}

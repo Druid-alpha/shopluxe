@@ -34,6 +34,14 @@ const progressIndex = (status) => {
   }
 }
 
+const formatMessageTime = (msg) => {
+  const raw = msg?.createdAt || msg?.sentAt || msg?.timestamp || msg?.time || msg?.date
+  if (!raw) return ''
+  const date = new Date(raw)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleString()
+}
+
 export default function MyOrders() {
   const { toast } = useToast()
   const token = useAppSelector(state => state.auth.token)
@@ -216,29 +224,32 @@ export default function MyOrders() {
                   {Array.isArray(order.returnMessages) && order.returnMessages.length > 0 && (
                     <div className="rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2 text-[11px] font-semibold text-slate-700 space-y-2">
                       <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Message History</span>
-                      {order.returnMessages.map((msg, idx) => (
-                        <div key={idx} className="flex flex-col gap-1">
-                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                            {msg.by}{msg.status ? ` • ${msg.status}` : ''}
-                          </span>
-                          <span>{msg.message}</span>
-                          {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
-                            <div className="flex flex-wrap gap-2 pt-1">
-                              {msg.attachments.map((url, fileIdx) => (
-                                <a
-                                  key={`${url}-${fileIdx}`}
-                                  href={url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-[10px] font-black uppercase tracking-widest text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full"
-                                >
-                                  View File {fileIdx + 1}
-                                </a>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                      {order.returnMessages.map((msg, idx) => {
+                        const timeLabel = formatMessageTime(msg)
+                        return (
+                          <div key={idx} className="flex flex-col gap-1">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                              {msg.by}{msg.status ? ` • ${msg.status}` : ''}{timeLabel ? ` • ${timeLabel}` : ''}
+                            </span>
+                            <span>{msg.message}</span>
+                            {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
+                              <div className="flex flex-wrap gap-2 pt-1">
+                                {msg.attachments.map((url, fileIdx) => (
+                                  <a
+                                    key={`${url}-${fileIdx}`}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] font-black uppercase tracking-widest text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full"
+                                  >
+                                    View File {fileIdx + 1}
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
                   {canMessage && (
@@ -305,3 +316,4 @@ export default function MyOrders() {
     </div>
   )
 }
+

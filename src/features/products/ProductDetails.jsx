@@ -36,10 +36,26 @@ const buildProductVariants = (product) => {
     colorName: v.options?.color?.name || '',
     colorHex: v.options?.color?.hex || null,
     stock: v.stock ?? 0,
+    reserved: v.reserved ?? 0,
     price: Number(v.price ?? 0),
     discount: Number(v.discount ?? 0),
     imageUrl: v.image?.url || null
   }))
+}
+
+const getVariantKey = (variant) => {
+  if (!variant) return 'default'
+  if (typeof variant === 'string') return variant || 'default'
+  if (variant?.sku) return variant.sku
+  const size = variant?.size || ''
+  const colorRaw = variant?.color || ''
+  const color = typeof colorRaw === 'string'
+    ? colorRaw
+    : (colorRaw?._id || colorRaw?.name || '')
+  if (size && !color) return size
+  if (color && !size) return color
+  const combined = `${color}|${size}`.trim()
+  return combined === '|' ? 'default' : combined
 }
 
 const CLOTHING_SIZE_LABELS = {
@@ -936,6 +952,7 @@ export default function ProductDetails() {
       ].filter(Boolean).join(' / ') || 'Base Product'
 
     if (!user) {
+      const variantKey = getVariantKey(variantPayload || (selectedBaseSize ? { size: selectedBaseSize } : null))
       const baseImageForCart = product.images?.[0]?.url || mainImage
       dispatch(addGuestCart({
         productId: product._id,
@@ -946,6 +963,10 @@ export default function ProductDetails() {
         productImage: mainImage,
         baseProductImage: baseImageForCart,
         productStock: product.stock ?? 0,
+        productReserved: baseReserved,
+        productTotalStock: totalStock,
+        productTotalReserved: totalReserved,
+        productAvailableStock: totalAvailable,
         qty: quantity,
         variant: variantPayload || null,
         variantLabel,
@@ -954,10 +975,11 @@ export default function ProductDetails() {
         variantColorHex: displayVariantColorHex || '',
         productCategoryName: product?.category?.name || (typeof product?.category === 'string' ? product.category : ''),
         variantStock: resolvedVariant?.stock,
+        variantReserved: resolvedVariant?.reserved ?? 0,
         clothingType,
         productVariants: buildProductVariants(product),
         addedAt: new Date().toISOString(),
-        key: `${product._id}-${variantPayload?.sku || variantPayload?.size || selectedBaseSize || 'default'}`
+        key: `${product._id}-${variantKey}`
       }))
       toast({ title: 'Added to cart (Guest)' })
       navigate('/cart')

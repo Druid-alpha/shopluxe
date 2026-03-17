@@ -9,6 +9,8 @@ const getVariantKey = (variant) => {
   if (variant?.sku) return variant.sku
   const size = variant?.size || ""
   const color = variant?.color || ""
+  if (size && !color) return size
+  if (color && !size) return color
   const combined = `${color}|${size}`.trim()
   return combined === "|" ? "default" : combined
 }
@@ -97,6 +99,7 @@ const cartSlice = createSlice({
               variantSize: nextMeta?.size || '',
               variantColorName: nextMeta?.colorName || '',
               variantColorHex: nextMeta?.colorHex || null,
+              variantStock: Number.isFinite(nextMeta?.stock) ? Number(nextMeta.stock) : null,
               productImage: nextMeta?.imageUrl || item.baseProductImage || item.productImage,
               price: Number(nextMeta?.finalPrice ?? item.price),
               basePrice: Number(nextMeta?.basePrice ?? item.basePrice),
