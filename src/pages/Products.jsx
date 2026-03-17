@@ -278,7 +278,7 @@ export default function Products() {
 
         {/* Products */}
         <div className="lg:col-span-3">
-          <div className={clsx("grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:block lg:columns-3 lg:gap-6 lg:space-y-6 transition-opacity duration-150", (isFetching || isResolvingCategory) && !isLoading ? "opacity-70" : "opacity-100")}>
+          <div className={clsx("grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid lg:grid-cols-3 lg:gap-6 transition-opacity duration-150", (isFetching || isResolvingCategory) && !isLoading ? "opacity-70" : "opacity-100")}>
             {(isResolvingCategory || isLoading || isFetching)
               ? Array.from({ length: 12 }).map((_, idx) => (
                 <div key={`skeleton-${idx}`} className="animate-pulse border rounded-lg p-4 space-y-3 lg:break-inside-avoid">
@@ -289,7 +289,7 @@ export default function Products() {
               ))
               : filteredProducts?.length > 0
                 ? filteredProducts.map((product) => (
-                  <div key={product._id} className="lg:break-inside-avoid lg:mb-6 h-full">
+                  <div key={product._id} className="h-full">
                     <ProductCard product={product} />
                   </div>
                 ))
