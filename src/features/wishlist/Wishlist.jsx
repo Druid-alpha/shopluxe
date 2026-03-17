@@ -32,7 +32,7 @@ export default function Wishlist() {
     try {
       if (!user) {
         dispatch(toggleGuestWishlist(product._id))
-        toast({ title: 'Removed from wishlist (Guest)' })
+        toast({ title: 'Removed from wishlist' })
         return
       }
       await toggleWishlist(product._id).unwrap()
@@ -61,7 +61,7 @@ export default function Wishlist() {
           addedAt: new Date().toISOString(),
           key: `${product._id}-default`
         }))
-        toast({ title: 'Added to cart (Guest)' })
+        toast({ title: 'Added to cart' })
         navigate('/cart')
         return
       }
@@ -136,11 +136,11 @@ export default function Wishlist() {
             className="group relative bg-white border border-gray-100 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 flex flex-col"
           >
             {/* Image Container */}
-            <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-slate-50 via-white to-amber-50">
+            <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-slate-50 via-white to-amber-50 flex items-center justify-center">
               <img
                 src={product.images?.[0]?.url || '/placeholder.png'}
                 alt={product.title}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-contain p-3 transition-transform duration-500 group-hover:scale-105"
               />
               <button
                 onClick={() => handleRemoveWishlist(product)}

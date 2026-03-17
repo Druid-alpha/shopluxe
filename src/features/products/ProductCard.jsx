@@ -218,7 +218,7 @@ export default function ProductCard({ product }) {
     if (!user) {
       dispatch(toggleGuestWishlist(product._id))
       toast({
-        title: 'Wishlist updated (Guest)'
+        title: 'Wishlist updated'
       })
       return
     }

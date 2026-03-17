@@ -1015,7 +1015,7 @@ export default function ProductDetails() {
   const handleWishlistToggle = async () => {
     if (!user) {
       dispatch(toggleGuestWishlist(product._id))
-      toast({ title: 'Wishlist updated (Guest)' })
+      toast({ title: 'Wishlist updated' })
       return
     }
     const result = await toggleWishlist(product._id).unwrap()
