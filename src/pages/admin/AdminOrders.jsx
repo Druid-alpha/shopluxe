@@ -433,13 +433,12 @@ export default function AdminOrders() {
           <table className="w-full min-w-0 text-left border-collapse table-fixed">
             <thead className="sticky top-0 z-10 bg-gray-50">
               <tr className="border-b border-gray-100 text-xs text-gray-500 font-bold uppercase tracking-widest">
-                <th className="px-6 py-4 w-[160px]">Order Details</th>
-                <th className="px-6 py-4 w-[200px]">Customer</th>
-                <th className="px-6 py-4 w-[280px]">Items</th>
-                <th className="px-6 py-4 w-[120px]">Reserve</th>
-                <th className="px-6 py-4 w-[140px]">Labels</th>
-                <th className="px-6 py-4 text-right w-[120px]">Total</th>
-                <th className="px-6 py-4 text-right w-[220px]">Actions</th>
+                <th className="px-6 py-4 w-[160px]">Order</th>
+                <th className="px-6 py-4 w-[220px]">Customer</th>
+                <th className="px-6 py-4 w-[140px]">Items</th>
+                <th className="px-6 py-4 w-[140px]">Status</th>
+                <th className="px-6 py-4 text-right w-[140px]">Total</th>
+                <th className="px-6 py-4 text-right w-[180px]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -447,10 +446,6 @@ export default function AdminOrders() {
                 const isReserved = order?.paymentStatus === 'pending'
                 const expiresAt = order?.expiresAt ? new Date(order.expiresAt) : null
                 const minutesLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - nowTick) / 60000)) : null
-                const canHandleReturn = ['requested', 'approved'].includes(order?.returnStatus)
-                const canApprove = order?.returnStatus === 'requested'
-                const canReject = order?.returnStatus === 'requested'
-                const canRefund = ['requested', 'approved'].includes(order?.returnStatus)
                 return (
                 <tr key={order._id} className="h-16 hover:bg-gray-50/60 transition-colors">
                   <td className="px-6 py-4 align-middle">
@@ -464,65 +459,9 @@ export default function AdminOrders() {
                     <div className="text-xs text-gray-400 truncate">{order.user?.email || 'N/A'}</div>
                   </td>
                   <td className="px-6 py-4 align-middle">
-                    <div className="flex flex-wrap gap-1.5 max-w-[260px]">
-                      {order.items?.map((item, idx) => {
-                        const hasVariant = item.variant?.color || item.variant?.size
-                        const isClothing = ['clothes', 'shoes', 'bags', 'eyeglass'].includes(item.clothingType)
-                        return (
-                          <div key={idx} className="flex flex-col gap-1">
-                            <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px] font-medium text-gray-700 border border-gray-200">
-                              {item.title || 'Product'} x{item.qty}
-                            </span>
-                            {hasVariant && (
-                              <div className="flex flex-wrap gap-1">
-                                {item.variant?.color && (
-                                  <span className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-gray-500">
-                                    <span className="w-2.5 h-2.5 rounded-full border border-gray-300 flex-shrink-0 bg-gray-300"
-                                      style={{ backgroundColor: isHexColor(item.variant.color) ? item.variant.color : undefined }}
-                                    />
-                                    {item.variant.color}
-                                  </span>
-                                )}
-                                {item.variant?.size && (
-                                  <span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-slate-600">
-                                    {isClothing
-                                      ? (item.clothingType === 'shoes' ? `Shoe: ${item.variant.size}`
-                                        : item.clothingType === 'eyeglass' ? `Frame: ${item.variant.size}`
-                                          : `Size: ${item.variant.size}`)
-                                      : `Size: ${item.variant.size}`
-                                    }
-                                  </span>
-                                )}
-                                {item.variant?.sku && (
-                                  <span className="bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-indigo-600">
-                                    SKU: {item.variant.sku}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                            {!hasVariant && (
-                              <span className="text-[9px] font-bold uppercase tracking-widest text-gray-300">Base product</span>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 align-middle">
-                    {isReserved ? (
-                      <div className="flex flex-col gap-1">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-100 w-fit">
-                          {minutesLeft === 0 ? 'Expired' : 'Reserved'}
-                        </span>
-                        {minutesLeft !== null && (
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
-                            {minutesLeft === 0 ? 'Awaiting cleanup' : `Expires in ${minutesLeft} min`}
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-gray-300">-</span>
-                    )}
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-gray-50 text-gray-600 border border-gray-100">
+                      {order.items?.length || 0} item{(order.items?.length || 0) !== 1 ? 's' : ''}
+                    </span>
                   </td>
                   <td className="px-6 py-4 align-middle">
                     <div className="flex flex-col gap-2">
@@ -548,126 +487,35 @@ export default function AdminOrders() {
                           Return {order.returnStatus}
                         </span>
                       )}
-
-                      {/* Operational Status Dropdown */}
-                      <Select
-                        value={orderStatusOptions.includes(order.status) ? order.status : undefined}
-                        onValueChange={(val) => handleStatusUpdate(order._id, val)}
-                        disabled={isUpdating}
-                      >
-                        <SelectTrigger className="h-8 w-32 text-[11px] font-bold uppercase rounded-lg border-gray-200">
-                          <SelectValue placeholder={order.status || 'pending'} />
-                        </SelectTrigger>
-                        <SelectContent side="left">
-                          {orderStatusOptions.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {isReserved && (
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-amber-700">
+                          {minutesLeft === 0 ? 'Reserved: Expired' : `Reserved: ${minutesLeft}m`}
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right align-middle">
                     <span className="font-bold text-gray-900">₦{order.totalAmount?.toLocaleString()}</span>
                   </td>
                   <td className="px-6 py-4 text-right align-middle">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => setOrderToDelete(order._id)}
-                    >
-                      <Trash2 size={18} />
-                    </Button>
-                    {order.returnReason && (
-                      <div className="mt-2 w-56 rounded-xl border border-amber-100 bg-amber-50/60 p-2 text-[10px] font-medium text-amber-800 text-left">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 block mb-1">Customer Reason</span>
-                        {order.returnReason}
-                      </div>
-                    )}
-                    {Array.isArray(order.returnMessages) && order.returnMessages.length > 0 && (
-                      <div className="mt-2 w-56 rounded-xl border border-slate-100 bg-slate-50/60 p-2 text-[10px] font-medium text-slate-700 text-left space-y-2">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block">Message History</span>
-                        {order.returnMessages.map((msg, idx) => {
-                          const timeLabel = formatMessageTime(msg)
-                          return (
-                          <div key={idx} className="flex flex-col gap-1">
-                            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">
-                              {msg.by}{msg.status ? ` • ${msg.status}` : ''}{timeLabel ? ` • ${timeLabel}` : ''}
-                            </span>
-                            <span>{msg.message}</span>
-                            {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
-                              <div className="flex flex-wrap gap-1 pt-1">
-                                {msg.attachments.map((url, fileIdx) => (
-                                  <a
-                                    key={`${url}-${fileIdx}`}
-                                    href={url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[9px] font-black uppercase tracking-widest text-blue-600 border border-blue-100 px-1.5 py-0.5 rounded-full"
-                                  >
-                                    File {fileIdx + 1}
-                                  </a>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )})}
-                      </div>
-                    )}
-                    {canHandleReturn && (
-                      <div className="mt-2 flex flex-col items-end gap-2">
-                        <textarea
-                          value={returnNotes[order._id] || ''}
-                          onChange={(e) => setReturnNotes(prev => ({ ...prev, [order._id]: e.target.value }))}
-                          placeholder="Admin note (emailed)"
-                          className="w-56 border rounded-xl p-2 text-[10px] font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all min-h-[60px]"
-                        />
-                        <input
-                          type="number"
-                          min="0"
-                          value={refundAmounts[order._id] || ''}
-                          onChange={(e) => setRefundAmounts(prev => ({ ...prev, [order._id]: e.target.value }))}
-                          placeholder="Refund amount"
-                          className="w-56 border rounded-xl p-2 text-[10px] font-medium placeholder:text-gray-300 focus:outline-none focus:border-black transition-all"
-                        />
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest border-emerald-200 text-emerald-700"
-                            disabled={!canApprove || isUpdatingReturn || isRefunding}
-                            onClick={() => handleReturnUpdate(order._id, 'approved')}
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest border-rose-200 text-rose-700"
-                            disabled={!canReject || isUpdatingReturn || isRefunding}
-                            onClick={() => handleReturnUpdate(order._id, 'rejected')}
-                          >
-                            Reject
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest border-blue-200 text-blue-700"
-                            disabled={!canRefund || isUpdatingReturn || isRefunding}
-                            onClick={() => handleReturnUpdate(order._id, 'refunded')}
-                          >
-                            Refunded
-                          </Button>
-                        </div>
-                        <Button
-                          variant="outline"
-                          className="h-8 rounded-lg text-[9px] font-black uppercase tracking-widest border-gray-200 text-gray-700"
-                          disabled={isSendingMessage}
-                          onClick={() => handleReturnMessage(order._id)}
-                        >
-                          Send Message Only
-                        </Button>
-                      </div>
-                    )}
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full text-[10px] font-black uppercase tracking-widest"
+                        onClick={() => openDrawer(order._id)}
+                      >
+                        View Details
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => setOrderToDelete(order._id)}
+                      >
+                        <Trash2 size={18} />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               )})}
