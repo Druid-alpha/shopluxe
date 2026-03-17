@@ -42,6 +42,14 @@ export default function AdminOrders() {
   const [returnNotes, setReturnNotes] = React.useState({})
   const [refundAmounts, setRefundAmounts] = React.useState({})
   const prevCountsRef = React.useRef(null)
+  const isHexColor = (value) => typeof value === 'string' && /^#[0-9a-f]{3,8}$/i.test(value.trim())
+  const formatVariantLabel = (item) => {
+    const parts = []
+    if (item?.variant?.sku) parts.push(`SKU ${item.variant.sku}`)
+    if (item?.variant?.color) parts.push(`Color ${item.variant.color}`)
+    if (item?.variant?.size) parts.push(`Size ${item.variant.size}`)
+    return parts
+  }
 
   const playNotificationSound = React.useCallback((frequency = 880) => {
     try {
@@ -357,9 +365,36 @@ export default function AdminOrders() {
 
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {order.items?.map((item, idx) => (
-                    <span key={idx} className="bg-gray-100 px-2 py-0.5 rounded text-[10px] font-medium text-gray-700 border border-gray-200">
-                      {item.title || 'Product'} x{item.qty}
-                    </span>
+                    <div key={idx} className="flex flex-col gap-1">
+                      <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px] font-medium text-gray-700 border border-gray-200">
+                        {item.title || 'Product'} x{item.qty}
+                      </span>
+                      {formatVariantLabel(item).length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {item.variant?.color && (
+                            <span className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-gray-500">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full border border-gray-300 flex-shrink-0"
+                                style={{ backgroundColor: isHexColor(item.variant.color) ? item.variant.color : undefined }}
+                              />
+                              {item.variant.color}
+                            </span>
+                          )}
+                          {item.variant?.size && (
+                            <span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-slate-600">
+                              Size: {item.variant.size}
+                            </span>
+                          )}
+                          {item.variant?.sku && (
+                            <span className="bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-indigo-600">
+                              SKU: {item.variant.sku}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-gray-300">Base product</span>
+                      )}
+                    </div>
                   ))}
                 </div>
 
@@ -550,7 +585,7 @@ export default function AdminOrders() {
                                 {item.variant?.color && (
                                   <span className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-gray-500">
                                     <span className="w-2.5 h-2.5 rounded-full border border-gray-300 flex-shrink-0 bg-gray-300"
-                                      style={{ backgroundColor: undefined }}
+                                      style={{ backgroundColor: isHexColor(item.variant.color) ? item.variant.color : undefined }}
                                     />
                                     {item.variant.color}
                                   </span>
@@ -565,7 +600,15 @@ export default function AdminOrders() {
                                     }
                                   </span>
                                 )}
+                                {item.variant?.sku && (
+                                  <span className="bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-indigo-600">
+                                    SKU: {item.variant.sku}
+                                  </span>
+                                )}
                               </div>
+                            )}
+                            {!hasVariant && (
+                              <span className="text-[9px] font-bold uppercase tracking-widest text-gray-300">Base product</span>
                             )}
                           </div>
                         )

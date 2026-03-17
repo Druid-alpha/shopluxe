@@ -52,6 +52,20 @@ export default function AdminProducts() {
     },
   })
   const filterOptionsCacheRef = useRef(new Map())
+  const colorNameById = React.useMemo(() => {
+    const map = new Map()
+    ;(options.colors || []).forEach(c => {
+      if (!c?._id) return
+      map.set(String(c._id), c.name || c.hex || String(c._id))
+    })
+    return map
+  }, [options.colors])
+  const formatVariantColor = (raw) => {
+    if (!raw) return 'Color: -'
+    const key = String(raw)
+    const label = colorNameById.get(key) || key
+    return `Color: ${label}`
+  }
   const listTopRef = useRef(null)
   const scrollToListTop = useCallback(() => {
     if (listTopRef.current) {
@@ -932,7 +946,7 @@ export default function AdminProducts() {
                         {variant.sku || 'Variant'}
                       </div>
                       <div className="text-[10px] text-gray-400">
-                        {variant.options?.color ? `Color: ${variant.options.color}` : 'Color: -'}
+                        {formatVariantColor(variant.options?.color)}
                         {variant.options?.size ? ` • Size: ${variant.options.size}` : ' • Size: -'}
                       </div>
                     </div>
