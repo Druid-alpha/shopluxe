@@ -20,7 +20,7 @@ const palette = ['#0f172a', '#0ea5e9', '#f97316', '#10b981', '#f43f5e', '#a855f7
 
 const formatCurrency = (value) => {
   const num = Number(value || 0)
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num)
+  return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(num)
 }
 
 const formatShortNumber = (value) => {
@@ -89,6 +89,8 @@ export default function AdminAnalytics() {
     totalRevenue,
     totalOrders,
     totalUsers,
+    adminUsers,
+    customerUsers,
     avgOrderValue,
     pendingOrders,
     returnRequests,
@@ -98,17 +100,21 @@ export default function AdminAnalytics() {
       const payment = normalizeStatus(order?.paymentStatus)
       return payment !== 'failed' && payment !== 'refunded'
     })
-    const revenue = paidOrders.reduce((sum, order) => sum + Number(order?.totalPrice || 0), 0)
+    const revenue = paidOrders.reduce((sum, order) => sum + Number(order?.totalAmount ?? order?.totalPrice ?? 0), 0)
     const pending = orders.filter((order) => normalizeStatus(order?.status, 'pending') === 'pending').length
     const returns = orders.filter((order) => normalizeStatus(order?.returnStatus) === 'requested').length
     const lowStock = products.filter((product) => {
       const stock = Number(product?.countInStock ?? product?.stock ?? product?.quantity ?? 0)
       return stock > 0 && stock <= 5
     }).length
+    const admins = users.filter((user) => String(user?.role || '').toLowerCase() === 'admin').length
+    const customers = Math.max(0, users.length - admins)
     return {
       totalRevenue: revenue,
       totalOrders: orders.length,
       totalUsers: users.length,
+      adminUsers: admins,
+      customerUsers: customers,
       avgOrderValue: paidOrders.length ? revenue / paidOrders.length : 0,
       pendingOrders: pending,
       returnRequests: returns,
@@ -134,7 +140,7 @@ export default function AdminAnalytics() {
       entry.orders += 1
       const payment = normalizeStatus(order?.paymentStatus)
       if (payment !== 'failed' && payment !== 'refunded') {
-        entry.revenue += Number(order?.totalPrice || 0)
+        entry.revenue += Number(order?.totalAmount ?? order?.totalPrice ?? 0)
       }
     })
     return Array.from(base.values())
@@ -170,11 +176,19 @@ export default function AdminAnalytics() {
     orders.forEach((order) => {
       const items = Array.isArray(order?.items) ? order.items : []
       items.forEach((item) => {
-        const productId = String(item?.product || item?.productId || item?._id || '')
+        const rawProduct = item?.product
+        const productId = String(rawProduct?._id || rawProduct || item?.productId || item?._id || '')
         const product = productMap.get(productId)
-        const category = String(product?.category || item?.category || 'Uncategorized')
-        const value = Number(item?.price || item?.newPrice || 0) * Number(item?.quantity || 0)
-        revenueMap.set(category, (revenueMap.get(category) || 0) + value)
+        const categoryLabel =
+          product?.category?.name ||
+          product?.category ||
+          item?.category ||
+          item?.clothingType ||
+          'Uncategorized'
+        const qty = Number(item?.qty ?? item?.quantity ?? 0)
+        const price = Number(item?.priceAtPurchase ?? item?.price ?? item?.newPrice ?? 0)
+        const value = price * qty
+        revenueMap.set(String(categoryLabel), (revenueMap.get(String(categoryLabel)) || 0) + value)
       })
     })
     return Array.from(revenueMap.entries())
@@ -188,8 +202,8 @@ export default function AdminAnalytics() {
     orders.forEach((order) => {
       const items = Array.isArray(order?.items) ? order.items : []
       items.forEach((item) => {
-        const name = String(item?.name || 'Unknown')
-        const qty = Number(item?.quantity || 0)
+        const name = String(item?.title || item?.name || item?.product?.title || 'Unknown')
+        const qty = Number(item?.qty ?? item?.quantity ?? 0)
         map.set(name, (map.get(name) || 0) + qty)
       })
     })
@@ -226,7 +240,9 @@ export default function AdminAnalytics() {
           {[
             { label: 'Total Revenue', value: formatCurrency(totalRevenue), meta: 'Paid orders only' },
             { label: 'Total Orders', value: formatShortNumber(totalOrders), meta: 'All statuses' },
-            { label: 'Customers', value: formatShortNumber(totalUsers), meta: 'Registered users' },
+            { label: 'Total Users', value: formatShortNumber(totalUsers), meta: 'Registered users' },
+            { label: 'Admins', value: formatShortNumber(adminUsers), meta: 'Team access' },
+            { label: 'Customers', value: formatShortNumber(customerUsers), meta: 'Non-admin users' },
             { label: 'Avg Order Value', value: formatCurrency(avgOrderValue), meta: 'Paid orders average' },
             { label: 'Pending Orders', value: formatShortNumber(pendingOrders), meta: 'Needs fulfillment' },
             { label: 'Return Requests', value: formatShortNumber(returnRequests), meta: 'Awaiting action' },
