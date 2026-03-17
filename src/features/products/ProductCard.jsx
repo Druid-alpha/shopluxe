@@ -68,6 +68,16 @@ export default function ProductCard({ product }) {
   const discountedPrice = maxDiscount > 0
     ? Math.round((product?.price || 0) * (1 - maxDiscount / 100))
     : (product?.price || 0)
+  const minVariantPrice = Array.isArray(product?.variants) && product.variants.length > 0
+    ? product.variants.reduce((min, v) => {
+      const price = Number(v?.price || 0)
+      if (!Number.isFinite(price) || price <= 0) return min
+      return min === null ? price : Math.min(min, price)
+    }, null)
+    : null
+  const displayBasePrice = Number.isFinite(minVariantPrice) && minVariantPrice !== null
+    ? minVariantPrice
+    : Number(product?.price || 0)
   const primaryImageUrl = React.useMemo(() => {
     const candidates = [
       product.images?.[0]?.url,
@@ -335,13 +345,13 @@ export default function ProductCard({ product }) {
 
       {/* PRODUCT INFO */}
       <div className="p-3 sm:p-5 space-y-2 flex-1 min-h-[88px]">
-        <div className="flex justify-between items-start gap-2 min-w-0">
+        <div className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:items-start sm:gap-2 min-w-0">
           <Link to={`/products/${product._id}`} className="flex-1 min-w-0">
-            <h3 className="text-xs sm:text-sm font-bold text-gray-900 line-clamp-2 break-words group-hover:text-primary transition-colors">
+            <h3 className="text-xs sm:text-sm font-bold text-gray-900 line-clamp-2 break-words group-hover:text-primary transition-colors min-w-0">
               {product.title}
             </h3>
           </Link>
-          <PriceDisplay price={product.price} discount={product.discount} className="shrink-0 text-right" />
+          <PriceDisplay price={displayBasePrice} discount={maxDiscount} className="shrink-0 sm:text-right" />
         </div>
 
         <div className="flex items-center gap-1 pt-1">

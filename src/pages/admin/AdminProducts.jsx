@@ -26,6 +26,7 @@ export default function AdminProducts() {
   const [editingProduct, setEditingProduct] = useState(null)
   const [restockProduct, setRestockProduct] = useState(null)
   const [restockStock, setRestockStock] = useState('')
+  const [restockBaseStock, setRestockBaseStock] = useState('')
   const [restockVariants, setRestockVariants] = useState([])
   const [filters, setFilters] = useState({
     search: '',
@@ -293,6 +294,7 @@ export default function AdminProducts() {
   const openRestockModal = (product) => {
     if (!product?._id) return
     setRestockProduct(product)
+    setRestockBaseStock(String(product.stock ?? 0))
     if (product.variants?.length) {
       const normalized = product.variants.map((v) => ({
         _id: v._id,
@@ -315,12 +317,17 @@ export default function AdminProducts() {
   const closeRestockModal = () => {
     setRestockProduct(null)
     setRestockStock('')
+    setRestockBaseStock('')
     setRestockVariants([])
   }
   const handleRestockSave = async () => {
     if (!restockProduct?._id) return
     try {
       if (restockProduct.variants?.length) {
+        const fdBase = new FormData()
+        fdBase.append('payload', JSON.stringify({ stock: Math.max(0, Number(restockBaseStock || 0)) }))
+        await updateProduct({ id: restockProduct._id, formData: fdBase }).unwrap()
+
         const payloadVariants = restockVariants.map((v) => ({
           _id: v._id,
           sku: v.sku,
@@ -862,7 +869,24 @@ export default function AdminProducts() {
             {restockProduct.variants?.length ? (
               <div className="space-y-3">
                 <div className="text-xs font-black uppercase tracking-widest text-gray-400">
-                  Update variant stock
+                  Update base + variant stock
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-gray-100 p-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold text-gray-900 truncate">
+                      Base Product Stock
+                    </div>
+                    <div className="text-[10px] text-gray-400">
+                      Applies to the main product alongside variants
+                    </div>
+                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    value={restockBaseStock}
+                    onChange={(e) => setRestockBaseStock(e.target.value)}
+                    className="h-10 w-full sm:w-32 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20"
+                  />
                 </div>
                 {restockVariants.map((variant, idx) => (
                   <div
