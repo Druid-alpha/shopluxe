@@ -69,11 +69,16 @@ export default function VerifyOtp() {
     }
 
     try {
-      await resendOtp({ email }).unwrap()
+      const res = await resendOtp({ email }).unwrap()
       toast({ title: "OTP resent successfully" })
       setCanResend(false)
       setResendAttempts((prev) => prev + 1)
+      const waitSeconds = Number(res?.retryAfterSeconds || 60)
+      setCountdown(waitSeconds)
     } catch (err) {
+      const waitSeconds = Number(err?.data?.retryAfterSeconds || 60)
+      setCountdown(waitSeconds)
+      setCanResend(false)
       toast({
         title: "Resend failed",
         description: err?.data?.message || "Please try again later",
