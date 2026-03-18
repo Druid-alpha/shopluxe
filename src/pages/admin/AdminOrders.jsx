@@ -326,13 +326,13 @@ export default function AdminOrders() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {/* Mobile cards */}
-        <div className="lg:hidden p-4 space-y-4">
+        <div className="lg:hidden p-4 space-y-6">
           {filteredOrders.map((order) => {
             const isReserved = order?.paymentStatus === 'pending'
             const expiresAt = order?.expiresAt ? new Date(order.expiresAt) : null
             const minutesLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - nowTick) / 60000)) : null
             return (
-              <div key={order._id} className="rounded-2xl border border-gray-100 p-4 shadow-sm">
+              <div key={order._id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-md shadow-black/5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-black text-gray-900">#{String(order._id || '').slice(-8).toUpperCase()}</p>

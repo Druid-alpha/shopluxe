@@ -76,6 +76,10 @@ export default function AdminProducts() {
     }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
+  const toInputValue = (value) => {
+    if (value === 0) return '0'
+    return value ? String(value) : ''
+  }
   const buildPageItems = (current, total) => {
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
     const items = [1]
@@ -323,9 +327,9 @@ export default function AdminProducts() {
   const openRestockModal = (product) => {
     if (!product?._id) return
     setRestockProduct(product)
-    setRestockBaseStock(String(product.stock ?? 0))
-    setRestockBasePrice(String(product.price ?? 0))
-    setRestockBaseDiscount(String(product.discount ?? 0))
+    setRestockBaseStock(toInputValue(product.stock))
+    setRestockBasePrice(toInputValue(product.price))
+    setRestockBaseDiscount(toInputValue(product.discount))
     if (product.variants?.length) {
       const normalized = product.variants.map((v) => ({
         _id: v._id,
@@ -334,14 +338,14 @@ export default function AdminProducts() {
           color: v.options?.color?._id || v.options?.color || '',
           size: v.options?.size || ''
         },
-        price: Number(v.price || 0),
-        discount: Number(v.discount || 0),
-        stock: Number(v.stock || 0)
+        price: toInputValue(v.price),
+        discount: toInputValue(v.discount),
+        stock: toInputValue(v.stock)
       }))
       setRestockVariants(normalized)
       setRestockStock('')
     } else {
-      setRestockStock(String(product.stock ?? 0))
+      setRestockStock(toInputValue(product.stock))
       setRestockVariants([])
     }
 
@@ -1014,10 +1018,10 @@ export default function AdminProducts() {
                         min="0"
                         value={variant.stock}
                         onChange={(e) => {
-                          const next = Number(e.target.value)
+                          const next = e.target.value
                           setRestockVariants(prev => {
                             const copy = [...prev]
-                            copy[idx] = { ...copy[idx], stock: Number.isFinite(next) ? next : 0 }
+                            copy[idx] = { ...copy[idx], stock: next }
                             return copy
                           })
                         }}
@@ -1029,10 +1033,10 @@ export default function AdminProducts() {
                         min="0"
                         value={variant.price}
                         onChange={(e) => {
-                          const next = Number(e.target.value)
+                          const next = e.target.value
                           setRestockVariants(prev => {
                             const copy = [...prev]
-                            copy[idx] = { ...copy[idx], price: Number.isFinite(next) ? next : 0 }
+                            copy[idx] = { ...copy[idx], price: next }
                             return copy
                           })
                         }}
@@ -1045,10 +1049,10 @@ export default function AdminProducts() {
                         max="100"
                         value={variant.discount}
                         onChange={(e) => {
-                          const next = Number(e.target.value)
+                          const next = e.target.value
                           setRestockVariants(prev => {
                             const copy = [...prev]
-                            copy[idx] = { ...copy[idx], discount: Number.isFinite(next) ? next : 0 }
+                            copy[idx] = { ...copy[idx], discount: next }
                             return copy
                           })
                         }}

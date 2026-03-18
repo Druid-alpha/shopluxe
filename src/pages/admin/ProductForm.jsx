@@ -25,7 +25,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   // ---------------- MAIN PRODUCT STATE ----------------
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [price, setPrice] = useState(0)
+  const [price, setPrice] = useState('')
   const [stock, setStock] = useState(0)
   const [color, setColor] = useState('')
   const [hasTouchedColor, setHasTouchedColor] = useState(false)
@@ -37,7 +37,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const [imagePreviews, setImagePreviews] = useState([])
   const [clothingType, setClothingType] = useState('')
   const [mainSizes, setMainSizes] = useState([])
-  const [discount, setDiscount] = useState(0)
+  const [discount, setDiscount] = useState('')
 
   // ---------------- VARIANTS STATE ----------------
   const [variants, setVariants] = useState([])
@@ -228,6 +228,11 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
   const normalize = str =>
     str?.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'GEN'
 
+  const toInputValue = (value) => {
+    if (value === 0) return '0'
+    return value ? String(value) : ''
+  }
+
   const generateSKU = () => {
     const catName = categories.find(c => c._id === category)?.name
     const brandName = brands.find(b => b._id === brand)?.name
@@ -274,7 +279,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
 
     setTitle(editableProduct.title || '')
     setDescription(editableProduct.description || '')
-    setPrice(editableProduct.price || 0)
+    setPrice(toInputValue(editableProduct.price))
     setStock(editableProduct.stock || 0)
     setCategory(editableProduct.category?._id || '')
     setBrand(editableProduct.brand?._id || '')
@@ -291,7 +296,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     setClothingType(normalizedClothingType)
     const fallbackSizes = parseBaseSizesFromTags(editableProduct.tags || [])
     setMainSizes(Array.isArray(editableProduct.sizes) && editableProduct.sizes.length > 0 ? editableProduct.sizes : fallbackSizes)
-    setDiscount(editableProduct.discount || 0)
+    setDiscount(toInputValue(editableProduct.discount))
     setExistingImages(editableProduct.images || [])
     setImagePreviews([])
     setImages([])
@@ -305,8 +310,8 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
           color: v.options?.color?._id || v.options?.color || '',
           size: v.options?.size || ''
         },
-        price: v.price || 0,
-        discount: v.discount || 0,
+        price: toInputValue(v.price),
+        discount: toInputValue(v.discount),
         stock: v.stock || 0,
         image: v.image,
         imageFile: null,
@@ -369,8 +374,8 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         sku: generateUniqueSku(existingSkus),
         type: clothingType || '',
         options: { color: '', size: '' },
-        price: 0,
-        discount: 0,
+        price: '',
+        discount: '',
         stock: 0,
         image: null,
         imageFile: null,
@@ -514,10 +519,10 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
     const errs = {}
     if (!title) errs.title = 'Title is required'
     if (!category) errs.category = 'Category required'
-    if (!price) errs.price = 'Price required'
+    if (price === '' || Number(price) <= 0) errs.price = 'Price required'
     variants.forEach((v, i) => {
       if (!isSkuUnique(v.sku)) errs[`sku_${i}`] = 'SKU must be unique'
-      if (!v.price) errs[`price_${i}`] = 'Variant price required'
+      if (v.price === '' || Number(v.price) <= 0) errs[`price_${i}`] = 'Variant price required'
     })
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -567,7 +572,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
         color: color || undefined,
         clothingType: clothingType || undefined,
         sizes: mainSizes,
-        discount: Number(discount),
+        discount: Number(discount || 0),
         tags: payloadTags,
         variants: payloadVariants,
         images: existingImages
@@ -1013,7 +1018,7 @@ export default function ProductForm({ product, onClose, onSuccess, closeOnSucces
                 {/* DISCOUNT */}
                 <div>
                   <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Discount (%)</label>
-                  <Input type="number" value={v.discount || 0} onChange={e => updateVariant(idx, 'discount', e.target.value)} className="rounded-xl border-white bg-white text-[10px]" />
+                  <Input type="number" value={v.discount} onChange={e => updateVariant(idx, 'discount', e.target.value)} className="rounded-xl border-white bg-white text-[10px]" />
                 </div>
 
                 {/* STOCK + IMAGE + DELETE */}
