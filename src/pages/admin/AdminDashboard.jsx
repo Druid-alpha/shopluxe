@@ -15,8 +15,9 @@ export default function AdminDashboard() {
   const { toast } = useToast()
   const token = useAppSelector((state) => state.auth.token)
   const [newUsersCount, setNewUsersCount] = useState(0)
-  const seenUserIdsRef = useRef(new Set())
-  const isFirstUserLoadRef = useRef(true)
+  const [newOrdersCount, setNewOrdersCount] = useState(0)
+  const lastSeenUsersKey = 'shopluxe_admin_last_seen_users'
+  const lastSeenOrdersKey = 'shopluxe_admin_last_seen_orders'
   const { data } = useGetAllOrdersQuery(undefined, {
     pollingInterval: 15000,
     refetchOnFocus: true,
@@ -24,10 +25,16 @@ export default function AdminDashboard() {
   })
   const orders = data?.orders || []
   const returnRequestCount = orders.filter(o => o?.returnStatus === 'requested').length
-  const newOrderCount = orders.filter(o => {
-    const status = String(o?.status || 'pending').toLowerCase()
-    return status === 'pending' && o?.paymentStatus !== 'failed' && o?.paymentStatus !== 'refunded'
-  }).length
+  const getLastSeen = (key) => {
+    const value = localStorage.getItem(key)
+    if (!value) return null
+    const date = new Date(value)
+    return Number.isNaN(date.getTime()) ? null : date
+  }
+  const setLastSeen = (key, date) => {
+    if (!date) return
+    localStorage.setItem(key, new Date(date).toISOString())
+  }
 
   const playNotificationSound = useCallback((frequency = 880) => {
     try {
@@ -60,24 +67,23 @@ export default function AdminDashboard() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed to fetch users')
       const users = Array.isArray(data.users) ? data.users : []
-      if (isFirstUserLoadRef.current) {
-        seenUserIdsRef.current = new Set(users.map(u => String(u?._id)).filter(Boolean))
-        isFirstUserLoadRef.current = false
+      const lastSeen = getLastSeen(lastSeenUsersKey)
+      if (!lastSeen) {
+        const latest = users[0]?.createdAt || new Date()
+        setLastSeen(lastSeenUsersKey, latest)
+        setNewUsersCount(0)
         return
       }
       const newUsers = users.filter(u => {
-        const id = String(u?._id || '')
-        return id && !seenUserIdsRef.current.has(id)
+        const createdAt = u?.createdAt ? new Date(u.createdAt) : null
+        return createdAt && createdAt > lastSeen
       })
-      if (newUsers.length > 0) {
-        newUsers.forEach(u => {
-          const id = String(u?._id || '')
-          if (id) seenUserIdsRef.current.add(id)
-        })
-        setNewUsersCount(prev => prev + newUsers.length)
+      const count = newUsers.length
+      setNewUsersCount(count)
+      if (count > 0) {
         toast({
           title: 'New user registered',
-          description: `${newUsers.length} new user${newUsers.length > 1 ? 's' : ''} joined.`
+          description: `${count} new user${count > 1 ? 's' : ''} joined.`
         })
         playNotificationSound(740)
       }
@@ -92,9 +98,31 @@ export default function AdminDashboard() {
     return () => clearInterval(timer)
   }, [fetchUsersForNotifications])
 
+  useEffect(() => {
+    const lastSeen = getLastSeen(lastSeenOrdersKey)
+    if (!lastSeen) {
+      const latestOrder = orders[0]?.createdAt || new Date()
+      setLastSeen(lastSeenOrdersKey, latestOrder)
+      setNewOrdersCount(0)
+      return
+    }
+    const count = orders.filter(o => {
+      const createdAt = o?.createdAt ? new Date(o.createdAt) : null
+      return createdAt && createdAt > lastSeen
+    }).length
+    setNewOrdersCount(count)
+  }, [orders])
+
   const handleTabChange = (id) => {
     setTab(id)
-    if (id === 'users') setNewUsersCount(0)
+    if (id === 'users') {
+      setNewUsersCount(0)
+      setLastSeen(lastSeenUsersKey, new Date())
+    }
+    if (id === 'orders') {
+      setNewOrdersCount(0)
+      setLastSeen(lastSeenOrdersKey, new Date())
+    }
   }
 
   return (
@@ -126,9 +154,9 @@ export default function AdminDashboard() {
                 {newUsersCount}
               </span>
             )}
-            {t.id === 'orders' && newOrderCount > 0 && (
+            {t.id === 'orders' && newOrdersCount > 0 && (
               <span className="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-100">
-                {newOrderCount}
+                {newOrdersCount}
               </span>
             )}
             {t.id === 'orders' && returnRequestCount > 0 && (
